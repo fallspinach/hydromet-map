@@ -1,0 +1,496 @@
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(300px, 390px) 1fr;
+  background:
+    radial-gradient(circle at top left, rgba(83, 137, 181, 0.34), transparent 36%),
+    linear-gradient(135deg, #edf4f7 0%, #dbeaf0 48%, #c4d8df 100%);
+  color: #10222f;
+}
+
+.control-panel {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  backdrop-filter: blur(12px);
+  background: rgba(247, 251, 252, 0.88);
+  border-right: 1px solid rgba(16, 34, 47, 0.08);
+  overflow-y: auto;
+}
+
+.panel-section,
+.map-canvas {
+  border: 1px solid rgba(16, 34, 47, 0.09);
+  border-radius: 20px;
+  box-shadow: 0 20px 45px rgba(38, 73, 89, 0.08);
+}
+
+.panel-section {
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.panel-section__eyebrow,
+.map-canvas__eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+  color: #4a7189;
+}
+
+.panel-section {
+  padding: 0.95rem;
+}
+
+.panel-section__header {
+  margin-bottom: 1rem;
+}
+
+.panel-section__header h2 {
+  margin: 0.35rem 0 0;
+}
+
+.button-grid,
+.form-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.button-grid {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.button-grid--map {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+
+.choice-card {
+  border: 1px solid rgba(74, 113, 137, 0.2);
+  background: #f5f9fb;
+  border-radius: 999px;
+  padding: 0.3rem 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.choice-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(31, 95, 140, 0.45);
+}
+
+.choice-card.is-active {
+  background: #d9ecf5;
+  border-color: #1d6996;
+}
+
+.choice-card strong,
+.layer-row strong {
+  display: block;
+}
+
+.date-actions,
+.bookmark-popup__body,
+.bookmark-popup__content {
+  display: flex;
+  gap: 0.85rem;
+}
+
+.form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-grid--stacked {
+  margin-top: 1rem;
+}
+
+.layer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-top: 0.85rem;
+}
+
+.layer-dropdown {
+  border: 1px solid rgba(74, 113, 137, 0.14);
+  border-radius: 16px;
+  background: #f6fafb;
+  padding: 0.22rem 0.3rem 0.4rem;
+}
+
+.layer-dropdown summary {
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  color: #244050;
+  padding: 0.34rem 0.42rem;
+}
+
+.layer-dropdown summary::-webkit-details-marker {
+  display: none;
+}
+
+.layer-dropdown summary::after {
+  content: '+';
+  float: right;
+  color: #4a7189;
+  font-size: 1.05rem;
+}
+
+.layer-dropdown[open] summary::after {
+  content: '-';
+}
+
+.layer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.38rem 0.52rem;
+  background: #ffffff;
+  border: 1px solid rgba(74, 113, 137, 0.14);
+  border-radius: 16px;
+}
+
+label {
+  display: grid;
+  gap: 0.4rem;
+  color: #244050;
+  font-size: 0.94rem;
+}
+
+input,
+select,
+button {
+  font: inherit;
+}
+
+input[type='date'],
+select,
+.bookmark-popup__content input {
+  width: 100%;
+  border: 1px solid rgba(74, 113, 137, 0.18);
+  border-radius: 12px;
+  padding: 0.38rem 0.56rem;
+  background: #fff;
+  color: #10222f;
+}
+
+input[type='checkbox'] {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: #1d6996;
+}
+
+button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.38rem 0.62rem;
+  background: #1d6996;
+  color: #fff;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    opacity 160ms ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.legend-card {
+  margin-top: 1rem;
+  padding: 0.95rem 1rem;
+  background: linear-gradient(180deg, #f7fbfc 0%, #edf4f7 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(74, 113, 137, 0.14);
+}
+
+.legend-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.legend-scale {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(54px, 1fr));
+  gap: 0.65rem;
+}
+
+.legend-scale__stop {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: center;
+}
+
+.legend-scale__stop span {
+  display: block;
+  width: 100%;
+  height: 16px;
+  border-radius: 999px;
+}
+
+.map-stage {
+  padding: 1.25rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.map-canvas {
+  position: relative;
+  min-height: 520px;
+  overflow: hidden;
+  background: #d9e8ef;
+  color: #f6fbfd;
+}
+
+.map-canvas__overlay {
+  position: absolute;
+  top: 0.85rem;
+  left: 0.85rem;
+  z-index: 2;
+  width: min(260px, calc(100% - 1.7rem));
+  padding: 0.4rem;
+  border-radius: 18px;
+  background: rgba(16, 34, 47, 0.36);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.map-canvas__overlay .choice-card {
+  min-height: 100%;
+  padding: 0.26rem 0.42rem;
+  background: rgba(244, 249, 252, 0.88);
+  color: #10222f;
+}
+
+.map-canvas__overlay .choice-card.is-active {
+  background: rgba(217, 236, 245, 0.96);
+}
+
+.legend-card--map {
+  margin-top: 0;
+  padding: 0.36rem 0.42rem;
+  background: rgba(244, 249, 252, 0.9);
+  border-radius: 12px;
+}
+
+.legend-card__header--map {
+  margin-bottom: 0.28rem;
+  display: grid;
+  gap: 0.08rem;
+}
+
+.legend-card__header--map strong,
+.legend-card__header--map span {
+  color: #10222f;
+}
+
+.legend-scale--vertical {
+  grid-template-columns: 1fr;
+  gap: 0.18rem;
+}
+
+.legend-scale__stop--vertical {
+  grid-template-columns: 14px 1fr;
+  align-items: center;
+  justify-items: start;
+  gap: 0.32rem;
+}
+
+.legend-scale__stop--vertical span {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.legend-scale__stop--vertical small {
+  color: #244050;
+  font-size: 0.72rem;
+}
+
+.bookmark-widget {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  z-index: 3;
+}
+
+.bookmark-trigger {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+  color: #244050;
+  border: 1px solid rgba(16, 34, 47, 0.12);
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+.bookmark-trigger svg {
+  width: 14px;
+  height: 14px;
+}
+
+.bookmark-popup {
+  margin-top: 0.6rem;
+  width: min(360px, calc(100vw - 2.5rem));
+  padding: 0.95rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(16, 34, 47, 0.09);
+  box-shadow: 0 20px 45px rgba(38, 73, 89, 0.18);
+  color: #10222f;
+}
+
+.bookmark-popup__header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.bookmark-popup__header strong {
+  display: block;
+  margin-top: 0.3rem;
+}
+
+.bookmark-popup__close {
+  padding: 0.2rem 0.45rem;
+  background: #e4eef3;
+  color: #244050;
+}
+
+.bookmark-popup__body {
+  margin-top: 0.9rem;
+  align-items: center;
+}
+
+.bookmark-popup__body img {
+  width: 132px;
+  height: 132px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(74, 113, 137, 0.14);
+}
+
+.bookmark-popup__content {
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.bookmark-popup__content button {
+  align-self: start;
+}
+
+.map-legend {
+  position: absolute;
+  top: 4.85rem;
+  left: 0.85rem;
+  z-index: 2;
+  width: 118px;
+}
+
+.maplibregl-map,
+.maplibregl-canvas,
+.maplibregl-canvas-container {
+  border-radius: 20px;
+}
+
+.station-popup strong,
+.station-popup p,
+.station-popup span {
+  display: block;
+}
+
+.station-popup p {
+  margin: 0.2rem 0;
+  color: #4a7189;
+}
+
+.maplibregl-ctrl-top-right,
+.maplibregl-ctrl-bottom-left {
+  z-index: 2;
+}
+
+.maplibregl-ctrl-top-right {
+  top: 4.8rem;
+}
+
+@media (max-width: 1024px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .control-panel {
+    border-right: none;
+    border-bottom: 1px solid rgba(16, 34, 47, 0.08);
+  }
+}
+
+@media (max-width: 720px) {
+  .control-panel,
+  .map-stage {
+    padding: 1rem;
+  }
+
+  .form-grid,
+  .button-grid--map {
+    grid-template-columns: 1fr;
+  }
+
+  .date-actions,
+  .bookmark-popup__body {
+    flex-direction: column;
+  }
+
+  .map-canvas {
+    min-height: 430px;
+  }
+
+  .map-canvas__overlay {
+    width: calc(100% - 1.6rem);
+  }
+
+  .map-legend {
+    top: auto;
+    bottom: 0.8rem;
+    left: 0.8rem;
+    width: 110px;
+  }
+
+  .bookmark-widget {
+    top: auto;
+    right: 0.8rem;
+    bottom: 0.8rem;
+  }
+
+  .bookmark-popup {
+    margin-top: 0;
+    margin-bottom: 0.6rem;
+  }
+
+  .bookmark-popup__body img {
+    width: 148px;
+    height: 148px;
+  }
+
+  .maplibregl-ctrl-top-right {
+    top: 11.8rem;
+  }
+}
