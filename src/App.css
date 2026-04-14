@@ -598,7 +598,7 @@ button:disabled {
 .bookmark-widget {
   position: absolute;
   top: 0.85rem;
-  right: 0.85rem;
+  right: 0.5rem;
   z-index: 3;
   width: 30px;
 }
@@ -647,9 +647,16 @@ button:disabled {
 }
 
 .bookmark-popup__close {
-  padding: 0.2rem 0.45rem;
+  width: 1.55rem;
+  height: 1.55rem;
+  padding: 0;
+  display: grid;
+  place-items: center;
   background: #e4eef3;
   color: #244050;
+  border-radius: 999px;
+  line-height: 1;
+  flex: 0 0 auto;
 }
 
 .bookmark-popup__body {
@@ -786,7 +793,7 @@ button:disabled {
 
   .bookmark-widget {
     top: auto;
-    right: 0.8rem;
+    right: 0.5rem;
     bottom: 0.8rem;
   }
 

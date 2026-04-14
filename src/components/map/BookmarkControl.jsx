@@ -1,0 +1,54 @@
+export default function BookmarkControl({
+  bookmarkOpen,
+  bookmarkWidgetRef,
+  copyStatus,
+  onClose,
+  onCopy,
+  onToggle,
+  qrCodeUrl,
+}) {
+  return (
+    <div ref={bookmarkWidgetRef} className="bookmark-widget">
+      <button
+        className="bookmark-trigger"
+        type="button"
+        title="Bookmark this map"
+        onClick={onToggle}
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path
+            d="M6.75 3.75h10.5v16.5l-5.25-3.75-5.25 3.75Z"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="1.8"
+          />
+        </svg>
+      </button>
+
+      {bookmarkOpen ? (
+        <div className="bookmark-popup">
+          <div className="bookmark-popup__header">
+            <div>
+              <p className="map-canvas__eyebrow">Bookmark</p>
+              <strong>Share this map view</strong>
+            </div>
+            <button className="bookmark-popup__close" type="button" onClick={onClose}>
+              x
+            </button>
+          </div>
+
+          <div className="bookmark-popup__body">
+            <img alt="QR code for current map bookmark" src={qrCodeUrl} />
+            <div className="bookmark-popup__content">
+              <button type="button" onClick={onCopy}>
+                {copyStatus}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
+}
