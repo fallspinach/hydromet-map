@@ -21,34 +21,46 @@ export const BASEMAPS = [
 
 export const MAP_LAYERS = [
   {
-    id: 'watersheds',
-    label: 'Watersheds',
-    type: 'vector',
-    description: 'Administrative hydrologic basin boundaries.',
+    id: 'forecast',
+    label: 'Raster Overlay',
+    type: 'png-overlay',
+    description: 'Model raster rendered from a variable, date, and ensemble.',
   },
   {
-    id: 'rivers',
-    label: 'River Network',
-    type: 'vector-tile',
-    description: 'Flowlines and stream segments from tiled vector sources.',
+    id: 'cnrfcRegion',
+    label: 'CNRFC Region',
+    type: 'vector',
+    description: 'CNRFC boundary outline.',
   },
   {
     id: 'stations',
-    label: 'Observation Stations',
+    label: 'Forecast Points',
     type: 'vector',
     description: 'Clickable station points for time-series lookups.',
   },
   {
-    id: 'radar',
-    label: 'Radar Mosaic',
-    type: 'raster-tile',
-    description: 'Near-real-time weather radar tile overlay.',
+    id: 'watersheds',
+    label: 'Forecast Basins',
+    type: 'vector-tile',
+    description: 'Forecast basin boundaries from tiled vector sources.',
   },
   {
-    id: 'forecast',
-    label: 'Forecast Raster Overlay',
-    type: 'png-overlay',
-    description: 'Model raster rendered from a variable, date, and ensemble.',
+    id: 'rivers',
+    label: 'NWM Rivers',
+    type: 'vector-tile',
+    description: 'Flowlines and stream segments from tiled vector sources.',
+  },
+  {
+    id: 'snowCourses',
+    label: 'Snow Courses',
+    type: 'vector',
+    description: 'Snow course monitoring stations.',
+  },
+  {
+    id: 'snowPillows',
+    label: 'Snow Pillows',
+    type: 'vector',
+    description: 'Snow pillow monitoring stations.',
   },
 ]
 
@@ -97,6 +109,12 @@ export const DEFAULT_DATE = '2026-04-13'
 export const DEFAULT_DATETIME = '2026-04-13T12:00'
 export const TERRAIN_SOURCE_ID = 'terrain_source'
 export const TERRAIN_SPEC = { source: TERRAIN_SOURCE_ID, exaggeration: 1 }
+export const RIVER_NETWORK_PMTILES_URL =
+  'https://cw3e.ucsd.edu/wrf_hydro/cnrfc/pmtiles/nwm_reaches_cnrfc_idx.pmtiles'
+export const RIVER_NETWORK_SOURCE_LAYER = 'NWM_v2.1_channels'
+export const FORECAST_BASINS_PMTILES_URL =
+  'https://cw3e.ucsd.edu/wrf_hydro/cnrfc/pmtiles/CNRFC_Basins.pmtiles'
+export const FORECAST_BASINS_SOURCE_LAYER = 'CNRFC_Basins'
 
 export const DEFAULT_STATE = {
   view: {
@@ -112,7 +130,9 @@ export const DEFAULT_STATE = {
     watersheds: true,
     rivers: true,
     stations: true,
-    radar: false,
+    cnrfcRegion: false,
+    snowCourses: false,
+    snowPillows: false,
     forecast: true,
   },
   raster: {

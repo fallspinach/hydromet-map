@@ -19,6 +19,7 @@ import {
 
 export default function MapHud({
   appState,
+  basemapMenuRef,
   basemapMenuOpen,
   layerMenuOpen,
   layerMenuRef,
@@ -38,15 +39,15 @@ export default function MapHud({
     <div className="map-canvas__overlay">
       <div className="scene-tools">
         <div
+          ref={basemapMenuRef}
           className={basemapMenuOpen ? 'basemap-switcher is-open' : 'basemap-switcher'}
           title={selectedBasemap.description}
-          onMouseEnter={() => setBasemapMenuOpen(true)}
-          onMouseLeave={() => setBasemapMenuOpen(false)}
         >
           <button
             className="choice-card choice-card--current is-active"
             type="button"
             aria-label={`Current basemap: ${selectedBasemap.label}`}
+            onClick={() => setBasemapMenuOpen((current) => !current)}
           >
             <strong>{selectedBasemap.label}</strong>
           </button>

@@ -22,6 +22,7 @@ function App() {
   const [layerMenuOpen, setLayerMenuOpen] = useState(false)
   const [mouseCoordinates, setMouseCoordinates] = useState(null)
   const bookmarkWidgetRef = useRef(null)
+  const basemapMenuRef = useRef(null)
   const layerMenuRef = useRef(null)
 
   useEffect(() => {
@@ -41,11 +42,14 @@ function App() {
   }, [copyStatus])
 
   useEffect(() => {
-    if (!layerMenuOpen) {
+    if (!basemapMenuOpen && !layerMenuOpen) {
       return undefined
     }
 
     function handlePointerDown(event) {
+      if (!basemapMenuRef.current?.contains(event.target)) {
+        setBasemapMenuOpen(false)
+      }
       if (!layerMenuRef.current?.contains(event.target)) {
         setLayerMenuOpen(false)
       }
@@ -56,7 +60,7 @@ function App() {
     return () => {
       window.removeEventListener('pointerdown', handlePointerDown)
     }
-  }, [layerMenuOpen])
+  }, [basemapMenuOpen, layerMenuOpen])
 
   const selectedBasemap = BASEMAPS.find((item) => item.id === appState.basemapId) ?? BASEMAPS[0]
   const selectedVariable = RASTER_VARIABLES[appState.raster.variable] ?? RASTER_VARIABLES.precipitation
@@ -143,6 +147,7 @@ function App() {
       <main className="map-stage">
         <MapCanvas
           appState={appState}
+          basemapMenuRef={basemapMenuRef}
           basemapMenuOpen={basemapMenuOpen}
           bookmarkOpen={bookmarkOpen}
           bookmarkWidgetRef={bookmarkWidgetRef}
