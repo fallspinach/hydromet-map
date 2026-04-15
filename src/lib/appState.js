@@ -1,9 +1,10 @@
 import {
   BASEMAPS,
+  DEFAULT_RASTER_VARIABLE,
   DEFAULT_STATE,
   ENSEMBLE_TRACES,
   MAP_LAYERS,
-  RASTER_MODELS,
+  RASTER_PRODUCTS,
   RASTER_VARIABLES,
 } from '../config/mapConfig'
 
@@ -22,7 +23,7 @@ export function readStateFromUrl() {
   const bearing = params.get('bearing')
   const pitch = params.get('pitch')
   const variable = params.get('variable')
-  const model = params.get('model')
+  const product = params.get('product') ?? params.get('model')
   const ensemble = params.get('ensemble')
   const temporalMode = params.get('temporalMode')
   const date = params.get('date')
@@ -61,8 +62,8 @@ export function readStateFromUrl() {
     nextState.raster.variable = variable
   }
 
-  if (RASTER_MODELS.includes(model)) {
-    nextState.raster.model = model
+  if (RASTER_PRODUCTS.includes(product)) {
+    nextState.raster.product = product
   }
 
   if (ENSEMBLE_TRACES.includes(ensemble)) {
@@ -100,8 +101,8 @@ export function writeStateToUrl(state) {
   params.set('zoom', state.view.zoom)
   params.set('bearing', state.view.bearing)
   params.set('pitch', state.view.pitch)
-  params.set('variable', state.raster.variable)
-  params.set('model', state.raster.model)
+  params.set('variable', state.raster.variable || DEFAULT_RASTER_VARIABLE)
+  params.set('product', state.raster.product)
   params.set('ensemble', state.raster.ensemble)
   params.set('temporalMode', state.raster.temporalMode)
   params.set('date', state.raster.date)

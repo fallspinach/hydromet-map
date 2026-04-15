@@ -24,7 +24,7 @@ export const MAP_LAYERS = [
     id: 'forecast',
     label: 'Raster Overlay',
     type: 'png-overlay',
-    description: 'Model raster rendered from a variable, date, and ensemble.',
+    description: 'Raster rendered from a variable, date, product, and ensemble.',
     symbol: '\u25A0',
   },
   {
@@ -81,7 +81,7 @@ export const RASTER_VARIABLES = {
   precipitation: {
     label: 'Precipitation',
     units: 'mm',
-    timestep: '3hour',
+    timestep: '1day',
     palette: {
       thresholds: ['1', '2.5', '5', '7.5', '10', '15', '20', '30', '40', '50', '70', '100', '150', '200', '250', '300', '400', '500', '750'],
       colors: ['#ebebeb', '#50d0d0', '#00ffff', '#00e080', '#00c000', '#80e000', '#ffff00', '#ffa000', '#ff0000', '#ff2080', '#f040ff',
@@ -109,7 +109,8 @@ export const RASTER_VARIABLES = {
   },
 }
 
-export const RASTER_MODELS = ['GFS', 'ECMWF', 'WRF']
+export const DEFAULT_RASTER_VARIABLE = Object.keys(RASTER_VARIABLES)[0]
+export const RASTER_PRODUCTS = ['NRT', 'WWRF-ECMWF', 'WWRF-GFS','GFS']
 export const ENSEMBLE_TRACES = ['Control', 'Mean', 'P10', 'P50', 'P90']
 export const DEFAULT_DATE = '2026-04-13'
 export const DEFAULT_DATETIME = '2026-04-13T12:00'
@@ -142,8 +143,8 @@ export const DEFAULT_STATE = {
     forecast: true,
   },
   raster: {
-    variable: 'precipitation',
-    model: 'GFS',
+    variable: DEFAULT_RASTER_VARIABLE,
+    product: RASTER_PRODUCTS[0],
     ensemble: 'Mean',
     temporalMode: 'date',
     date: DEFAULT_DATE,

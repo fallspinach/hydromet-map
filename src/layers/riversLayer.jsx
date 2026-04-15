@@ -1,0 +1,127 @@
+import { Layer, Popup, Source } from 'react-map-gl/maplibre'
+import { RIVER_NETWORK_PMTILES_URL, RIVER_NETWORK_SOURCE_LAYER } from '../config/mapConfig'
+
+const RIVERS_LINE_WIDTH = [
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  0,
+  ['-', ['get', 'stream_order'], 6],
+  1,
+  ['-', ['get', 'stream_order'], 6],
+  2,
+  ['-', ['get', 'stream_order'], 6],
+  3,
+  ['-', ['get', 'stream_order'], 5.5],
+  4,
+  ['-', ['get', 'stream_order'], 5],
+  5,
+  ['-', ['get', 'stream_order'], 5],
+  6,
+  ['-', ['get', 'stream_order'], 4],
+  7,
+  ['-', ['get', 'stream_order'], 3],
+  8,
+  ['-', ['get', 'stream_order'], 2],
+  9,
+  ['-', ['get', 'stream_order'], 1],
+  10,
+  ['-', ['get', 'stream_order'], 1],
+  11,
+  ['-', ['get', 'stream_order'], 1],
+  12,
+  ['+', ['get', 'stream_order'], 0],
+  13,
+  ['+', ['get', 'stream_order'], 1],
+]
+
+function buildHoveredRiver(event, feature) {
+  const properties = feature?.properties ?? {}
+  const rawLength = Number.parseFloat(properties.Shape_Length)
+  const hasValidLength = Number.isFinite(rawLength)
+
+  return {
+    longitude: event.lngLat.lng,
+    latitude: event.lngLat.lat,
+    featureId: properties.feature_id ?? 'Unknown',
+    name: properties.gnis_name || 'Unnamed',
+    source: properties.source || 'Unknown',
+    lengthKm: hasValidLength ? (rawLength * 111.1).toFixed(1) : null,
+    streamOrder: properties.stream_order ?? 'Unknown',
+  }
+}
+
+const riversLayer = {
+  id: 'rivers',
+  stateKey: 'hoveredRiver',
+  isVisible: ({ appState }) => appState.layers.rivers,
+  getInteractiveLayerIds() {
+    return ['rivers-line']
+  },
+  getPointerState({ event }) {
+    const hoveredFeature = event.features?.find((feature) => feature.layer.id === 'rivers-line')
+    return {
+      hoveredRiver: hoveredFeature ? buildHoveredRiver(event, hoveredFeature) : null,
+    }
+  },
+  getPointerLeaveState() {
+    return { hoveredRiver: null }
+  },
+  renderLayers({ interactionState }) {
+    return (
+      <Source id="rivers-source" type="vector" url={`pmtiles://${RIVER_NETWORK_PMTILES_URL}`}>
+        <Layer
+          id="rivers-line"
+          type="line"
+          source-layer={RIVER_NETWORK_SOURCE_LAYER}
+          paint={{
+            'line-color': '#008b8b',
+            'line-opacity': 0.9,
+            'line-width': RIVERS_LINE_WIDTH,
+          }}
+        />
+        <Layer
+          id="rivers-line-highlight"
+          type="line"
+          source-layer={RIVER_NETWORK_SOURCE_LAYER}
+          filter={['==', ['get', 'feature_id'], interactionState.hoveredRiver?.featureId ?? '__none__']}
+          paint={{
+            'line-color': '#c62828',
+            'line-opacity': 0.95,
+            'line-width': RIVERS_LINE_WIDTH,
+          }}
+        />
+      </Source>
+    )
+  },
+  renderPopups({ interactionState }) {
+    const hoveredRiver = interactionState.hoveredRiver
+
+    if (!hoveredRiver) {
+      return null
+    }
+
+    return (
+      <Popup
+        anchor="bottom"
+        closeButton={false}
+        closeOnClick={false}
+        latitude={hoveredRiver.latitude}
+        longitude={hoveredRiver.longitude}
+        offset={10}
+      >
+        <div className="river-popup">
+          <strong>River ID: {hoveredRiver.featureId}</strong>
+          <p>Name: {hoveredRiver.name}</p>
+          <p>Source: {hoveredRiver.source}</p>
+          <p>
+            Length: {hoveredRiver.lengthKm ?? 'Unknown'}{hoveredRiver.lengthKm ? ' km' : ''}
+          </p>
+          <p>Stream Order: {hoveredRiver.streamOrder}</p>
+        </div>
+      </Popup>
+    )
+  },
+}
+
+export default riversLayer

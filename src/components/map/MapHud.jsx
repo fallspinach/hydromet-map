@@ -1,9 +1,10 @@
 import DatePicker from 'react-datepicker'
 import {
   BASEMAPS,
+  DEFAULT_RASTER_VARIABLE,
   ENSEMBLE_TRACES,
   MAP_LAYERS,
-  RASTER_MODELS,
+  RASTER_PRODUCTS,
   RASTER_VARIABLES,
 } from '../../config/mapConfig'
 import {
@@ -30,7 +31,8 @@ export default function MapHud({
   updateTopLevel,
   toggleLayer,
 }) {
-  const selectedRasterVariable = RASTER_VARIABLES[appState.raster.variable] ?? RASTER_VARIABLES.precipitation
+  const selectedRasterVariable =
+    RASTER_VARIABLES[appState.raster.variable] ?? RASTER_VARIABLES[DEFAULT_RASTER_VARIABLE]
   const isDateTimeMode = getTemporalModeForTimestep(selectedRasterVariable.timestep) === 'datetime'
   const shortStep = parseTimestep(selectedRasterVariable.timestep)
   const shortStepLabel = `${shortStep.amount} ${shortStep.unit}${shortStep.amount === 1 ? '' : 's'}`
@@ -273,13 +275,13 @@ export default function MapHud({
         </select>
 
         <select
-          value={appState.raster.model}
-          title="Forecast model"
-          onChange={(event) => updateRaster('model', event.target.value)}
+          value={appState.raster.product}
+          title="Raster product"
+          onChange={(event) => updateRaster('product', event.target.value)}
         >
-          {RASTER_MODELS.map((model) => (
-            <option key={model} value={model}>
-              {model}
+          {RASTER_PRODUCTS.map((product) => (
+            <option key={product} value={product}>
+              {product}
             </option>
           ))}
         </select>

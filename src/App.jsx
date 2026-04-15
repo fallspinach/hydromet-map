@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import 'react-datepicker/dist/react-datepicker.css'
 import './App.css'
-import { BASEMAPS, DEFAULT_STATE, RASTER_VARIABLES } from './config/mapConfig'
+import { BASEMAPS, DEFAULT_RASTER_VARIABLE, DEFAULT_STATE, RASTER_VARIABLES } from './config/mapConfig'
 import MapCanvas from './components/map/MapCanvas'
 import {
   getTemporalModeForTimestep,
@@ -59,7 +59,8 @@ function App() {
   }, [basemapMenuOpen, layerMenuOpen])
 
   const selectedBasemap = BASEMAPS.find((item) => item.id === appState.basemapId) ?? BASEMAPS[0]
-  const selectedVariable = RASTER_VARIABLES[appState.raster.variable] ?? RASTER_VARIABLES.precipitation
+  const selectedVariable =
+    RASTER_VARIABLES[appState.raster.variable] ?? RASTER_VARIABLES[DEFAULT_RASTER_VARIABLE]
   const temporalMode = getTemporalModeForTimestep(selectedVariable.timestep)
   const center = parseCenter(appState.view.center)
   const viewState = {
@@ -101,7 +102,7 @@ function App() {
       }
 
       if (key === 'variable') {
-        const nextVariable = RASTER_VARIABLES[value] ?? RASTER_VARIABLES.precipitation
+        const nextVariable = RASTER_VARIABLES[value] ?? RASTER_VARIABLES[DEFAULT_RASTER_VARIABLE]
         nextRaster.temporalMode = getTemporalModeForTimestep(nextVariable.timestep)
       }
 
