@@ -113,9 +113,7 @@ export function writeStateToUrl(state) {
       .join(','),
   )
 
-  const nextUrl = `${window.location.pathname}?${params.toString()}`
-  window.history.replaceState({}, '', nextUrl)
-  return window.location.href
+  return `${window.location.origin}${window.location.pathname}?${params.toString()}`
 }
 
 export function parseCenter(centerText) {

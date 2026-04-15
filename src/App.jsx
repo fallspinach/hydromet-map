@@ -26,10 +26,6 @@ function App() {
   const layerMenuRef = useRef(null)
 
   useEffect(() => {
-    setBookmarkUrl(writeStateToUrl(appState))
-  }, [appState])
-
-  useEffect(() => {
     if (copyStatus === 'Copied') {
       const timeoutId = window.setTimeout(() => {
         setCopyStatus('Copy URL')
@@ -133,9 +129,16 @@ function App() {
     })
   }
 
+  function refreshBookmarkUrl() {
+    const nextBookmarkUrl = writeStateToUrl(appState)
+    setBookmarkUrl(nextBookmarkUrl)
+    return nextBookmarkUrl
+  }
+
   async function handleCopyBookmark() {
     try {
-      await navigator.clipboard.writeText(bookmarkUrl)
+      const nextBookmarkUrl = refreshBookmarkUrl()
+      await navigator.clipboard.writeText(nextBookmarkUrl)
       setCopyStatus('Copied')
     } catch {
       setCopyStatus('Copy failed')
@@ -158,7 +161,14 @@ function App() {
           onCloseBookmark={() => setBookmarkOpen(false)}
           onCopyBookmark={handleCopyBookmark}
           onMouseMove={handleMapMouseMove}
-          onToggleBookmark={() => setBookmarkOpen((current) => !current)}
+          onToggleBookmark={() => {
+            setBookmarkOpen((current) => {
+              if (!current) {
+                refreshBookmarkUrl()
+              }
+              return !current
+            })
+          }}
           qrCodeUrl={qrCodeUrl}
           selectedBasemap={selectedBasemap}
           selectedStation={selectedStation}

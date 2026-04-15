@@ -90,7 +90,7 @@ export const RASTER_VARIABLES = {
   },
   temperature: {
     label: 'Temperature',
-    units: '\u00B0 C',
+    units: '\u00B0C',
     timestep: '1day',
     palette: {
       thresholds: ['-12', '-9', '-6', '-3', '0', '3', '6', '9', '12', '15', '18', '21', '24', '27', '30', '33', '36', '39'],

@@ -595,13 +595,13 @@ button:disabled {
 }
 
 .scene-icon-button svg {
-  width: 15px;
-  height: 15px;
+  width: 21px;
+  height: 21px;
   fill: none;
   stroke: currentColor;
   strokeLinecap: round;
   strokeLinejoin: round;
-  strokeWidth: 1.8;
+  strokeWidth: 2;
 }
 
 .layer-toggle {
@@ -760,8 +760,8 @@ button:disabled {
 }
 
 .bookmark-trigger svg {
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
 }
 
 .bookmark-backdrop {
