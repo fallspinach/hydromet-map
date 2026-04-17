@@ -44,8 +44,7 @@ const stationsLayer = {
     const clickedFeature = event.features?.find((feature) => feature.layer.id === 'stations-hit-layer')
 
     if (!clickedFeature || clickedFeature.geometry.type !== 'Point') {
-      setSelectedStation(null)
-      return true
+      return false
     }
 
     const station = createSelectedStationPopupState(clickedFeature, {
