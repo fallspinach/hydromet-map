@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Popup } from 'react-map-gl/maplibre'
-import StationTimeSeriesPlot from '../stationPopup/StationTimeSeriesPlot'
+import TimeSeriesPlot from '../cnrfcPointPopup/TimeSeriesPlot'
 import B120PointPopupTable from './B120PointPopupTable'
 import {
   B120_POINT_FORECAST_UPDATE_OPTIONS,
@@ -37,7 +37,7 @@ function renderPlotPanel(plotState, station) {
           style={plotState.plotHeight ? { height: `${plotState.plotHeight}px` } : undefined}
         >
           {plotState.plotType === 'timeseries' ? (
-            <StationTimeSeriesPlot
+            <TimeSeriesPlot
               stationName={station.location}
               stationId={station.stationId}
               plotState={plotState}

@@ -98,7 +98,7 @@ But the structure now supports multiple families, with the rule that each projec
 
 ### Popup features
 
-- `src/features/stationPopup/`
+- `src/features/cnrfcPointPopup/`
 - `src/features/snowStationPopup/`
 - `src/features/b120PointPopup/`
 

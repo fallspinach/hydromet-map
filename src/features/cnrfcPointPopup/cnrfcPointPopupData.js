@@ -1,11 +1,11 @@
 import { fetchAndParseCsv } from '../../lib/csvData'
 import {
-  DEFAULT_STATION_POPUP_FORECAST_PRODUCT,
-  STATION_POPUP_TABS,
-  getDefaultStationPopupTabId,
-  getStationPopupForecastProductLabel,
-  getStationPopupTabDefinition,
-} from './stationPopupConfig'
+  DEFAULT_CNRFC_POINT_POPUP_FORECAST_PRODUCT,
+  CNRFC_POINT_POPUP_TABS,
+  getDefaultCnrfcPointPopupTabId,
+  getCnrfcPointPopupForecastProductLabel,
+  getCnrfcPointPopupTabDefinition,
+} from './cnrfcPointPopupConfig'
 
 function findTimeAxisField(fields) {
   const preferredField = fields.find((field) => /^(date|time|datetime|timestamp)$/i.test(field))
@@ -128,8 +128,8 @@ function resolvePlotTitleText(plotDefinition, station) {
     return `${station.name} (${station.id})`
   }
 
-  const forecastProductLabel = getStationPopupForecastProductLabel(
-    station.popup?.forecastProduct ?? DEFAULT_STATION_POPUP_FORECAST_PRODUCT,
+  const forecastProductLabel = getCnrfcPointPopupForecastProductLabel(
+    station.popup?.forecastProduct ?? DEFAULT_CNRFC_POINT_POPUP_FORECAST_PRODUCT,
   )
 
   return template
@@ -148,7 +148,7 @@ function createEmptyTabState(tabDefinition) {
 
 function createEmptyTabDataById() {
   return Object.fromEntries(
-    STATION_POPUP_TABS.map((tabDefinition) => [tabDefinition.id, createEmptyTabState(tabDefinition)]),
+    CNRFC_POINT_POPUP_TABS.map((tabDefinition) => [tabDefinition.id, createEmptyTabState(tabDefinition)]),
   )
 }
 
@@ -309,17 +309,17 @@ function triggerPlotResize() {
   })
 }
 
-export function createInitialStationPopupState() {
+export function createInitialCnrfcPointPopupState() {
   return {
-    activeTabId: getDefaultStationPopupTabId(),
-    forecastProduct: DEFAULT_STATION_POPUP_FORECAST_PRODUCT,
+    activeTabId: getDefaultCnrfcPointPopupTabId(),
+    forecastProduct: DEFAULT_CNRFC_POINT_POPUP_FORECAST_PRODUCT,
     tabDataById: createEmptyTabDataById(),
   }
 }
 
-export function createSelectedStationPopupState(feature, initialPopupState = {}) {
+export function createSelectedCnrfcPointPopupState(feature, initialPopupState = {}) {
   return {
-    popupType: 'forecast-points',
+    popupType: 'cnrfc-points',
     id: feature.properties.ID,
     name: feature.properties.Location,
     river: feature.properties.River,
@@ -327,13 +327,13 @@ export function createSelectedStationPopupState(feature, initialPopupState = {})
     longitude: feature.geometry.coordinates[0],
     latitude: feature.geometry.coordinates[1],
     popup: {
-      ...createInitialStationPopupState(),
+      ...createInitialCnrfcPointPopupState(),
       ...initialPopupState,
     },
   }
 }
 
-export function setActiveStationPopupTab(setSelectedStation, tabId) {
+export function setActiveCnrfcPointPopupTab(setSelectedStation, tabId) {
   setSelectedStation((current) =>
     current
       ? {
@@ -349,7 +349,7 @@ export function setActiveStationPopupTab(setSelectedStation, tabId) {
   triggerPlotResize()
 }
 
-export function setStationPopupForecastProduct(setSelectedStation, productId) {
+export function setCnrfcPointPopupForecastProduct(setSelectedStation, productId) {
   setSelectedStation((current) =>
     current
       ? {
@@ -364,8 +364,8 @@ export function setStationPopupForecastProduct(setSelectedStation, productId) {
   )
 }
 
-export function loadStationPopupTabData(setSelectedStation, station, tabId) {
-  const tabDefinition = getStationPopupTabDefinition(tabId)
+export function loadCnrfcPointPopupTabData(setSelectedStation, station, tabId) {
+  const tabDefinition = getCnrfcPointPopupTabDefinition(tabId)
 
   if (!tabDefinition) {
     return
@@ -455,8 +455,8 @@ export function loadStationPopupTabData(setSelectedStation, station, tabId) {
     })
 }
 
-export function getStationPopupTabs() {
-  return STATION_POPUP_TABS
+export function getCnrfcPointPopupTabs() {
+  return CNRFC_POINT_POPUP_TABS
 }
 function buildXAxisLayout(plotDefinition, station) {
   if (typeof plotDefinition.xAxis === 'function') {

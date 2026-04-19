@@ -5,7 +5,7 @@ import Plotly from 'plotly.js/dist/plotly'
 const createPlotlyComponent = createPlotlyComponentModule.default ?? createPlotlyComponentModule
 const Plot = createPlotlyComponent(Plotly)
 
-const StationTimeSeriesPlot = memo(function StationTimeSeriesPlot({
+const TimeSeriesPlot = memo(function TimeSeriesPlot({
   stationName,
   stationId,
   plotState,
@@ -65,4 +65,4 @@ const StationTimeSeriesPlot = memo(function StationTimeSeriesPlot({
   )
 })
 
-export default StationTimeSeriesPlot
+export default TimeSeriesPlot

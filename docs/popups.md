@@ -25,17 +25,17 @@ Most popup features are split into:
 
 Files:
 
-- [src/features/stationPopup/stationPopupConfig.js](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/features/stationPopup/stationPopupConfig.js)
-- [src/features/stationPopup/stationPopupData.js](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/features/stationPopup/stationPopupData.js)
-- [src/features/stationPopup/StationPopup.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/features/stationPopup/StationPopup.jsx)
-- [src/features/stationPopup/StationTimeSeriesPlot.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/features/stationPopup/StationTimeSeriesPlot.jsx)
+- [src/features/cnrfcPointPopup/cnrfcPointPopupConfig.js](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/features/cnrfcPointPopup/cnrfcPointPopupConfig.js)
+- [src/features/cnrfcPointPopup/cnrfcPointPopupData.js](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/features/cnrfcPointPopup/cnrfcPointPopupData.js)
+- [src/features/cnrfcPointPopup/CnrfcPointPopup.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/features/cnrfcPointPopup/CnrfcPointPopup.jsx)
+- [src/features/cnrfcPointPopup/TimeSeriesPlot.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/features/cnrfcPointPopup/TimeSeriesPlot.jsx)
 
 Characteristics:
 
 - multiple tabs
 - forecast product selector
 - time series only
-- shared `StationTimeSeriesPlot`
+- shared `TimeSeriesPlot`
 
 ## Snow station popup
 
@@ -76,7 +76,7 @@ The B120 popup data builder currently supports:
 
 Time series plots generally render through:
 
-- `StationTimeSeriesPlot.jsx`
+- `TimeSeriesPlot.jsx`
 
 Non-timeseries B120 plots render through:
 

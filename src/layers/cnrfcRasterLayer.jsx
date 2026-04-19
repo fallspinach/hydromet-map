@@ -1,7 +1,7 @@
 import { Layer, Source } from 'react-map-gl/maplibre'
 import { RASTER_PLACEHOLDER_GEOJSON } from '../data/demoOverlays'
 
-const rasterLayer = {
+const cnrfcRasterLayer = {
   id: 'cnrfcRaster',
   isVisible: ({ appState, selectedVariable }) => appState.layers.cnrfcRaster && Boolean(selectedVariable),
   renderLayers({ appState, selectedVariable }) {
@@ -55,4 +55,4 @@ const rasterLayer = {
   },
 }
 
-export default rasterLayer
+export default cnrfcRasterLayer

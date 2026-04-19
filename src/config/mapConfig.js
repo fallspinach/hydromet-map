@@ -22,7 +22,7 @@ export const BASEMAPS = [
 export const ALL_MAP_LAYERS = [
   {
     id: 'cnrfcRaster',
-    label: 'Raster Overlay',
+    label: 'CNRFC Rasters',
     type: 'png-overlay',
     description: 'Raster rendered from a variable, date, product, and ensemble.',
     symbol: '\u25A0',
@@ -486,9 +486,10 @@ export const PROJECTS = {
     defaultVisibleLayerIds: [
       'cnrfcRaster',
       'cnrfcRegion',
-      'cnrfcRivers',
       'b120Basins',
       'b120Points',
+      'snowCourses',
+      'snowPillows',
     ],
   },
 }

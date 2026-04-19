@@ -17,8 +17,8 @@ src/layers/myNewLayer.jsx
 Use the existing modules as references:
 
 - [src/layers/b120PointsLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/b120PointsLayer.jsx)
-- [src/layers/riversLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/riversLayer.jsx)
-- [src/layers/rasterLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/rasterLayer.jsx)
+- [src/layers/cnrfcRiversLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/cnrfcRiversLayer.jsx)
+- [src/layers/cnrfcRasterLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/cnrfcRasterLayer.jsx)
 
 ## Step 2: export the layer from the registry
 
@@ -84,21 +84,21 @@ create a feature module under `src/features/` and call it from the layer's `hand
 
 Good references:
 
-- [src/layers/stationsLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/stationsLayer.jsx)
+- [src/layers/cnrfcPointsLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/cnrfcPointsLayer.jsx)
 - [src/layers/b120PointsLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/b120PointsLayer.jsx)
 
 ### Polygon layer with hover-linked highlight
 
 Good references:
 
-- [src/layers/watershedsLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/watershedsLayer.jsx)
+- [src/layers/cnrfcBasinsLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/cnrfcBasinsLayer.jsx)
 - [src/layers/b120BasinsLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/b120BasinsLayer.jsx)
 
 ### Raster overlay
 
 Good reference:
 
-- [src/layers/rasterLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/rasterLayer.jsx)
+- [src/layers/cnrfcRasterLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/cnrfcRasterLayer.jsx)
 
 ## Naming recommendations
 

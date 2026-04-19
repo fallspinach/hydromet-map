@@ -1,5 +1,5 @@
 import { Popup } from 'react-map-gl/maplibre'
-import StationTimeSeriesPlot from '../stationPopup/StationTimeSeriesPlot'
+import TimeSeriesPlot from '../cnrfcPointPopup/TimeSeriesPlot'
 import { getDefaultSnowPopupTabId, getSnowPopupTabDefinition, getSnowPopupTabs } from './snowStationPopupConfig'
 import { loadSnowStationPopupTabData, setActiveSnowStationPopupTab } from './snowStationPopupData'
 
@@ -15,7 +15,7 @@ function renderPlotPanel(plotState, station) {
   if (plotState.status === 'ready') {
     return (
       <div className="station-popup__plot">
-        <StationTimeSeriesPlot
+        <TimeSeriesPlot
           stationName={station.name}
           stationId={station.id}
           plotState={plotState}

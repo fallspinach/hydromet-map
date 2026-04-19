@@ -51,7 +51,7 @@ function buildHoveredRiver(event, feature) {
   }
 }
 
-const riversLayer = {
+const cnrfcRiversLayer = {
   id: 'cnrfcRivers',
   stateKey: 'hoveredRiver',
   isVisible: ({ appState }) => appState.layers.cnrfcRivers,
@@ -124,4 +124,4 @@ const riversLayer = {
   },
 }
 
-export default riversLayer
+export default cnrfcRiversLayer

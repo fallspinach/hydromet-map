@@ -1,14 +1,14 @@
 import { Layer, Popup, Source } from 'react-map-gl/maplibre'
-import StationPopup from '../features/stationPopup/StationPopup'
+import CnrfcPointPopup from '../features/cnrfcPointPopup/CnrfcPointPopup'
 import {
-  createSelectedStationPopupState,
-  loadStationPopupTabData,
-} from '../features/stationPopup/stationPopupData'
-import { getDefaultStationPopupTabId } from '../features/stationPopup/stationPopupConfig'
+  createSelectedCnrfcPointPopupState,
+  loadCnrfcPointPopupTabData,
+} from '../features/cnrfcPointPopup/cnrfcPointPopupData'
+import { getDefaultCnrfcPointPopupTabId } from '../features/cnrfcPointPopup/cnrfcPointPopupConfig'
 
-const STATIONS_GEOJSON_URL = 'https://cw3e.ucsd.edu/hydro/cnrfc/csv/fcst_points.geojson'
+const CNRFC_POINTS_GEOJSON_URL = 'https://cw3e.ucsd.edu/hydro/cnrfc/csv/fcst_points.geojson'
 
-function buildHoveredStation(event, feature) {
+function buildHoveredCnrfcPoint(event, feature) {
   const properties = feature?.properties ?? {}
   const location = properties.Location || 'Unknown'
   const locationParts = location.split(' - ')
@@ -23,9 +23,9 @@ function buildHoveredStation(event, feature) {
   }
 }
 
-const stationsLayer = {
+const cnrfcPointsLayer = {
   id: 'cnrfcPoints',
-  stateKey: 'hoveredStation',
+  stateKey: 'hoveredCnrfcPoint',
   isVisible: ({ appState }) => appState.layers.cnrfcPoints,
   getInteractiveLayerIds() {
     return ['stations-hit-layer']
@@ -34,11 +34,11 @@ const stationsLayer = {
     const hoveredFeature = event.features?.find((feature) => feature.layer.id === 'stations-hit-layer')
 
     return {
-      hoveredStation: hoveredFeature ? buildHoveredStation(event, hoveredFeature) : null,
+      hoveredCnrfcPoint: hoveredFeature ? buildHoveredCnrfcPoint(event, hoveredFeature) : null,
     }
   },
   getPointerLeaveState() {
-    return { hoveredStation: null }
+    return { hoveredCnrfcPoint: null }
   },
   handleClick({ event, setSelectedStation, statusBoundary }) {
     const clickedFeature = event.features?.find((feature) => feature.layer.id === 'stations-hit-layer')
@@ -47,19 +47,19 @@ const stationsLayer = {
       return false
     }
 
-    const station = createSelectedStationPopupState(clickedFeature, {
+    const station = createSelectedCnrfcPointPopupState(clickedFeature, {
       statusTimestamp: statusBoundary?.statusTimestamp ?? null,
     })
 
     setSelectedStation(station)
-    loadStationPopupTabData(setSelectedStation, station, getDefaultStationPopupTabId())
+    loadCnrfcPointPopupTabData(setSelectedStation, station, getDefaultCnrfcPointPopupTabId())
 
     return true
   },
   renderLayers({ interactionState }) {
     return (
       <>
-        <Source id="stations-source" type="geojson" data={STATIONS_GEOJSON_URL}>
+        <Source id="stations-source" type="geojson" data={CNRFC_POINTS_GEOJSON_URL}>
           <Layer
             id="stations-layer"
             type="circle"
@@ -72,7 +72,7 @@ const stationsLayer = {
           <Layer
             id="stations-highlight-layer"
             type="circle"
-            filter={['==', ['get', 'ID'], interactionState.hoveredStation?.id ?? '__none__']}
+            filter={['==', ['get', 'ID'], interactionState.hoveredCnrfcPoint?.id ?? '__none__']}
             paint={{
               'circle-radius': ['interpolate', ['linear'], ['zoom'], 0, 4, 5, 4, 6, 5, 12, 9],
               'circle-color': '#c62828',
@@ -81,7 +81,7 @@ const stationsLayer = {
           />
         </Source>
 
-        <Source id="stations-hit-source" type="geojson" data={STATIONS_GEOJSON_URL}>
+        <Source id="stations-hit-source" type="geojson" data={CNRFC_POINTS_GEOJSON_URL}>
           <Layer
             id="stations-hit-layer"
             type="circle"
@@ -98,25 +98,25 @@ const stationsLayer = {
   renderPopups({ interactionState, selectedStation, setSelectedStation }) {
     return (
       <>
-        <StationPopup
+        <CnrfcPointPopup
           selectedStation={selectedStation}
           setSelectedStation={setSelectedStation}
         />
 
-        {interactionState.hoveredStation ? (
+        {interactionState.hoveredCnrfcPoint ? (
           <Popup
             anchor="bottom"
             closeButton={false}
             closeOnClick={false}
-            latitude={interactionState.hoveredStation.latitude}
-            longitude={interactionState.hoveredStation.longitude}
+            latitude={interactionState.hoveredCnrfcPoint.latitude}
+            longitude={interactionState.hoveredCnrfcPoint.longitude}
             offset={10}
           >
             <div className="river-popup">
-              <strong>ID: {interactionState.hoveredStation.id}</strong>
-              <p>River: {interactionState.hoveredStation.river}</p>
-              <p>Location: {interactionState.hoveredStation.location}</p>
-              <p>Matching NWM Reach: {interactionState.hoveredStation.reachId}</p>
+              <strong>ID: {interactionState.hoveredCnrfcPoint.id}</strong>
+              <p>River: {interactionState.hoveredCnrfcPoint.river}</p>
+              <p>Location: {interactionState.hoveredCnrfcPoint.location}</p>
+              <p>Matching NWM Reach: {interactionState.hoveredCnrfcPoint.reachId}</p>
             </div>
           </Popup>
         ) : null}
@@ -125,4 +125,4 @@ const stationsLayer = {
   },
 }
 
-export default stationsLayer
+export default cnrfcPointsLayer

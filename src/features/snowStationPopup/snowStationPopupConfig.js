@@ -1,8 +1,8 @@
 import {
   DEFAULT_TIMESERIES_LAYOUT,
   DEFAULT_TIMESERIES_PLOTLY_CONFIG,
-  STATION_POPUP_WIDTH,
-} from '../stationPopup/stationPopupConfig'
+  TIMESERIES_POPUP_WIDTH,
+} from '../cnrfcPointPopup/cnrfcPointPopupConfig'
 
 function parsePopupStatusTimestamp(rawValue) {
   if (typeof rawValue !== 'string' || !rawValue.trim()) {
@@ -313,7 +313,7 @@ function createSnowPopupDefinition({
 }) {
   return {
     popupType,
-    popupWidth: STATION_POPUP_WIDTH,
+    popupWidth: TIMESERIES_POPUP_WIDTH,
     tabs: [
       createSinglePlotTab({
         id: 'nrt',

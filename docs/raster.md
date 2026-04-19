@@ -95,7 +95,7 @@ This is implemented by merging `projectDefinition.defaultRaster` over `buildDefa
 
 ## Raster rendering
 
-Raster rendering happens in [src/layers/rasterLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/rasterLayer.jsx).
+Raster rendering happens in [src/layers/cnrfcRasterLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/cnrfcRasterLayer.jsx).
 
 Behavior:
 

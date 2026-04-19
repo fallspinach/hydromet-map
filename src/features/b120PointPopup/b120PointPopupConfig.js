@@ -1,8 +1,8 @@
 import {
   DEFAULT_TIMESERIES_LAYOUT,
   DEFAULT_TIMESERIES_PLOTLY_CONFIG,
-  STATION_POPUP_WIDTH,
-} from '../stationPopup/stationPopupConfig'
+  TIMESERIES_POPUP_WIDTH,
+} from '../cnrfcPointPopup/cnrfcPointPopupConfig'
 
 function formatCompactDate(date) {
   const year = date.getFullYear()
@@ -204,7 +204,7 @@ function buildEnsembleSeries(start = 1, end = 46) {
   )
 }
 
-export const B120_POINT_POPUP_WIDTH = STATION_POPUP_WIDTH
+export const B120_POINT_POPUP_WIDTH = TIMESERIES_POPUP_WIDTH
 export const B120_POINT_FORECAST_UPDATES_URL =
   'https://cw3e.ucsd.edu/hydro/b120/csv/fcst_tupdates.json'
 export const B120_POINT_FORECAST_UPDATE_OPTIONS = [

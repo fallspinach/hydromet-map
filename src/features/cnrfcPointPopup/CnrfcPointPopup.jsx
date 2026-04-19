@@ -1,16 +1,16 @@
 import { Popup } from 'react-map-gl/maplibre'
-import { STATION_POPUP_WIDTH } from './stationPopupConfig'
+import { CNRFC_POINT_POPUP_WIDTH } from './cnrfcPointPopupConfig'
 import {
-  STATION_POPUP_FORECAST_PRODUCTS,
-  getStationPopupTabDefinition,
-} from './stationPopupConfig'
+  CNRFC_POINT_POPUP_FORECAST_PRODUCTS,
+  getCnrfcPointPopupTabDefinition,
+} from './cnrfcPointPopupConfig'
 import {
-  getStationPopupTabs,
-  loadStationPopupTabData,
-  setActiveStationPopupTab,
-  setStationPopupForecastProduct,
-} from './stationPopupData'
-import StationTimeSeriesPlot from './StationTimeSeriesPlot'
+  getCnrfcPointPopupTabs,
+  loadCnrfcPointPopupTabData,
+  setActiveCnrfcPointPopupTab,
+  setCnrfcPointPopupForecastProduct,
+} from './cnrfcPointPopupData'
+import TimeSeriesPlot from './TimeSeriesPlot'
 
 function renderPlotPanel(plotState, station) {
   if (plotState.status === 'loading') {
@@ -24,7 +24,7 @@ function renderPlotPanel(plotState, station) {
   if (plotState.status === 'ready') {
     return (
       <div className="station-popup__plot">
-        <StationTimeSeriesPlot
+        <TimeSeriesPlot
           stationName={station.name}
           stationId={station.id}
           plotState={plotState}
@@ -36,17 +36,17 @@ function renderPlotPanel(plotState, station) {
   return <p className="station-popup__status">Select a tab to load its plot data.</p>
 }
 
-export default function StationPopup({
+export default function CnrfcPointPopup({
   selectedStation,
   setSelectedStation,
 }) {
-  if (!selectedStation || selectedStation.popupType !== 'forecast-points') {
+  if (!selectedStation || selectedStation.popupType !== 'cnrfc-points') {
     return null
   }
 
-  const tabs = getStationPopupTabs()
+  const tabs = getCnrfcPointPopupTabs()
   const activeTabId = selectedStation.popup?.activeTabId ?? tabs[0]?.id ?? 'daily'
-  const forecastProduct = selectedStation.popup?.forecastProduct ?? STATION_POPUP_FORECAST_PRODUCTS[0].id
+  const forecastProduct = selectedStation.popup?.forecastProduct ?? CNRFC_POINT_POPUP_FORECAST_PRODUCTS[0].id
 
   return (
     <Popup
@@ -55,7 +55,7 @@ export default function StationPopup({
       closeOnClick={false}
       latitude={selectedStation.latitude}
       longitude={selectedStation.longitude}
-      maxWidth={STATION_POPUP_WIDTH}
+      maxWidth={CNRFC_POINT_POPUP_WIDTH}
       onClose={() => setSelectedStation(null)}
     >
       <div className="station-popup station-popup--timeseries">
@@ -69,8 +69,8 @@ export default function StationPopup({
                 aria-selected={activeTabId === tab.id}
                 className={activeTabId === tab.id ? 'station-popup__tab is-active' : 'station-popup__tab'}
                 onClick={() => {
-                  setActiveStationPopupTab(setSelectedStation, tab.id)
-                  loadStationPopupTabData(setSelectedStation, selectedStation, tab.id)
+                  setActiveCnrfcPointPopupTab(setSelectedStation, tab.id)
+                  loadCnrfcPointPopupTabData(setSelectedStation, selectedStation, tab.id)
                 }}
               >
                 {tab.label}
@@ -92,11 +92,11 @@ export default function StationPopup({
                   },
                 }
 
-                setStationPopupForecastProduct(setSelectedStation, nextForecastProduct)
-                loadStationPopupTabData(setSelectedStation, nextStation, activeTabId)
+                setCnrfcPointPopupForecastProduct(setSelectedStation, nextForecastProduct)
+                loadCnrfcPointPopupTabData(setSelectedStation, nextStation, activeTabId)
               }}
             >
-              {STATION_POPUP_FORECAST_PRODUCTS.map((product) => (
+              {CNRFC_POINT_POPUP_FORECAST_PRODUCTS.map((product) => (
                 <option key={product.id} value={product.id}>
                   {product.label}
                 </option>
@@ -106,7 +106,7 @@ export default function StationPopup({
         </div>
 
         {tabs.map((tab) => {
-          const tabDefinition = getStationPopupTabDefinition(tab.id)
+          const tabDefinition = getCnrfcPointPopupTabDefinition(tab.id)
           const tabState = selectedStation.popup?.tabDataById?.[tab.id]
 
           return (

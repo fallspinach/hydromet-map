@@ -10,9 +10,9 @@ Current registry:
 
 Examples:
 
-- [src/layers/rasterLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/rasterLayer.jsx)
-- [src/layers/stationsLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/stationsLayer.jsx)
-- [src/layers/watershedsLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/watershedsLayer.jsx)
+- [src/layers/cnrfcRasterLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/cnrfcRasterLayer.jsx)
+- [src/layers/cnrfcPointsLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/cnrfcPointsLayer.jsx)
+- [src/layers/cnrfcBasinsLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/cnrfcBasinsLayer.jsx)
 - [src/layers/b120PointsLayer.jsx](/abs/path/c:/Users/m3pan/Desktop/projects/hydromet-map/src/layers/b120PointsLayer.jsx)
 
 ## Typical layer module shape

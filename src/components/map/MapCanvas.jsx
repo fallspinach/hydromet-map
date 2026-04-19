@@ -12,10 +12,10 @@ import TerrainToggleControl from './TerrainToggleControl'
 
 const INITIAL_INTERACTION_STATE = {
   hoveredB120Point: null,
+  hoveredCnrfcPoint: null,
   hoveredRiver: null,
   hoveredSnowCourseStation: null,
   hoveredSnowPillowStation: null,
-  hoveredStation: null,
 }
 
 function mergeInteractionState(layerModules, callback) {

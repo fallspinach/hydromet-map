@@ -1,7 +1,7 @@
 import { Layer, Source } from 'react-map-gl/maplibre'
 import { FORECAST_BASINS_PMTILES_URL, FORECAST_BASINS_SOURCE_LAYER } from '../config/mapConfig'
 
-const watershedsLayer = {
+const cnrfcBasinsLayer = {
   id: 'cnrfcBasins',
   isVisible: ({ appState }) => appState.layers.cnrfcBasins,
   renderLayers({ interactionState }) {
@@ -11,7 +11,7 @@ const watershedsLayer = {
           id="watersheds-fill"
           type="fill"
           source-layer={FORECAST_BASINS_SOURCE_LAYER}
-          filter={['==', ['get', 'Basin'], interactionState.hoveredStation?.id ?? '__none__']}
+          filter={['==', ['get', 'Basin'], interactionState.hoveredCnrfcPoint?.id ?? '__none__']}
           paint={{
             'fill-color': '#2563eb',
             'fill-opacity': 0.16,
@@ -21,7 +21,7 @@ const watershedsLayer = {
           id="watersheds-outline"
           type="line"
           source-layer={FORECAST_BASINS_SOURCE_LAYER}
-          filter={['==', ['get', 'Basin'], interactionState.hoveredStation?.id ?? '__none__']}
+          filter={['==', ['get', 'Basin'], interactionState.hoveredCnrfcPoint?.id ?? '__none__']}
           paint={{
             'line-color': '#2563eb',
             'line-width': 2,
@@ -33,4 +33,4 @@ const watershedsLayer = {
   },
 }
 
-export default watershedsLayer
+export default cnrfcBasinsLayer

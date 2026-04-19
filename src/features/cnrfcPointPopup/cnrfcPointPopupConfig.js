@@ -1,31 +1,32 @@
 const buildStationCsvUrl = (product, timestep) => ({ stationId, popupState }) => {
   if (product === 'fcst') {
-    const forecastProductPath = getStationPopupForecastProductPath(popupState?.forecastProduct)
+    const forecastProductPath = getCnrfcPointPopupForecastProductPath(popupState?.forecastProduct)
     return `https://cw3e.ucsd.edu/hydro/cnrfc/csv/basins/fcst/${forecastProductPath}/${timestep}/${stationId}_${timestep}.csv.gz`
   }
 
   return `https://cw3e.ucsd.edu/hydro/cnrfc/csv/basins/${product}/${timestep}/${stationId}_${timestep}.csv.gz`
 }
 
-export const STATION_POPUP_WIDTH = '1100px'
-export const STATION_POPUP_FORECAST_PRODUCTS = [
+export const TIMESERIES_POPUP_WIDTH = '1100px'
+export const CNRFC_POINT_POPUP_WIDTH = TIMESERIES_POPUP_WIDTH
+export const CNRFC_POINT_POPUP_FORECAST_PRODUCTS = [
   { id: 'wwrf-ecmwf', label: 'WWRF-ECMWF', path: 'wwrf_ecmwf' },
   { id: 'wwrf-gfs', label: 'WWRF-GFS', path: 'wwrf_gfs' },
   { id: 'gfs', label: 'GFS', path: 'gfs' },
 ]
-export const DEFAULT_STATION_POPUP_FORECAST_PRODUCT = STATION_POPUP_FORECAST_PRODUCTS[0].id
+export const DEFAULT_CNRFC_POINT_POPUP_FORECAST_PRODUCT = CNRFC_POINT_POPUP_FORECAST_PRODUCTS[0].id
 
-export function getStationPopupForecastProductPath(productId) {
+export function getCnrfcPointPopupForecastProductPath(productId) {
   return (
-    STATION_POPUP_FORECAST_PRODUCTS.find((product) => product.id === productId)?.path ??
-    STATION_POPUP_FORECAST_PRODUCTS[0].path
+    CNRFC_POINT_POPUP_FORECAST_PRODUCTS.find((product) => product.id === productId)?.path ??
+    CNRFC_POINT_POPUP_FORECAST_PRODUCTS[0].path
   )
 }
 
-export function getStationPopupForecastProductLabel(productId) {
+export function getCnrfcPointPopupForecastProductLabel(productId) {
   return (
-    STATION_POPUP_FORECAST_PRODUCTS.find((product) => product.id === productId)?.label ??
-    STATION_POPUP_FORECAST_PRODUCTS[0].label
+    CNRFC_POINT_POPUP_FORECAST_PRODUCTS.find((product) => product.id === productId)?.label ??
+    CNRFC_POINT_POPUP_FORECAST_PRODUCTS[0].label
   )
 }
 
@@ -127,7 +128,7 @@ export const DEFAULT_TIMESERIES_PLOTLY_CONFIG = {
 
 const DEFAULT_TIMESERIES_TITLE_TEMPLATE = 'WRF-Hydro (NWM v3.0) + {forecastProduct}, {stationName} ({stationId})'
 
-export const STATION_POPUP_TABS = [
+export const CNRFC_POINT_POPUP_TABS = [
   {
     id: 'hourly',
     label: 'Hourly',
@@ -514,10 +515,10 @@ export const STATION_POPUP_TABS = [
   },
 ]
 
-export function getStationPopupTabDefinition(tabId) {
-  return STATION_POPUP_TABS.find((tab) => tab.id === tabId) ?? null
+export function getCnrfcPointPopupTabDefinition(tabId) {
+  return CNRFC_POINT_POPUP_TABS.find((tab) => tab.id === tabId) ?? null
 }
 
-export function getDefaultStationPopupTabId() {
-  return STATION_POPUP_TABS[1]?.id ?? STATION_POPUP_TABS[0]?.id ?? 'daily'
+export function getDefaultCnrfcPointPopupTabId() {
+  return CNRFC_POINT_POPUP_TABS[1]?.id ?? CNRFC_POINT_POPUP_TABS[0]?.id ?? 'daily'
 }
