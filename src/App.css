@@ -958,6 +958,15 @@ button:disabled {
   background: rgba(244, 249, 252, 0.92);
 }
 
+.station-popup__control--compact {
+  gap: 0.28rem;
+}
+
+.station-popup__control--compact select {
+  min-width: 112px;
+  padding: 0.2rem 0.28rem;
+}
+
 .station-popup__tabs {
   display: inline-flex;
   gap: 0.35rem;

@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
 import { Layer, Popup, Source } from 'react-map-gl/maplibre'
+import B120PointPopup from '../features/b120PointPopup/B120PointPopup'
+import { getDefaultB120PointPopupTabId } from '../features/b120PointPopup/b120PointPopupConfig'
+import {
+  createSelectedB120PointPopupState,
+  loadB120PointPopupTabData,
+} from '../features/b120PointPopup/b120PointPopupData'
 
 const B120_POINTS_GEOJSON_URL = 'https://cw3e.ucsd.edu/hydro/b120/csv/b120_stations_24.geojson'
-const B120_BASINS_GEOJSON_URL = 'https://cw3e.ucsd.edu/hydro/b120/csv/b120_basins_24.geojson'
 const B120_POINT_RADIUS = ['interpolate', ['linear'], ['zoom'], 0, 4, 5, 4, 6, 6, 12, 10]
 
 function buildHoveredB120Point(event, feature) {
@@ -14,21 +18,6 @@ function buildHoveredB120Point(event, feature) {
     stationId: properties.Station_ID ?? 'Unknown',
     basin: properties.Basin ?? 'Unknown',
     location: properties.Location ?? 'Unknown',
-  }
-}
-
-function buildB120BasinInfo(feature) {
-  const properties = feature?.properties ?? {}
-  const rawArea = properties.Area_sqmi
-  const numericArea = typeof rawArea === 'number' ? rawArea : Number.parseFloat(rawArea)
-
-  return {
-    id: properties.ID ?? 'Unknown',
-    station: properties.TATION ?? properties.STATION ?? 'Unknown',
-    areaSqMi: Number.isFinite(numericArea) ? numericArea.toFixed(0) : 'Unknown',
-    elevation: properties.ELEV ?? 'Unknown',
-    county: properties.COUNTY___ ?? 'Unknown',
-    operator: properties.OPERATOR_A ?? 'Unknown',
   }
 }
 
@@ -55,6 +44,20 @@ const b120PointsLayer = {
   },
   getPointerLeaveState() {
     return { hoveredB120Point: null }
+  },
+  handleClick({ event, setSelectedStation }) {
+    const clickedFeature = event.features?.find((feature) => feature.layer.id === 'b120-points-hit-layer')
+
+    if (!clickedFeature || clickedFeature.geometry.type !== 'Point') {
+      return false
+    }
+
+    const station = createSelectedB120PointPopupState(clickedFeature)
+
+    setSelectedStation(station)
+    loadB120PointPopupTabData(setSelectedStation, station, getDefaultB120PointPopupTabId())
+
+    return true
   },
   renderLayers({ interactionState }) {
     return (
@@ -97,82 +100,33 @@ const b120PointsLayer = {
       </>
     )
   },
-  renderPopups({ interactionState }) {
-    const [basinInfoById, setBasinInfoById] = useState({})
+  renderPopups({ interactionState, selectedStation, setSelectedStation }) {
     const hoveredB120Point = interactionState.hoveredB120Point
-    const basinInfo = useMemo(
-      () => (hoveredB120Point ? basinInfoById[hoveredB120Point.stationId] ?? null : null),
-      [basinInfoById, hoveredB120Point],
-    )
-
-    useEffect(() => {
-      let isCancelled = false
-
-      async function loadBasinInfo() {
-        try {
-          const response = await fetch(B120_BASINS_GEOJSON_URL)
-
-          if (!response.ok) {
-            return
-          }
-
-          const geojson = await response.json()
-          const nextBasinInfoById = Object.fromEntries(
-            (geojson?.features ?? []).map((feature) => {
-              const basinInfo = buildB120BasinInfo(feature)
-              return [basinInfo.id, basinInfo]
-            }),
-          )
-
-          if (!isCancelled) {
-            setBasinInfoById(nextBasinInfoById)
-          }
-        } catch {
-          if (!isCancelled) {
-            setBasinInfoById({})
-          }
-        }
-      }
-
-      loadBasinInfo()
-
-      return () => {
-        isCancelled = true
-      }
-    }, [])
-
-    if (!hoveredB120Point) {
-      return null
-    }
 
     return (
-      <Popup
-        anchor="bottom"
-        closeButton={false}
-        closeOnClick={false}
-        latitude={hoveredB120Point.latitude}
-        longitude={hoveredB120Point.longitude}
-        offset={10}
-      >
-        <div className="river-popup">
-          {basinInfo ? (
-            <>
-              <strong>ID: {basinInfo.id}</strong>
-              <p>Station: {basinInfo.station}</p>
-              <p>Area: {basinInfo.areaSqMi} mi²</p>
-              <p>Elevation: {basinInfo.elevation} ft</p>
-              <p>County: {basinInfo.county}</p>
-              <p>Operator: {basinInfo.operator}</p>
-            </>
-          ) : (
-            <>
+      <>
+        <B120PointPopup
+          selectedStation={selectedStation}
+          setSelectedStation={setSelectedStation}
+        />
+
+        {hoveredB120Point ? (
+          <Popup
+            anchor="bottom"
+            closeButton={false}
+            closeOnClick={false}
+            latitude={hoveredB120Point.latitude}
+            longitude={hoveredB120Point.longitude}
+            offset={10}
+          >
+            <div className="river-popup">
               <strong>ID: {hoveredB120Point.stationId}</strong>
               <p>Basin: {hoveredB120Point.basin}</p>
               <p>Location: {hoveredB120Point.location}</p>
-            </>
-          )}
-        </div>
-      </Popup>
+            </div>
+          </Popup>
+        ) : null}
+      </>
     )
   },
 }

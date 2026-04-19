@@ -18,7 +18,7 @@ const StationTimeSeriesPlot = memo(function StationTimeSeriesPlot({
         text: plotState.titleText ?? `${stationName} (${stationId})`,
         x: 0.5,
         xanchor: 'center',
-        y: 0.98,
+        y: 0.96,
         yanchor: 'top',
         font: {
           size: 15,
