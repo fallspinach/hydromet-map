@@ -4,11 +4,11 @@ import 'react-datepicker/dist/react-datepicker.css'
 import './App.css'
 import {
   BASEMAPS,
-  DEFAULT_DATE,
+  createProjectState,
   DEFAULT_DATETIME,
-  DEFAULT_RASTER_VARIABLE,
-  DEFAULT_STATE,
-  RASTER_VARIABLES,
+  DEFAULT_PROJECT_ID,
+  getProjectDefinition,
+  getProjectRasterFamily,
 } from './config/mapConfig'
 import MapCanvas from './components/map/MapCanvas'
 import {
@@ -24,6 +24,7 @@ import {
 const STATUS_URL = 'https://cw3e.ucsd.edu/hydro/cnrfc/csv/status.json'
 const STATUS_KEY = 'WRF-Hydro NRT'
 const NRT_PRODUCT = 'NRT'
+const FORECAST_PRODUCTS = ['WWRF-ECMWF', 'WWRF-GFS', 'GFS']
 
 function formatStatusDate(date) {
   const year = date.getFullYear()
@@ -78,6 +79,90 @@ function buildStatusBoundary(statusTimestamp) {
   }
 }
 
+function getInitialStatusTimestamp() {
+  return parseStatusTimestamp(DEFAULT_DATETIME) ?? new Date()
+}
+
+function applyTemporalModeToRasterState(rasterState, rasterFamily) {
+  if (!rasterState || !rasterFamily) {
+    return rasterState
+  }
+
+  const selectedVariable =
+    rasterFamily.variables[rasterState.variable]
+    ?? rasterFamily.variables[Object.keys(rasterFamily.variables)[0]]
+
+  if (!selectedVariable) {
+    return rasterState
+  }
+
+  const temporalMode = getTemporalModeForTimestep(selectedVariable.timestep)
+
+  if (temporalMode === rasterState.temporalMode) {
+    return rasterState
+  }
+
+  return {
+    ...rasterState,
+    date:
+      temporalMode === 'date'
+        ? getDatePartFromDateTime(rasterState.datetime, rasterState.date)
+        : rasterState.date,
+    datetime:
+      temporalMode === 'datetime'
+        ? mergeDateIntoDateTime(rasterState.date, rasterState.datetime)
+        : rasterState.datetime,
+    temporalMode,
+  }
+}
+
+function constrainRasterStateToStatusBoundary(rasterState, statusBoundary) {
+  if (!rasterState) {
+    return rasterState
+  }
+
+  const nextRaster = { ...rasterState }
+
+  if (nextRaster.date > statusBoundary.maxDate) {
+    nextRaster.date = statusBoundary.maxDate
+  }
+
+  if (nextRaster.datetime > statusBoundary.maxDateTime) {
+    nextRaster.datetime = statusBoundary.maxDateTime
+  }
+
+  const shouldUseForecastProducts =
+    nextRaster.temporalMode === 'datetime'
+      ? nextRaster.datetime > statusBoundary.boundaryDateTime
+      : nextRaster.date > statusBoundary.boundaryDate
+
+  const allowedProducts = shouldUseForecastProducts ? FORECAST_PRODUCTS : [NRT_PRODUCT]
+
+  if (!allowedProducts.includes(nextRaster.product)) {
+    nextRaster.product = allowedProducts[0]
+  }
+
+  return nextRaster
+}
+
+function updateActiveProjectState(current, updater) {
+  const activeProjectId = current.activeProjectId ?? DEFAULT_PROJECT_ID
+  const activeProjectState = current.projectStateById?.[activeProjectId] ?? createProjectState(activeProjectId)
+  const nextProjectState = updater(activeProjectState, activeProjectId)
+
+  if (nextProjectState === activeProjectState) {
+    return current
+  }
+
+  return {
+    ...current,
+    projectStateById: {
+      ...current.projectStateById,
+      [activeProjectId]: nextProjectState,
+    },
+  }
+}
+
 function App() {
   const [appState, setAppState] = useState(() => readStateFromUrl())
   const [bookmarkUrl, setBookmarkUrl] = useState('')
@@ -90,8 +175,31 @@ function App() {
   const basemapMenuRef = useRef(null)
   const layerMenuRef = useRef(null)
   const [statusBoundary, setStatusBoundary] = useState(() =>
-    buildStatusBoundary(parseStatusTimestamp(DEFAULT_DATETIME) ?? new Date()),
+    buildStatusBoundary(getInitialStatusTimestamp()),
   )
+
+  const activeProjectId = appState.activeProjectId ?? DEFAULT_PROJECT_ID
+  const activeProject = getProjectDefinition(activeProjectId)
+  const activeProjectState =
+    appState.projectStateById?.[activeProjectId] ?? createProjectState(activeProjectId)
+  const activeRasterFamily = getProjectRasterFamily(activeProjectId)
+  const rasterVariables = activeRasterFamily?.variables ?? {}
+  const rasterVariableIds = Object.keys(rasterVariables)
+  const selectedVariable =
+    rasterVariables[activeProjectState.raster?.variable]
+    ?? rasterVariables[rasterVariableIds[0]]
+    ?? null
+  const selectedBasemap =
+    BASEMAPS.find((item) => item.id === activeProjectState.basemapId) ?? BASEMAPS[0]
+  const center = parseCenter(activeProjectState.view.center)
+  const viewState = {
+    longitude: center.longitude,
+    latitude: center.latitude,
+    zoom: parseNumericValue(activeProjectState.view.zoom, 5.3),
+    bearing: parseNumericValue(activeProjectState.view.bearing, 0),
+    pitch: parseNumericValue(activeProjectState.view.pitch, 0),
+  }
+  const terrainEnabled = selectedBasemap.terrainAvailable && activeProjectState.terrainEnabled
 
   useEffect(() => {
     if (copyStatus === 'Copied') {
@@ -157,12 +265,33 @@ function App() {
 
         setAppState((current) => ({
           ...current,
-          raster: {
-            ...current.raster,
-            date: current.raster.date === DEFAULT_DATE ? nextDate : current.raster.date,
-            datetime:
-              current.raster.datetime === DEFAULT_DATETIME ? nextDateTime : current.raster.datetime,
-          },
+          projectStateById: Object.fromEntries(
+            Object.entries(current.projectStateById).map(([projectId, projectState]) => {
+              const rasterFamily = getProjectRasterFamily(projectId)
+
+              if (!rasterFamily || !projectState.raster) {
+                return [projectId, projectState]
+              }
+
+              return [
+                projectId,
+                {
+                  ...projectState,
+                  raster: {
+                    ...projectState.raster,
+                    date:
+                      projectState.raster.date === rasterFamily.defaultDate
+                        ? nextDate
+                        : projectState.raster.date,
+                    datetime:
+                      projectState.raster.datetime === rasterFamily.defaultDateTime
+                        ? nextDateTime
+                        : projectState.raster.datetime,
+                  },
+                },
+              ]
+            }),
+          ),
         }))
       } catch (error) {
         if (error?.name !== 'AbortError') {
@@ -179,138 +308,116 @@ function App() {
   }, [])
 
   useEffect(() => {
-    const forecastProducts = ['WWRF-ECMWF', 'WWRF-GFS', 'GFS']
-
-    setAppState((current) => {
-      const nextRaster = { ...current.raster }
-      let hasChanges = false
-
-      if (nextRaster.date > statusBoundary.maxDate) {
-        nextRaster.date = statusBoundary.maxDate
-        hasChanges = true
-      }
-
-      if (nextRaster.datetime > statusBoundary.maxDateTime) {
-        nextRaster.datetime = statusBoundary.maxDateTime
-        hasChanges = true
-      }
-
-      const shouldUseForecastProducts =
-        nextRaster.temporalMode === 'datetime'
-          ? nextRaster.datetime > statusBoundary.boundaryDateTime
-          : nextRaster.date > statusBoundary.boundaryDate
-
-      const allowedProducts = shouldUseForecastProducts ? forecastProducts : [NRT_PRODUCT]
-
-      if (!allowedProducts.includes(nextRaster.product)) {
-        nextRaster.product = allowedProducts[0]
-        hasChanges = true
-      }
-
-      if (!hasChanges) {
-        return current
-      }
-
-      return {
-        ...current,
-        raster: nextRaster,
-      }
-    })
-  }, [
-    appState.raster.date,
-    appState.raster.datetime,
-    appState.raster.product,
-    appState.raster.temporalMode,
-    statusBoundary.boundaryDate,
-    statusBoundary.boundaryDateTime,
-    statusBoundary.maxDate,
-    statusBoundary.maxDateTime,
-  ])
-
-  const selectedBasemap = BASEMAPS.find((item) => item.id === appState.basemapId) ?? BASEMAPS[0]
-  const selectedVariable =
-    RASTER_VARIABLES[appState.raster.variable] ?? RASTER_VARIABLES[DEFAULT_RASTER_VARIABLE]
-  const temporalMode = getTemporalModeForTimestep(selectedVariable.timestep)
-  const center = parseCenter(appState.view.center)
-  const viewState = {
-    longitude: center.longitude,
-    latitude: center.latitude,
-    zoom: parseNumericValue(appState.view.zoom, Number.parseFloat(DEFAULT_STATE.view.zoom)),
-    bearing: parseNumericValue(appState.view.bearing, Number.parseFloat(DEFAULT_STATE.view.bearing)),
-    pitch: parseNumericValue(appState.view.pitch, Number.parseFloat(DEFAULT_STATE.view.pitch)),
-  }
-  const terrainEnabled = selectedBasemap.terrainAvailable && appState.terrainEnabled
-  useEffect(() => {
-    setAppState((current) =>
-      current.raster.temporalMode === temporalMode
-        ? current
-        : {
-            ...current,
-            raster: {
-              ...current.raster,
-              date:
-                temporalMode === 'date'
-                  ? getDatePartFromDateTime(current.raster.datetime, current.raster.date)
-                  : current.raster.date,
-              datetime:
-                temporalMode === 'datetime'
-                  ? mergeDateIntoDateTime(current.raster.date, current.raster.datetime)
-                  : current.raster.datetime,
-              temporalMode,
-            },
-          },
-    )
-  }, [temporalMode])
-
-  function updateTopLevel(key, value) {
     setAppState((current) => ({
       ...current,
-      [key]: value,
+      projectStateById: Object.fromEntries(
+        Object.entries(current.projectStateById).map(([projectId, projectState]) => {
+          const rasterFamily = getProjectRasterFamily(projectId)
+
+          if (!rasterFamily || !projectState.raster) {
+            return [projectId, projectState]
+          }
+
+          return [
+            projectId,
+            {
+              ...projectState,
+              raster: constrainRasterStateToStatusBoundary(
+                applyTemporalModeToRasterState(projectState.raster, rasterFamily),
+                statusBoundary,
+              ),
+            },
+          ]
+        }),
+      ),
     }))
+  }, [statusBoundary])
+
+  function updateTopLevel(key, value) {
+    setAppState((current) =>
+      updateActiveProjectState(current, (activeProjectStateValue) => ({
+        ...activeProjectStateValue,
+        [key]: value,
+      })),
+    )
   }
 
   function updateRaster(key, value) {
-    setAppState((current) => {
-      const nextRaster = {
-        ...current.raster,
-        [key]: value,
-      }
+    setAppState((current) =>
+      updateActiveProjectState(current, (activeProjectStateValue, projectId) => {
+        const rasterFamily = getProjectRasterFamily(projectId)
 
-      if (key === 'date') {
-        nextRaster.datetime = mergeDateIntoDateTime(value, current.raster.datetime)
-      }
-
-      if (key === 'datetime') {
-        nextRaster.date = getDatePartFromDateTime(value, current.raster.date)
-      }
-
-      if (key === 'variable') {
-        const nextVariable = RASTER_VARIABLES[value] ?? RASTER_VARIABLES[DEFAULT_RASTER_VARIABLE]
-        const nextTemporalMode = getTemporalModeForTimestep(nextVariable.timestep)
-        nextRaster.temporalMode = nextTemporalMode
-
-        if (nextTemporalMode === 'datetime') {
-          nextRaster.datetime = mergeDateIntoDateTime(current.raster.date, current.raster.datetime)
+        if (!rasterFamily || !activeProjectStateValue.raster) {
+          return activeProjectStateValue
         }
 
-        if (nextTemporalMode === 'date') {
-          nextRaster.date = getDatePartFromDateTime(current.raster.datetime, current.raster.date)
+        const nextRaster = {
+          ...activeProjectStateValue.raster,
+          [key]: value,
         }
-      }
 
-      return {
-        ...current,
-        raster: nextRaster,
-      }
-    })
+        if (key === 'date') {
+          nextRaster.datetime = mergeDateIntoDateTime(value, activeProjectStateValue.raster.datetime)
+        }
+
+        if (key === 'datetime') {
+          nextRaster.date = getDatePartFromDateTime(value, activeProjectStateValue.raster.date)
+        }
+
+        if (key === 'variable') {
+          const nextVariable =
+            rasterFamily.variables[value]
+            ?? rasterFamily.variables[Object.keys(rasterFamily.variables)[0]]
+          const nextTemporalMode = getTemporalModeForTimestep(nextVariable?.timestep)
+          nextRaster.temporalMode = nextTemporalMode
+
+          if (nextTemporalMode === 'datetime') {
+            nextRaster.datetime = mergeDateIntoDateTime(
+              activeProjectStateValue.raster.date,
+              activeProjectStateValue.raster.datetime,
+            )
+          }
+
+          if (nextTemporalMode === 'date') {
+            nextRaster.date = getDatePartFromDateTime(
+              activeProjectStateValue.raster.datetime,
+              activeProjectStateValue.raster.date,
+            )
+          }
+        }
+
+        return {
+          ...activeProjectStateValue,
+          raster: constrainRasterStateToStatusBoundary(nextRaster, statusBoundary),
+        }
+      }),
+    )
   }
 
   function toggleLayer(layerId) {
+    setAppState((current) =>
+      updateActiveProjectState(current, (activeProjectStateValue) => ({
+        ...activeProjectStateValue,
+        layers: {
+          ...activeProjectStateValue.layers,
+          [layerId]: !activeProjectStateValue.layers[layerId],
+        },
+      })),
+    )
+  }
+
+  function changeProject(nextProjectId) {
+    if (nextProjectId === activeProjectId) {
+      return
+    }
+
+    setSelectedStation(null)
     setAppState((current) => ({
       ...current,
-      layers: {
-        ...current.layers,
-        [layerId]: !current.layers[layerId],
+      activeProjectId: nextProjectId,
+      projectStateById: {
+        ...current.projectStateById,
+        [nextProjectId]: current.projectStateById[nextProjectId] ?? createProjectState(nextProjectId),
       },
     }))
   }
@@ -335,7 +442,9 @@ function App() {
     <div className="app-shell">
       <main className="map-stage">
         <MapCanvas
-          appState={appState}
+          activeProject={activeProject}
+          activeProjectId={activeProjectId}
+          appState={activeProjectState}
           basemapMenuRef={basemapMenuRef}
           basemapMenuOpen={basemapMenuOpen}
           bookmarkOpen={bookmarkOpen}
@@ -343,6 +452,7 @@ function App() {
           copyStatus={copyStatus}
           layerMenuOpen={layerMenuOpen}
           layerMenuRef={layerMenuRef}
+          onChangeProject={changeProject}
           onCloseBookmark={() => setBookmarkOpen(false)}
           onCopyBookmark={handleCopyBookmark}
           onToggleBookmark={() => {
@@ -354,10 +464,10 @@ function App() {
             })
           }}
           bookmarkUrl={bookmarkUrl}
+          rasterFamily={activeRasterFamily}
           selectedBasemap={selectedBasemap}
           selectedStation={selectedStation}
           selectedVariable={selectedVariable}
-          setAppState={setAppState}
           setBasemapMenuOpen={setBasemapMenuOpen}
           setLayerMenuOpen={setLayerMenuOpen}
           setSelectedStation={setSelectedStation}

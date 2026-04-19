@@ -24,9 +24,9 @@ function buildHoveredStation(event, feature) {
 }
 
 const stationsLayer = {
-  id: 'stations',
+  id: 'cnrfcPoints',
   stateKey: 'hoveredStation',
-  isVisible: ({ appState }) => appState.layers.stations,
+  isVisible: ({ appState }) => appState.layers.cnrfcPoints,
   getInteractiveLayerIds() {
     return ['stations-hit-layer']
   },

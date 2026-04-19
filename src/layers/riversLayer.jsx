@@ -52,9 +52,9 @@ function buildHoveredRiver(event, feature) {
 }
 
 const riversLayer = {
-  id: 'rivers',
+  id: 'cnrfcRivers',
   stateKey: 'hoveredRiver',
-  isVisible: ({ appState }) => appState.layers.rivers,
+  isVisible: ({ appState }) => appState.layers.cnrfcRivers,
   getInteractiveLayerIds() {
     return ['rivers-line']
   },

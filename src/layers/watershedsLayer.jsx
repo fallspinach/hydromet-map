@@ -2,8 +2,8 @@ import { Layer, Source } from 'react-map-gl/maplibre'
 import { FORECAST_BASINS_PMTILES_URL, FORECAST_BASINS_SOURCE_LAYER } from '../config/mapConfig'
 
 const watershedsLayer = {
-  id: 'watersheds',
-  isVisible: ({ appState }) => appState.layers.watersheds,
+  id: 'cnrfcBasins',
+  isVisible: ({ appState }) => appState.layers.cnrfcBasins,
   renderLayers({ interactionState }) {
     return (
       <Source id="watersheds-source" type="vector" url={`pmtiles://${FORECAST_BASINS_PMTILES_URL}`}>

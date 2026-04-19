@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import Map, { NavigationControl, ScaleControl } from 'react-map-gl/maplibre'
-import { BASEMAP_STYLES } from '../../config/mapConfig'
+import { BASEMAP_STYLES, PROJECT_OPTIONS } from '../../config/mapConfig'
 import { formatCoordinate, formatViewValue } from '../../lib/appState'
 import { MAP_LAYER_MODULES } from '../../layers'
 import BookmarkControl from './BookmarkControl'
@@ -26,6 +26,8 @@ function mergeInteractionState(layerModules, callback) {
 }
 
 export default function MapCanvas({
+  activeProject,
+  activeProjectId,
   appState,
   basemapMenuRef,
   basemapMenuOpen,
@@ -35,13 +37,14 @@ export default function MapCanvas({
   copyStatus,
   layerMenuOpen,
   layerMenuRef,
+  onChangeProject,
   onCloseBookmark,
   onCopyBookmark,
   onToggleBookmark,
+  rasterFamily,
   selectedBasemap,
   selectedStation,
   selectedVariable,
-  setAppState,
   setBasemapMenuOpen,
   setLayerMenuOpen,
   setSelectedStation,
@@ -54,6 +57,7 @@ export default function MapCanvas({
 }) {
   const [interactionState, setInteractionState] = useState(INITIAL_INTERACTION_STATE)
   const mouseReadoutRef = useRef(null)
+  const availableLayerIdSet = new Set(activeProject?.availableLayerIds ?? [])
 
   const layerContext = {
     appState,
@@ -65,7 +69,9 @@ export default function MapCanvas({
   }
 
   const visibleLayerModules = MAP_LAYER_MODULES.filter(
-    (layerModule) => !layerModule.isVisible || layerModule.isVisible(layerContext),
+    (layerModule) =>
+      availableLayerIdSet.has(layerModule.id)
+      && (!layerModule.isVisible || layerModule.isVisible(layerContext)),
   )
 
   const interactiveLayerIds = visibleLayerModules.flatMap(
@@ -74,15 +80,12 @@ export default function MapCanvas({
 
   function handleMapMove(event) {
     const nextView = event.viewState
-    setAppState((current) => ({
-      ...current,
-      view: {
-        center: `${formatCoordinate(nextView.longitude)},${formatCoordinate(nextView.latitude)}`,
-        zoom: formatViewValue(nextView.zoom, 2),
-        bearing: formatViewValue(nextView.bearing, 1),
-        pitch: formatViewValue(nextView.pitch, 1),
-      },
-    }))
+    updateTopLevel('view', {
+      center: `${formatCoordinate(nextView.longitude)},${formatCoordinate(nextView.latitude)}`,
+      zoom: formatViewValue(nextView.zoom, 2),
+      bearing: formatViewValue(nextView.bearing, 1),
+      pitch: formatViewValue(nextView.pitch, 1),
+    })
   }
 
   function handlePointerMove(event) {
@@ -148,30 +151,13 @@ export default function MapCanvas({
         ))}
 
         <NavigationControl position="top-right" visualizePitch />
-        <GlobeProjectionControl
-          onProjectionChange={(projection) => {
-            setAppState((current) =>
-              current.projection === projection
-                ? current
-                : {
-                    ...current,
-                    projection,
-                  },
-            )
-          }}
-        />
         {selectedBasemap.terrainAvailable ? (
           <TerrainToggleControl
             enabled={terrainEnabled}
             onTerrainChange={(terrainIsEnabled) => {
-              setAppState((current) =>
-                current.terrainEnabled === terrainIsEnabled
-                  ? current
-                  : {
-                      ...current,
-                      terrainEnabled: terrainIsEnabled,
-                    },
-              )
+              if (appState.terrainEnabled !== terrainIsEnabled) {
+                updateTopLevel('terrainEnabled', terrainIsEnabled)
+              }
             }}
           />
         ) : null}
@@ -188,11 +174,13 @@ export default function MapCanvas({
       </Map>
 
       <MapHud
+        activeProject={activeProject}
         appState={appState}
         basemapMenuRef={basemapMenuRef}
         basemapMenuOpen={basemapMenuOpen}
         layerMenuOpen={layerMenuOpen}
         layerMenuRef={layerMenuRef}
+        rasterFamily={rasterFamily}
         selectedBasemap={selectedBasemap}
         setBasemapMenuOpen={setBasemapMenuOpen}
         setLayerMenuOpen={setLayerMenuOpen}
@@ -202,7 +190,7 @@ export default function MapCanvas({
         updateTopLevel={updateTopLevel}
       />
 
-      {appState.layers.raster ? (
+      {rasterFamily && selectedVariable && appState.layers.cnrfcRaster ? (
         <MapLegend
           palette={selectedVariable.palette}
           units={selectedVariable.units}
@@ -210,7 +198,37 @@ export default function MapCanvas({
         />
       ) : null}
 
+      <GlobeProjectionControl
+        projection={appState.projection}
+        onProjectionChange={(projection) => {
+          if (appState.projection !== projection) {
+            updateTopLevel('projection', projection)
+          }
+        }}
+      />
+
       <MouseReadout ref={mouseReadoutRef} />
+
+      <div
+        className="project-selector"
+        onMouseDown={(event) => event.stopPropagation()}
+        onPointerDown={(event) => event.stopPropagation()}
+        onTouchStart={(event) => event.stopPropagation()}
+      >
+        <div className="project-selector__label">
+          <span>Project</span>
+          <select
+            value={activeProjectId}
+            onChange={(event) => onChangeProject(event.target.value)}
+          >
+            {PROJECT_OPTIONS.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       <BookmarkControl
         bookmarkUrl={bookmarkUrl}
