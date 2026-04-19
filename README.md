@@ -25,3 +25,12 @@
 - `react-plotly.js` and `plotly.js` for interactive time series plots
 - `MUI` or a similar library for consistent look of UI's
 - `papaparse` or a similar library for parsing CSV data
+
+## Documentation
+- Architecture overview: [docs/architecture.md](./docs/architecture.md)
+- Project system: [docs/projects.md](./docs/projects.md)
+- Layer modules: [docs/layers.md](./docs/layers.md)
+- Raster families: [docs/raster.md](./docs/raster.md)
+- Popup modules: [docs/popups.md](./docs/popups.md)
+- State and bookmarks: [docs/state-and-bookmarks.md](./docs/state-and-bookmarks.md)
+- Adding a layer: [docs/adding-a-layer.md](./docs/adding-a-layer.md)
