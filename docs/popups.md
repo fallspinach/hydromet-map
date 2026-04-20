@@ -2,11 +2,12 @@
 
 ## Overview
 
-The app has three popup feature families:
+The app has four popup feature families:
 
 - forecast/CNRFC points
 - snow stations
 - B120 points
+- Yampa points
 
 These live under `src/features/` and follow a config + data + component structure.
 
@@ -66,9 +67,27 @@ Characteristics:
 - supports timeseries, table, and choropleth-style plot states
 - supports forecast update selector and post-processing selector
 
+## Yampa point popup
+
+Files:
+
+- [src/features/yampaPointPopup/yampaPointPopupConfig.js](../src/features/yampaPointPopup/yampaPointPopupConfig.js)
+- [src/features/yampaPointPopup/yampaPointPopupData.js](../src/features/yampaPointPopup/yampaPointPopupData.js)
+- [src/features/yampaPointPopup/YampaPointPopup.jsx](../src/features/yampaPointPopup/YampaPointPopup.jsx)
+- [src/features/yampaPointPopup/YampaPointPopupTable.jsx](../src/features/yampaPointPopup/YampaPointPopupTable.jsx)
+
+Characteristics:
+
+- cloned from the B120 popup pattern, but trimmed for Yampa needs
+- supports timeseries and table plots
+- no summary-map tab
+- forecast update selector is populated from the Yampa `tupdates` JSON feed
+- post-processing selector offers `cdfm` and `simulated`
+- monthly flow displays use `af` instead of `taf`
+
 ## Plot types currently supported
 
-The B120 popup data builder currently supports:
+The B120 and Yampa popup data builders currently support:
 
 - `timeseries`
 - `table`

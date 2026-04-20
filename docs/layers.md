@@ -11,7 +11,9 @@ Current registry:
 Examples:
 
 - [src/layers/cnrfcRasterLayer.jsx](../src/layers/cnrfcRasterLayer.jsx)
+- [src/layers/ucrbRasterLayer.jsx](../src/layers/ucrbRasterLayer.jsx)
 - [src/layers/cnrfcPointsLayer.jsx](../src/layers/cnrfcPointsLayer.jsx)
+- [src/layers/yampaPointsLayer.jsx](../src/layers/yampaPointsLayer.jsx)
 - [src/layers/cnrfcBasinsLayer.jsx](../src/layers/cnrfcBasinsLayer.jsx)
 - [src/layers/b120PointsLayer.jsx](../src/layers/b120PointsLayer.jsx)
 
@@ -44,10 +46,12 @@ Must match the layer id used in project configuration.
 Examples:
 
 - `cnrfcRaster`
+- `ucrbRaster`
 - `cnrfcPoints`
 - `cnrfcBasins`
 - `b120Points`
 - `b120Basins`
+- `yampaPoints`
 
 ### `isVisible`
 
@@ -88,6 +92,7 @@ Returns hover info popups and/or feature popup components.
 ### Raster overlay
 
 - `cnrfcRaster`
+- `ucrbRaster`
 
 This is a PNG image overlay driven by raster family state.
 
@@ -97,6 +102,13 @@ This is a PNG image overlay driven by raster family state.
 - `cnrfcRivers`
 - `cnrfcBasins`
 - `cnrfcPoints`
+
+### Shared UCRB/Yampa vector layers
+
+- `ucrbRegion`
+- `ucrbRivers`
+- `yampaRegion`
+- `yampaPoints`
 
 ### B120-specific vector layers
 

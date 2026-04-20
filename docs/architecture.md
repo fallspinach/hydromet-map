@@ -70,9 +70,10 @@ A raster family groups:
 - default date/datetime values
 - per-variable PNG URL builders and palettes
 
-The current app has one raster family:
+The current app has two raster families:
 
 - `cnrfc`
+- `ucrb`
 
 But the structure now supports multiple families, with the rule that each project may reference at most one raster family.
 
@@ -101,6 +102,7 @@ But the structure now supports multiple families, with the rule that each projec
 - `src/features/cnrfcPointPopup/`
 - `src/features/snowStationPopup/`
 - `src/features/b120PointPopup/`
+- `src/features/yampaPointPopup/`
 
 ## Data flow
 

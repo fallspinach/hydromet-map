@@ -15,9 +15,10 @@ This keeps the raster selectors unambiguous and avoids overlapping raster overla
 
 Raster family definitions live in [src/config/mapConfig.js](../src/config/mapConfig.js) under `RASTER_FAMILIES`.
 
-Current family:
+Current families:
 
 - `cnrfc`
+- `ucrb`
 
 ## What a raster family defines
 
@@ -38,7 +39,7 @@ Typical fields:
 
 ## Variable definitions
 
-Raster variables currently live under `CNRFC_RASTER_VARIABLES`.
+Raster variables currently live under `CNRFC_RASTER_VARIABLES` and `UCRB_RASTER_VARIABLES`.
 
 Each variable defines:
 
@@ -90,12 +91,16 @@ Current examples:
 
 - `cnrfc` defaults to `soilMoistureDaily`
 - `b120` defaults to `sweDaily`
+- `yampa` defaults to `sweDaily`
 
 This is implemented by merging `projectDefinition.defaultRaster` over `buildDefaultRasterState(rasterFamily)` in [src/config/mapConfig.js](../src/config/mapConfig.js).
 
 ## Raster rendering
 
-Raster rendering happens in [src/layers/cnrfcRasterLayer.jsx](../src/layers/cnrfcRasterLayer.jsx).
+Raster rendering currently happens in:
+
+- [src/layers/cnrfcRasterLayer.jsx](../src/layers/cnrfcRasterLayer.jsx)
+- [src/layers/ucrbRasterLayer.jsx](../src/layers/ucrbRasterLayer.jsx)
 
 Behavior:
 

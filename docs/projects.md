@@ -48,6 +48,22 @@ Default raster variable:
 
 This reflects the current design decision that the CNRFC raster domain is also useful as context for B120 users.
 
+### `yampa`
+
+Includes:
+
+- `ucrbRaster`
+- `ucrbRegion`
+- `ucrbRivers`
+- `yampaRegion`
+- `yampaPoints`
+
+Default raster variable:
+
+- `sweDaily`
+
+This project uses the `ucrb` raster family but presents a Yampa-focused layer set and view.
+
 ## Definition vs state
 
 The app intentionally separates project definition from project state.
