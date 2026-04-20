@@ -9,6 +9,7 @@ import {
   DEFAULT_PROJECT_ID,
   getProjectDefinition,
   getProjectRasterFamily,
+  PROJECTS,
 } from './config/mapConfig'
 import MapCanvas from './components/map/MapCanvas'
 import {
@@ -21,8 +22,6 @@ import {
   writeStateToUrl,
 } from './lib/appState'
 
-const STATUS_URL = 'https://cw3e.ucsd.edu/hydro/cnrfc/csv/status.json'
-const STATUS_KEY = 'WRF-Hydro NRT'
 const NRT_PRODUCT = 'NRT'
 const FORECAST_PRODUCTS = ['WWRF-ECMWF', 'WWRF-GFS', 'GFS']
 
@@ -83,6 +82,14 @@ function getInitialStatusTimestamp() {
   return parseStatusTimestamp(DEFAULT_DATETIME) ?? new Date()
 }
 
+function buildInitialStatusBoundaryByProjectId() {
+  const initialBoundary = buildStatusBoundary(getInitialStatusTimestamp())
+
+  return Object.fromEntries(
+    Object.keys(PROJECTS).map((projectId) => [projectId, initialBoundary]),
+  )
+}
+
 function applyTemporalModeToRasterState(rasterState, rasterFamily) {
   if (!rasterState || !rasterFamily) {
     return rasterState
@@ -116,12 +123,14 @@ function applyTemporalModeToRasterState(rasterState, rasterFamily) {
   }
 }
 
-function constrainRasterStateToStatusBoundary(rasterState, statusBoundary) {
+function constrainRasterStateToStatusBoundary(rasterState, statusBoundary, rasterFamily) {
   if (!rasterState) {
     return rasterState
   }
 
   const nextRaster = { ...rasterState }
+  const rasterProducts = rasterFamily?.products ?? []
+  const forecastProducts = rasterProducts.filter((product) => product !== NRT_PRODUCT)
 
   if (nextRaster.date > statusBoundary.maxDate) {
     nextRaster.date = statusBoundary.maxDate
@@ -132,13 +141,21 @@ function constrainRasterStateToStatusBoundary(rasterState, statusBoundary) {
   }
 
   const shouldUseForecastProducts =
-    nextRaster.temporalMode === 'datetime'
-      ? nextRaster.datetime > statusBoundary.boundaryDateTime
-      : nextRaster.date > statusBoundary.boundaryDate
+    forecastProducts.length > 0
+      && (
+        nextRaster.temporalMode === 'datetime'
+          ? nextRaster.datetime > statusBoundary.boundaryDateTime
+          : nextRaster.date > statusBoundary.boundaryDate
+      )
 
-  const allowedProducts = shouldUseForecastProducts ? FORECAST_PRODUCTS : [NRT_PRODUCT]
+  const allowedProducts =
+    forecastProducts.length === 0
+      ? rasterProducts
+      : shouldUseForecastProducts
+        ? forecastProducts
+        : (rasterProducts.includes(NRT_PRODUCT) ? [NRT_PRODUCT] : [rasterProducts[0]])
 
-  if (!allowedProducts.includes(nextRaster.product)) {
+  if (allowedProducts.length > 0 && !allowedProducts.includes(nextRaster.product)) {
     nextRaster.product = allowedProducts[0]
   }
 
@@ -174,8 +191,8 @@ function App() {
   const bookmarkWidgetRef = useRef(null)
   const basemapMenuRef = useRef(null)
   const layerMenuRef = useRef(null)
-  const [statusBoundary, setStatusBoundary] = useState(() =>
-    buildStatusBoundary(getInitialStatusTimestamp()),
+  const [statusBoundaryByProjectId, setStatusBoundaryByProjectId] = useState(() =>
+    buildInitialStatusBoundaryByProjectId(),
   )
 
   const activeProjectId = appState.activeProjectId ?? DEFAULT_PROJECT_ID
@@ -200,6 +217,9 @@ function App() {
     pitch: parseNumericValue(activeProjectState.view.pitch, 0),
   }
   const terrainEnabled = selectedBasemap.terrainAvailable && activeProjectState.terrainEnabled
+  const statusBoundary =
+    statusBoundaryByProjectId[activeProjectId]
+    ?? buildStatusBoundary(getInitialStatusTimestamp())
 
   useEffect(() => {
     if (copyStatus === 'Copied') {
@@ -245,59 +265,89 @@ function App() {
     const abortController = new AbortController()
 
     async function loadStatusDefaults() {
-      try {
-        const response = await fetch(STATUS_URL, { signal: abortController.signal })
+      const projectIds = Object.keys(PROJECTS)
+      const loadedStatusByProjectId = {}
 
-        if (!response.ok) {
+      await Promise.all(projectIds.map(async (projectId) => {
+        const rasterFamily = getProjectRasterFamily(projectId)
+        const statusUrl = rasterFamily?.statusUrl
+        const statusKey = rasterFamily?.statusKey
+
+        if (!rasterFamily || !statusUrl || !statusKey) {
           return
         }
 
-        const statusData = await response.json()
-        const statusTimestamp = parseStatusTimestamp(statusData?.[STATUS_KEY])
+        try {
+          const response = await fetch(statusUrl, { signal: abortController.signal })
 
-        if (!statusTimestamp) {
-          return
+          if (!response.ok) {
+            return
+          }
+
+          const statusData = await response.json()
+          const statusTimestamp = parseStatusTimestamp(statusData?.[statusKey])
+
+          if (!statusTimestamp) {
+            return
+          }
+
+          loadedStatusByProjectId[projectId] = {
+            boundary: buildStatusBoundary(statusTimestamp),
+            date: formatStatusDate(statusTimestamp),
+            datetime: formatStatusDateTime(statusTimestamp),
+          }
+        } catch (error) {
+          if (error?.name !== 'AbortError') {
+            // Keep the built-in defaults if the remote status file is unavailable.
+          }
         }
+      }))
 
-        const nextDate = formatStatusDate(statusTimestamp)
-        const nextDateTime = formatStatusDateTime(statusTimestamp)
-        setStatusBoundary(buildStatusBoundary(statusTimestamp))
-
-        setAppState((current) => ({
-          ...current,
-          projectStateById: Object.fromEntries(
-            Object.entries(current.projectStateById).map(([projectId, projectState]) => {
-              const rasterFamily = getProjectRasterFamily(projectId)
-
-              if (!rasterFamily || !projectState.raster) {
-                return [projectId, projectState]
-              }
-
-              return [
-                projectId,
-                {
-                  ...projectState,
-                  raster: {
-                    ...projectState.raster,
-                    date:
-                      projectState.raster.date === rasterFamily.defaultDate
-                        ? nextDate
-                        : projectState.raster.date,
-                    datetime:
-                      projectState.raster.datetime === rasterFamily.defaultDateTime
-                        ? nextDateTime
-                        : projectState.raster.datetime,
-                  },
-                },
-              ]
-            }),
-          ),
-        }))
-      } catch (error) {
-        if (error?.name !== 'AbortError') {
-          // Keep the built-in defaults if the remote status file is unavailable.
-        }
+      if (abortController.signal.aborted || Object.keys(loadedStatusByProjectId).length === 0) {
+        return
       }
+
+      setStatusBoundaryByProjectId((current) => {
+        const next = { ...current }
+
+        Object.entries(loadedStatusByProjectId).forEach(([projectId, statusState]) => {
+          next[projectId] = statusState.boundary
+        })
+
+        return next
+      })
+
+      setAppState((current) => ({
+        ...current,
+        projectStateById: Object.fromEntries(
+          Object.entries(current.projectStateById).map(([projectId, projectState]) => {
+            const rasterFamily = getProjectRasterFamily(projectId)
+            const loadedStatusState = loadedStatusByProjectId[projectId]
+
+            if (!rasterFamily || !projectState.raster || !loadedStatusState) {
+              return [projectId, projectState]
+            }
+
+            return [
+              projectId,
+              {
+                ...projectState,
+                raster: {
+                  ...projectState.raster,
+                  date:
+                    projectState.raster.date === rasterFamily.defaultDate
+                      ? loadedStatusState.date
+                      : projectState.raster.date,
+                  datetime:
+                    projectState.raster.datetime === rasterFamily.defaultDateTime
+                      ? loadedStatusState.datetime
+                      : projectState.raster.datetime,
+                },
+              },
+            ]
+          }),
+        ),
+      }))
     }
 
     loadStatusDefaults()
@@ -313,6 +363,9 @@ function App() {
       projectStateById: Object.fromEntries(
         Object.entries(current.projectStateById).map(([projectId, projectState]) => {
           const rasterFamily = getProjectRasterFamily(projectId)
+          const projectStatusBoundary =
+            statusBoundaryByProjectId[projectId]
+            ?? buildStatusBoundary(getInitialStatusTimestamp())
 
           if (!rasterFamily || !projectState.raster) {
             return [projectId, projectState]
@@ -324,14 +377,15 @@ function App() {
               ...projectState,
               raster: constrainRasterStateToStatusBoundary(
                 applyTemporalModeToRasterState(projectState.raster, rasterFamily),
-                statusBoundary,
+                projectStatusBoundary,
+                rasterFamily,
               ),
             },
           ]
         }),
       ),
     }))
-  }, [statusBoundary])
+  }, [statusBoundaryByProjectId])
 
   function updateTopLevel(key, value) {
     setAppState((current) =>
@@ -388,7 +442,7 @@ function App() {
 
         return {
           ...activeProjectStateValue,
-          raster: constrainRasterStateToStatusBoundary(nextRaster, statusBoundary),
+          raster: constrainRasterStateToStatusBoundary(nextRaster, statusBoundary, rasterFamily),
         }
       }),
     )

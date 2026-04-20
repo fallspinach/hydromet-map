@@ -51,9 +51,15 @@ export default function MapHud({
           : appState.raster.date > statusBoundary.boundaryDate
       )
     : false
-  const allowedProducts = rasterFamily ? (allowsForecastProducts ? forecastProducts : ['NRT']) : []
+  const allowedProducts =
+    !rasterFamily
+      ? []
+      : forecastProducts.length === 0
+        ? rasterProducts
+        : (allowsForecastProducts ? forecastProducts : ['NRT'])
   const allowedProductSet = new Set(allowedProducts)
   const isForecastProduct = appState.raster?.product !== 'NRT'
+  const activeRasterLayerId = rasterFamily?.layerId
   const maxPickerDate = parseIsoDate(statusBoundary.maxDate)
   const maxPickerDateTime = parseIsoDateTime(statusBoundary.maxDateTime)
   const selectedDateTime = parseIsoDateTime(appState.raster?.datetime ?? '')
@@ -119,7 +125,7 @@ export default function MapHud({
           <div className="layer-toggle__menu">
             {projectLayers.map((layer) => {
               const symbolColor =
-                layer.id === 'cnrfcRaster' && selectedRasterVariable
+                layer.id === activeRasterLayerId && selectedRasterVariable
                   ? selectedRasterVariable.palette.colors.at(-1) ?? '#1d6996'
                   : layer.symbolColor ?? '#4a7189'
 
@@ -320,17 +326,19 @@ export default function MapHud({
               ))}
             </select>
 
-            <select
-              value={appState.raster.ensemble}
-              title="Ensemble trace"
-              onChange={(event) => updateRaster('ensemble', event.target.value)}
-            >
-              {ensembleTraces.map((trace) => (
-                <option key={trace} value={trace}>
-                  {trace}
-                </option>
-              ))}
-            </select>
+            {ensembleTraces.length > 1 ? (
+              <select
+                value={appState.raster.ensemble}
+                title="Ensemble trace"
+                onChange={(event) => updateRaster('ensemble', event.target.value)}
+              >
+                {ensembleTraces.map((trace) => (
+                  <option key={trace} value={trace}>
+                    {trace}
+                  </option>
+                ))}
+              </select>
+            ) : null}
           </>
         ) : null}
       </div>

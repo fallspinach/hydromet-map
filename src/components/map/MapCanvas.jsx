@@ -16,6 +16,8 @@ const INITIAL_INTERACTION_STATE = {
   hoveredRiver: null,
   hoveredSnowCourseStation: null,
   hoveredSnowPillowStation: null,
+  hoveredYampaPoint: null,
+  hoveredUcrbRiver: null,
 }
 
 function mergeInteractionState(layerModules, callback) {
@@ -190,7 +192,7 @@ export default function MapCanvas({
         updateTopLevel={updateTopLevel}
       />
 
-      {rasterFamily && selectedVariable && appState.layers.cnrfcRaster ? (
+      {rasterFamily && selectedVariable && appState.layers[rasterFamily.layerId] ? (
         <MapLegend
           palette={selectedVariable.palette}
           units={selectedVariable.units}

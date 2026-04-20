@@ -1,12 +1,12 @@
 import { fetchAndParseCsv } from '../../lib/csvData'
 import {
-  B120_POINT_POPUP_TABS,
-  DEFAULT_B120_POINT_FORECAST_UPDATE_DATE,
-  DEFAULT_B120_POINT_POST_PROCESSING,
-  getB120PointPostProcessingLabel,
-  getB120PointPopupTabDefinition,
-  getDefaultB120PointPopupTabId,
-} from './b120PointPopupConfig'
+  YAMPA_POINT_POPUP_TABS,
+  DEFAULT_YAMPA_POINT_FORECAST_UPDATE_DATE,
+  DEFAULT_YAMPA_POINT_POST_PROCESSING,
+  getYampaPointPostProcessingLabel,
+  getYampaPointPopupTabDefinition,
+  getDefaultYampaPointPopupTabId,
+} from './yampaPointPopupConfig'
 
 function findTimeAxisField(fields) {
   const preferredField = fields.find((field) => /^(date|time|datetime|timestamp)$/i.test(field))
@@ -131,15 +131,16 @@ function resolvePlotTitleText(plotDefinition, station) {
     return `${station.stationId}`
   }
 
-  const updateDate = station.popup?.forecastUpdateDate ?? DEFAULT_B120_POINT_FORECAST_UPDATE_DATE
-  const postProcessingLabel = getB120PointPostProcessingLabel(
-    station.popup?.forecastPostProcessing ?? DEFAULT_B120_POINT_POST_PROCESSING,
+  const updateDate = station.popup?.forecastUpdateDate ?? DEFAULT_YAMPA_POINT_FORECAST_UPDATE_DATE
+  const postProcessingLabel = getYampaPointPostProcessingLabel(
+    station.popup?.forecastPostProcessing ?? DEFAULT_YAMPA_POINT_POST_PROCESSING,
   )
 
   return template
     .replaceAll('{stationId}', station.stationId ?? '')
     .replaceAll('{basin}', station.basin ?? '')
     .replaceAll('{location}', station.location ?? '')
+    .replaceAll('{name}', station.name ?? '')
     .replaceAll('{updateDate}', updateDate)
     .replaceAll('{postProcessing}', postProcessingLabel)
 }
@@ -154,7 +155,7 @@ function createEmptyTabState(tabDefinition) {
 
 function createEmptyTabDataById() {
   return Object.fromEntries(
-    B120_POINT_POPUP_TABS.map((tabDefinition) => [tabDefinition.id, createEmptyTabState(tabDefinition)]),
+    YAMPA_POINT_POPUP_TABS.map((tabDefinition) => [tabDefinition.id, createEmptyTabState(tabDefinition)]),
   )
 }
 
@@ -569,33 +570,34 @@ function triggerPlotResize() {
   })
 }
 
-export function createInitialB120PointPopupState() {
+export function createInitialYampaPointPopupState() {
   return {
-    activeTabId: getDefaultB120PointPopupTabId(),
+    activeTabId: getDefaultYampaPointPopupTabId(),
     forecastUpdateDate: '',
-    forecastPostProcessing: DEFAULT_B120_POINT_POST_PROCESSING,
+    forecastPostProcessing: DEFAULT_YAMPA_POINT_POST_PROCESSING,
     tabDataById: createEmptyTabDataById(),
   }
 }
 
-export function createSelectedB120PointPopupState(feature, initialPopupState = {}) {
+export function createSelectedYampaPointPopupState(feature, initialPopupState = {}) {
   const properties = feature?.properties ?? {}
 
   return {
-    popupType: 'b120-points',
-    stationId: properties.Station_ID ?? 'Unknown',
-    basin: properties.Basin ?? 'Unknown',
-    location: properties.Location ?? 'Unknown',
+    popupType: 'yampa-points',
+    stationId: properties.station_id ?? 'Unknown',
+    name: properties.name ?? 'Unknown',
+    area: properties.area ?? 'Unknown',
+    reachId: properties.reach_id ?? 'Unknown',
     longitude: feature.geometry.coordinates[0],
     latitude: feature.geometry.coordinates[1],
     popup: {
-      ...createInitialB120PointPopupState(),
+      ...createInitialYampaPointPopupState(),
       ...initialPopupState,
     },
   }
 }
 
-export function setActiveB120PointPopupTab(setSelectedStation, tabId) {
+export function setActiveYampaPointPopupTab(setSelectedStation, tabId) {
   setSelectedStation((current) =>
     current
       ? {
@@ -611,7 +613,7 @@ export function setActiveB120PointPopupTab(setSelectedStation, tabId) {
   triggerPlotResize()
 }
 
-export function setB120PointForecastUpdateDate(setSelectedStation, forecastUpdateDate) {
+export function setYampaPointForecastUpdateDate(setSelectedStation, forecastUpdateDate) {
   setSelectedStation((current) =>
     current
       ? {
@@ -626,7 +628,7 @@ export function setB120PointForecastUpdateDate(setSelectedStation, forecastUpdat
   )
 }
 
-export function setB120PointForecastPostProcessing(setSelectedStation, forecastPostProcessing) {
+export function setYampaPointForecastPostProcessing(setSelectedStation, forecastPostProcessing) {
   setSelectedStation((current) =>
     current
       ? {
@@ -641,8 +643,8 @@ export function setB120PointForecastPostProcessing(setSelectedStation, forecastP
   )
 }
 
-export function loadB120PointPopupTabData(setSelectedStation, station, tabId) {
-  const tabDefinition = getB120PointPopupTabDefinition(tabId)
+export function loadYampaPointPopupTabData(setSelectedStation, station, tabId) {
+  const tabDefinition = getYampaPointPopupTabDefinition(tabId)
 
   if (!tabDefinition) {
     return
@@ -732,6 +734,8 @@ export function loadB120PointPopupTabData(setSelectedStation, station, tabId) {
     })
 }
 
-export function getB120PointPopupTabs() {
-  return B120_POINT_POPUP_TABS
+export function getYampaPointPopupTabs() {
+  return YAMPA_POINT_POPUP_TABS
 }
+
+

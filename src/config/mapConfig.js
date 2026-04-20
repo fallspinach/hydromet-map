@@ -28,6 +28,13 @@ export const ALL_MAP_LAYERS = [
     symbol: '\u25A0',
   },
   {
+    id: 'ucrbRaster',
+    label: 'UCRB Rasters',
+    type: 'png-overlay',
+    description: 'UCRB raster overlay rendered from a variable, date, and product.',
+    symbol: '\u25A0',
+  },
+  {
     id: 'cnrfcRegion',
     label: 'CNRFC Region',
     type: 'vector',
@@ -36,10 +43,42 @@ export const ALL_MAP_LAYERS = [
     symbolColor: '#6b7280',
   },
   {
+    id: 'ucrbRegion',
+    label: 'UCRB Region',
+    type: 'vector',
+    description: 'UCRB boundary outline.',
+    symbol: '\u2610',
+    symbolColor: '#6b7280',
+  },
+  {
+    id: 'yampaRegion',
+    label: 'Yampa Region',
+    type: 'vector',
+    description: 'Yampa boundary outline.',
+    symbol: '\u2610',
+    symbolColor: '#0b3b8f',
+  },
+  {
+    id: 'yampaPoints',
+    label: 'Yampa Points',
+    type: 'vector',
+    description: 'Yampa-region point locations from GeoJSON sources.',
+    symbol: '\u25CF',
+    symbolColor: '#00ffff',
+  },
+  {
     id: 'cnrfcRivers',
     label: 'NWM Rivers (CNRFC)',
     type: 'vector-tile',
     description: 'CNRFC-region flowlines and stream segments from tiled vector sources.',
+    symbol: '\uFF5E',
+    symbolColor: '#008b8b',
+  },
+  {
+    id: 'ucrbRivers',
+    label: 'NWM Rivers (UCRB)',
+    type: 'vector-tile',
+    description: 'UCRB-region flowlines and stream segments from tiled vector sources.',
     symbol: '\uFF5E',
     symbolColor: '#008b8b',
   },
@@ -102,6 +141,13 @@ export const DEFAULT_RASTER_COORDINATES = [
   [-125, 32],
 ]
 
+export const UCRB_RASTER_COORDINATES = [
+  [-113, 45],
+  [-104, 45],
+  [-104, 34],
+  [-113, 34],
+]
+
 export function getRasterProductPath(product) {
   switch (product) {
     case 'WWRF-ECMWF':
@@ -114,6 +160,29 @@ export function getRasterProductPath(product) {
     default:
       return 'nrt'
   }
+}
+
+function replaceRasterDomain(url, domain) {
+  if (!url) {
+    return url
+  }
+
+  return url.replace('/hydro/cnrfc/', `/hydro/${domain}/`)
+}
+
+function cloneRasterVariablesForDomain(variables, { coordinates, domain }) {
+  return Object.fromEntries(
+    Object.entries(variables).map(([variableId, variableDefinition]) => [
+      variableId,
+      {
+        ...variableDefinition,
+        coordinates,
+        buildRasterUrl: variableDefinition.buildRasterUrl
+          ? (rasterState) => replaceRasterDomain(variableDefinition.buildRasterUrl(rasterState), domain)
+          : undefined,
+      },
+    ]),
+  )
 }
 
 export const CNRFC_RASTER_VARIABLES = {
@@ -381,6 +450,11 @@ export const CNRFC_RASTER_VARIABLES = {
   },
 }
 
+export const UCRB_RASTER_VARIABLES = cloneRasterVariablesForDomain(CNRFC_RASTER_VARIABLES, {
+  coordinates: UCRB_RASTER_COORDINATES,
+  domain: 'ucrb',
+})
+
 export const RASTER_FAMILIES = {
   cnrfc: {
     id: 'cnrfc',
@@ -389,6 +463,20 @@ export const RASTER_FAMILIES = {
     variables: CNRFC_RASTER_VARIABLES,
     products: ['NRT', 'WWRF-ECMWF', 'WWRF-GFS', 'GFS'],
     ensembleTraces: ['Control', 'Mean', 'P10', 'P50', 'P90'],
+    statusUrl: 'https://cw3e.ucsd.edu/hydro/cnrfc/csv/status.json',
+    statusKey: 'WRF-Hydro NRT',
+    defaultDate: '2026-04-13',
+    defaultDateTime: '2026-04-13T12:00',
+  },
+  ucrb: {
+    id: 'ucrb',
+    label: 'UCRB Raster Overlay',
+    layerId: 'ucrbRaster',
+    variables: UCRB_RASTER_VARIABLES,
+    products: ['NRT'],
+    ensembleTraces: [],
+    statusUrl: 'https://cw3e.ucsd.edu/hydro/ucrb/csv/status.json',
+    statusKey: 'WRF-Hydro NRT',
     defaultDate: '2026-04-13',
     defaultDateTime: '2026-04-13T12:00',
   },
@@ -401,7 +489,7 @@ function buildDefaultRasterState(rasterFamily) {
   return {
     variable: defaultVariable,
     product: rasterFamily?.products?.[0] ?? 'NRT',
-    ensemble: rasterFamily?.ensembleTraces?.[1] ?? rasterFamily?.ensembleTraces?.[0] ?? 'Mean',
+    ensemble: rasterFamily?.ensembleTraces?.[1] ?? rasterFamily?.ensembleTraces?.[0] ?? '',
     temporalMode: 'date',
     date: rasterFamily?.defaultDate ?? '2026-04-13',
     datetime: rasterFamily?.defaultDateTime ?? '2026-04-13T12:00',
@@ -429,10 +517,10 @@ function buildDefaultProjectState(projectDefinition) {
 
   return {
     view: {
-      center: '-119,38.1',
-      zoom: '5.3',
-      bearing: '0',
-      pitch: '0',
+      center: projectDefinition.defaultView?.center ?? '-119,38.1',
+      zoom: projectDefinition.defaultView?.zoom ?? '5.3',
+      bearing: projectDefinition.defaultView?.bearing ?? '0',
+      pitch: projectDefinition.defaultView?.pitch ?? '0',
     },
     basemapId: projectDefinition.defaultBasemapId ?? 'flat',
     terrainEnabled: projectDefinition.defaultTerrainEnabled ?? true,
@@ -492,6 +580,22 @@ export const PROJECTS = {
       'snowPillows',
     ],
   },
+  yampa: {
+    id: 'yampa',
+    label: 'Yampa',
+    rasterFamilyId: 'ucrb',
+    defaultRaster: {
+      variable: 'sweDaily',
+    },
+    defaultView: {
+      center: '-108,40',
+      zoom: '5.3',
+      bearing: '0',
+      pitch: '0',
+    },
+    availableLayerIds: ['ucrbRaster', 'ucrbRegion', 'ucrbRivers', 'yampaRegion', 'yampaPoints'],
+    defaultVisibleLayerIds: ['ucrbRaster', 'ucrbRegion', 'ucrbRivers', 'yampaRegion', 'yampaPoints'],
+  },
 }
 
 export const PROJECT_OPTIONS = Object.values(PROJECTS).map(({ id, label }) => ({ id, label }))
@@ -544,6 +648,8 @@ export const TERRAIN_SOURCE_ID = 'terrain_source'
 export const TERRAIN_SPEC = { source: TERRAIN_SOURCE_ID, exaggeration: 1 }
 export const RIVER_NETWORK_PMTILES_URL =
   'https://cw3e.ucsd.edu/wrf_hydro/cnrfc/pmtiles/nwm_reaches_cnrfc_idx.pmtiles'
+export const UCRB_RIVER_NETWORK_PMTILES_URL =
+  'https://cw3e.ucsd.edu/wrf_hydro/ucrb/pmtiles/nwm_reaches_ucrb.pmtiles'
 export const RIVER_NETWORK_SOURCE_LAYER = 'NWM_v2.1_channels'
 export const FORECAST_BASINS_PMTILES_URL =
   'https://cw3e.ucsd.edu/wrf_hydro/cnrfc/pmtiles/CNRFC_Basins.pmtiles'

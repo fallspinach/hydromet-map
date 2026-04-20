@@ -1,9 +1,7 @@
 import { Layer, Popup, Source } from 'react-map-gl/maplibre'
 import B120PointPopup from '../features/b120PointPopup/B120PointPopup'
-import { getDefaultB120PointPopupTabId } from '../features/b120PointPopup/b120PointPopupConfig'
 import {
   createSelectedB120PointPopupState,
-  loadB120PointPopupTabData,
 } from '../features/b120PointPopup/b120PointPopupData'
 
 const B120_POINTS_GEOJSON_URL = 'https://cw3e.ucsd.edu/hydro/b120/csv/b120_stations_24.geojson'
@@ -55,7 +53,6 @@ const b120PointsLayer = {
     const station = createSelectedB120PointPopupState(clickedFeature)
 
     setSelectedStation(station)
-    loadB120PointPopupTabData(setSelectedStation, station, getDefaultB120PointPopupTabId())
 
     return true
   },

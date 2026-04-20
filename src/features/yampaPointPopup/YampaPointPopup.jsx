@@ -1,24 +1,24 @@
 import { useEffect, useState } from 'react'
 import { Popup } from 'react-map-gl/maplibre'
 import TimeSeriesPlot from '../cnrfcPointPopup/TimeSeriesPlot'
-import B120PointPopupTable from './B120PointPopupTable'
+import YampaPointPopupTable from './YampaPointPopupTable'
 import {
-  B120_POINT_FORECAST_UPDATE_OPTIONS,
-  B120_POINT_FORECAST_UPDATES_URL,
-  B120_POINT_POST_PROCESSING_OPTIONS,
-  B120_POINT_POPUP_WIDTH,
-  doesB120PointTabUseForecastUpdate,
-  doesB120PointTabUsePostProcessing,
-  getB120PointPopupTabDefinition,
-  normalizeB120ForecastUpdateDate,
-} from './b120PointPopupConfig'
+  YAMPA_POINT_FORECAST_UPDATE_OPTIONS,
+  YAMPA_POINT_FORECAST_UPDATES_URL,
+  YAMPA_POINT_POST_PROCESSING_OPTIONS,
+  YAMPA_POINT_POPUP_WIDTH,
+  doesYampaPointTabUseForecastUpdate,
+  doesYampaPointTabUsePostProcessing,
+  getYampaPointPopupTabDefinition,
+  normalizeYampaForecastUpdateDate,
+} from './yampaPointPopupConfig'
 import {
-  getB120PointPopupTabs,
-  loadB120PointPopupTabData,
-  setActiveB120PointPopupTab,
-  setB120PointForecastPostProcessing,
-  setB120PointForecastUpdateDate,
-} from './b120PointPopupData'
+  getYampaPointPopupTabs,
+  loadYampaPointPopupTabData,
+  setActiveYampaPointPopupTab,
+  setYampaPointForecastPostProcessing,
+  setYampaPointForecastUpdateDate,
+} from './yampaPointPopupData'
 
 function renderPlotPanel(plotState, station) {
   if (plotState.status === 'loading') {
@@ -38,12 +38,12 @@ function renderPlotPanel(plotState, station) {
         >
           {plotState.plotType === 'timeseries' ? (
             <TimeSeriesPlot
-              stationName={station.location}
+              stationName={station.name}
               stationId={station.stationId}
               plotState={plotState}
             />
           ) : (
-            <B120PointPopupTable
+            <YampaPointPopupTable
               stationId={station.stationId}
               plotState={plotState}
             />
@@ -62,25 +62,25 @@ function renderPlotPanel(plotState, station) {
   return <p className="station-popup__status">Select a tab to load its plot data.</p>
 }
 
-export default function B120PointPopup({
+export default function YampaPointPopup({
   selectedStation,
   setSelectedStation,
 }) {
-  const [forecastUpdateOptions, setForecastUpdateOptions] = useState(B120_POINT_FORECAST_UPDATE_OPTIONS)
-  const tabs = getB120PointPopupTabs()
+  const [forecastUpdateOptions, setForecastUpdateOptions] = useState(YAMPA_POINT_FORECAST_UPDATE_OPTIONS)
+  const tabs = getYampaPointPopupTabs()
   const activeTabId = selectedStation?.popup?.activeTabId ?? tabs[0]?.id ?? 'nrt-forecast'
   const forecastUpdateDate = selectedStation?.popup?.forecastUpdateDate ?? ''
   const forecastPostProcessing =
-    selectedStation?.popup?.forecastPostProcessing ?? B120_POINT_POST_PROCESSING_OPTIONS[0].id
-  const forecastUpdateEnabled = doesB120PointTabUseForecastUpdate(activeTabId)
-  const postProcessingEnabled = doesB120PointTabUsePostProcessing(activeTabId)
+    selectedStation?.popup?.forecastPostProcessing ?? YAMPA_POINT_POST_PROCESSING_OPTIONS[0].id
+  const forecastUpdateEnabled = doesYampaPointTabUseForecastUpdate(activeTabId)
+  const postProcessingEnabled = doesYampaPointTabUsePostProcessing(activeTabId)
 
   useEffect(() => {
     let isCancelled = false
 
     async function loadForecastUpdateOptions() {
       try {
-        const response = await fetch(B120_POINT_FORECAST_UPDATES_URL)
+        const response = await fetch(YAMPA_POINT_FORECAST_UPDATES_URL)
 
         if (!response.ok) {
           return
@@ -89,7 +89,7 @@ export default function B120PointPopup({
         const json = await response.json()
         const nextOptions = Array.isArray(json?.tupdates)
           ? json.tupdates
-            .map((value) => normalizeB120ForecastUpdateDate(value))
+            .map((value) => normalizeYampaForecastUpdateDate(value))
             .filter(Boolean)
           : []
 
@@ -98,7 +98,7 @@ export default function B120PointPopup({
         }
       } catch {
         if (!isCancelled) {
-          setForecastUpdateOptions(B120_POINT_FORECAST_UPDATE_OPTIONS)
+          setForecastUpdateOptions(YAMPA_POINT_FORECAST_UPDATE_OPTIONS)
         }
       }
     }
@@ -111,7 +111,7 @@ export default function B120PointPopup({
   }, [])
 
   useEffect(() => {
-    if (!selectedStation || selectedStation.popupType !== 'b120-points') {
+    if (!selectedStation || selectedStation.popupType !== 'yampa-points') {
       return
     }
 
@@ -122,7 +122,7 @@ export default function B120PointPopup({
     }
 
     if (forecastUpdateOptions.includes(forecastUpdateDate)) {
-      loadB120PointPopupTabData(setSelectedStation, selectedStation, activeTabId)
+      loadYampaPointPopupTabData(setSelectedStation, selectedStation, activeTabId)
       return
     }
 
@@ -134,8 +134,8 @@ export default function B120PointPopup({
       },
     }
 
-    setB120PointForecastUpdateDate(setSelectedStation, nextForecastUpdateDate)
-    loadB120PointPopupTabData(setSelectedStation, nextStation, activeTabId)
+    setYampaPointForecastUpdateDate(setSelectedStation, nextForecastUpdateDate)
+    loadYampaPointPopupTabData(setSelectedStation, nextStation, activeTabId)
   }, [
     activeTabId,
     forecastUpdateDate,
@@ -144,7 +144,7 @@ export default function B120PointPopup({
     setSelectedStation,
   ])
 
-  if (!selectedStation || selectedStation.popupType !== 'b120-points') {
+  if (!selectedStation || selectedStation.popupType !== 'yampa-points') {
     return null
   }
 
@@ -155,12 +155,12 @@ export default function B120PointPopup({
       closeOnClick={false}
       latitude={selectedStation.latitude}
       longitude={selectedStation.longitude}
-      maxWidth={B120_POINT_POPUP_WIDTH}
+      maxWidth={YAMPA_POINT_POPUP_WIDTH}
       onClose={() => setSelectedStation(null)}
     >
       <div className="station-popup station-popup--timeseries">
         <div className="station-popup__header-row">
-          <div className="station-popup__tabs" role="tablist" aria-label="B120 point tabs">
+          <div className="station-popup__tabs" role="tablist" aria-label="Yampa point tabs">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -169,8 +169,8 @@ export default function B120PointPopup({
                 aria-selected={activeTabId === tab.id}
                 className={activeTabId === tab.id ? 'station-popup__tab is-active' : 'station-popup__tab'}
                 onClick={() => {
-                  setActiveB120PointPopupTab(setSelectedStation, tab.id)
-                  loadB120PointPopupTabData(setSelectedStation, selectedStation, tab.id)
+                  setActiveYampaPointPopupTab(setSelectedStation, tab.id)
+                  loadYampaPointPopupTabData(setSelectedStation, selectedStation, tab.id)
                 }}
               >
                 {tab.label}
@@ -197,8 +197,8 @@ export default function B120PointPopup({
                   },
                 }
 
-                setB120PointForecastUpdateDate(setSelectedStation, nextForecastUpdateDate)
-                loadB120PointPopupTabData(setSelectedStation, nextStation, activeTabId)
+                setYampaPointForecastUpdateDate(setSelectedStation, nextForecastUpdateDate)
+                loadYampaPointPopupTabData(setSelectedStation, nextStation, activeTabId)
               }}
             >
               {forecastUpdateOptions.map((option) => (
@@ -228,11 +228,11 @@ export default function B120PointPopup({
                   },
                 }
 
-                setB120PointForecastPostProcessing(setSelectedStation, nextForecastPostProcessing)
-                loadB120PointPopupTabData(setSelectedStation, nextStation, activeTabId)
+                setYampaPointForecastPostProcessing(setSelectedStation, nextForecastPostProcessing)
+                loadYampaPointPopupTabData(setSelectedStation, nextStation, activeTabId)
               }}
             >
-              {B120_POINT_POST_PROCESSING_OPTIONS.map((option) => (
+              {YAMPA_POINT_POST_PROCESSING_OPTIONS.map((option) => (
                 <option key={option.id} value={option.id}>
                   {option.label}
                 </option>
@@ -242,7 +242,7 @@ export default function B120PointPopup({
         </div>
 
         {(() => {
-          const activeTabDefinition = getB120PointPopupTabDefinition(activeTabId)
+          const activeTabDefinition = getYampaPointPopupTabDefinition(activeTabId)
           const activeTabState = selectedStation.popup?.tabDataById?.[activeTabId]
           const tabPanelClassName =
             activeTabDefinition?.plots?.length > 1
@@ -277,3 +277,5 @@ export default function B120PointPopup({
     </Popup>
   )
 }
+
+
