@@ -1,11 +1,14 @@
 import b120BasinsLayer from './b120BasinsLayer'
 import b120PointsLayer from './b120PointsLayer'
+import camaFloodLayer from './camaFloodLayer'
 import cnrfcRegionLayer from './cnrfcRegionLayer'
 import cnrfcRasterLayer from './cnrfcRasterLayer'
 import cnrfcRiversLayer from './cnrfcRiversLayer'
 import ucrbRiversLayer from './ucrbRiversLayer'
 import cnrfcPointsLayer from './cnrfcPointsLayer'
 import gradesHydroDlLayer from './gradesHydroDlLayer'
+import gritLayer from './gritLayer'
+import hydroRiversLayer from './hydroRiversLayer'
 import meritBasinsLayer from './meritBasinsLayer'
 import snowCoursesLayer from './snowCoursesLayer'
 import snowPillowsLayer from './snowPillowsLayer'
@@ -20,9 +23,12 @@ export const MAP_LAYER_MODULES = [
   cnrfcBasinsLayer,
   b120PointsLayer,
   b120BasinsLayer,
+  camaFloodLayer,
   cnrfcRiversLayer,
   ucrbRiversLayer,
   gradesHydroDlLayer,
+  gritLayer,
+  hydroRiversLayer,
   meritBasinsLayer,
   swordReachesLayer,
   cnrfcRasterLayer,

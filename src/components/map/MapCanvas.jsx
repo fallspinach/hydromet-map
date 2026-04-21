@@ -13,8 +13,11 @@ import TerrainToggleControl from './TerrainToggleControl'
 
 const INITIAL_INTERACTION_STATE = {
   hoveredB120Point: null,
+  hoveredCamaFlood: null,
   hoveredCnrfcPoint: null,
   hoveredGradesHydroDl: null,
+  hoveredGrit: null,
+  hoveredHydroRivers: null,
   hoveredMeritBasin: null,
   hoveredRiver: null,
   hoveredSnowCourseStation: null,

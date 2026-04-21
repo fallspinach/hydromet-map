@@ -107,6 +107,30 @@ export const ALL_MAP_LAYERS = [
     symbolColor: '#00ced1',
   },
   {
+    id: 'camaFlood',
+    label: 'Cama-Flood (6min)',
+    type: 'vector-tile',
+    description: 'Global Cama-Flood flowlines from tiled vector sources.',
+    symbol: '\uFF5E',
+    symbolColor: '#32cd32',
+  },
+  {
+    id: 'grit',
+    label: 'GRIT (v0.6)',
+    type: 'vector-tile',
+    description: 'Global GRIT flowlines from tiled vector sources.',
+    symbol: '\uFF5E',
+    symbolColor: '#ff69b4',
+  },
+  {
+    id: 'hydroRivers',
+    label: 'HydroRIVERS (v1.0)',
+    type: 'vector-tile',
+    description: 'Global HydroRIVERS flowlines from tiled vector sources.',
+    symbol: '\uFF5E',
+    symbolColor: '#8a2be2',
+  },
+  {
     id: 'cnrfcBasins',
     label: 'CNRFC Basins',
     type: 'vector-tile',
@@ -638,7 +662,14 @@ export const PROJECTS = {
     defaultBasemapId: 'terrain',
     defaultTerrainEnabled: true,
     defaultProjection: 'globe',
-    availableLayerIds: ['gradesHydroDl', 'swordReaches', 'meritBasins'],
+    availableLayerIds: [
+      'gradesHydroDl',
+      'swordReaches',
+      'meritBasins',
+      'camaFlood',
+      'grit',
+      'hydroRivers',
+    ],
     defaultVisibleLayerIds: ['gradesHydroDl'],
   },
 }
@@ -699,6 +730,15 @@ export const RIVER_NETWORK_SOURCE_LAYER = 'NWM_v2.1_channels'
 export const MERIT_BASINS_PMTILES_URL =
   'https://cw3e.ucsd.edu/hydro/merit_rivers/riv_MERIT_Hydro_v07_Basins_v01_dense.pmtiles'
 export const MERIT_BASINS_SOURCE_LAYER = 'MERIT-Basins_Rivers'
+export const CAMA_FLOOD_PMTILES_URL =
+  'https://cw3e.ucsd.edu/hydro/camaflood_rivers/strnet_06min.pmtiles'
+export const CAMA_FLOOD_SOURCE_LAYER = 'CaMa-Flood_06min'
+export const GRIT_PMTILES_URL =
+  'https://cw3e.ucsd.edu/hydro/grit/GRITv06_segments.pmtiles'
+export const GRIT_SOURCE_LAYER = 'GRITv06_segments'
+export const HYDRO_RIVERS_PMTILES_URL =
+  'https://cw3e.ucsd.edu/hydro/hydrosheds/HydroRIVERS_v10.pmtiles'
+export const HYDRO_RIVERS_SOURCE_LAYER = 'HydroRIVERS_v10'
 export const GRADES_HYDRODL_PMTILES_URL =
   'https://cw3e.ucsd.edu/hydro/grades_hydrodl/pmtiles/riv_20251231.pmtiles'
 export const SWORD_REACHES_PMTILES_URL =

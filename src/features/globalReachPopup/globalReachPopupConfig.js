@@ -258,7 +258,7 @@ export const GLOBAL_REACH_POPUP_TABS = [
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
         axes: {
           y: {
-            title: { text: 'Flow (m^3/s)', standoff: 0 },
+            title: { text: 'Flow (m<sup>3</sup>/s)', standoff: 0 },
             zeroline: false,
           },
         },
@@ -280,7 +280,7 @@ export const GLOBAL_REACH_POPUP_TABS = [
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
         axes: {
           y: {
-            title: { text: 'Flow (m^3/s)', standoff: 0 },
+            title: { text: 'Flow (m<sup>3</sup>/s)', standoff: 0 },
             zeroline: false,
           },
         },
