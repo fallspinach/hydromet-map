@@ -135,6 +135,9 @@ This is a PNG image overlay driven by raster family state.
 - `gradesHydroDl`
 - `meritBasins`
 - `swordReaches`
+- `camaFlood`
+- `grit`
+- `hydroRivers`
 
 ## Layer ordering
 

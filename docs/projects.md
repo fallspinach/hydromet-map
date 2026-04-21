@@ -71,12 +71,20 @@ Includes:
 - `gradesHydroDl`
 - `meritBasins`
 - `swordReaches`
+- `camaFlood`
+- `grit`
+- `hydroRivers`
 
 Raster family:
 
 - none
 
 This project is intended for large-domain hydrography exploration without a raster overlay.
+
+Current popup coverage:
+
+- `gradesHydroDl` and `swordReaches` support the shared global reach popup
+- `meritBasins`, `camaFlood`, `grit`, and `hydroRivers` currently provide hover inspection only
 
 Default map setup:
 
