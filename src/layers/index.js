@@ -9,6 +9,7 @@ import gradesHydroDlLayer from './gradesHydroDlLayer'
 import meritBasinsLayer from './meritBasinsLayer'
 import snowCoursesLayer from './snowCoursesLayer'
 import snowPillowsLayer from './snowPillowsLayer'
+import swordReachesLayer from './swordReachesLayer'
 import cnrfcBasinsLayer from './cnrfcBasinsLayer'
 import ucrbRasterLayer from './ucrbRasterLayer'
 import ucrbRegionLayer from './ucrbRegionLayer'
@@ -23,6 +24,7 @@ export const MAP_LAYER_MODULES = [
   ucrbRiversLayer,
   gradesHydroDlLayer,
   meritBasinsLayer,
+  swordReachesLayer,
   cnrfcRasterLayer,
   ucrbRasterLayer,
   cnrfcRegionLayer,

@@ -91,6 +91,14 @@ export const ALL_MAP_LAYERS = [
     symbolColor: '#8b5cf6',
   },
   {
+    id: 'swordReaches',
+    label: 'SWORD Reaches (v17b)',
+    type: 'vector-tile',
+    description: 'Global SWORD reaches from tiled vector sources.',
+    symbol: '\uFF5E',
+    symbolColor: '#2563eb',
+  },
+  {
     id: 'meritBasins',
     label: 'MERIT Basins (v1.0)',
     type: 'vector-tile',
@@ -628,9 +636,9 @@ export const PROJECTS = {
       pitch: '0',
     },
     defaultBasemapId: 'terrain',
-    defaultTerrainEnabled: false,
+    defaultTerrainEnabled: true,
     defaultProjection: 'globe',
-    availableLayerIds: ['gradesHydroDl', 'meritBasins'],
+    availableLayerIds: ['gradesHydroDl', 'swordReaches', 'meritBasins'],
     defaultVisibleLayerIds: ['gradesHydroDl'],
   },
 }
@@ -693,6 +701,9 @@ export const MERIT_BASINS_PMTILES_URL =
 export const MERIT_BASINS_SOURCE_LAYER = 'MERIT-Basins_Rivers'
 export const GRADES_HYDRODL_PMTILES_URL =
   'https://cw3e.ucsd.edu/hydro/grades_hydrodl/pmtiles/riv_20251231.pmtiles'
+export const SWORD_REACHES_PMTILES_URL =
+  'https://cw3e.ucsd.edu/hydro/grades_hydrodl/pmtiles/sword_reaches_v17b_indexed.pmtiles'
+export const SWORD_REACHES_SOURCE_LAYER = 'SWORD_Reaches_v17b'
 export const FORECAST_BASINS_PMTILES_URL =
   'https://cw3e.ucsd.edu/wrf_hydro/cnrfc/pmtiles/CNRFC_Basins.pmtiles'
 export const FORECAST_BASINS_SOURCE_LAYER = 'CNRFC_Basins'

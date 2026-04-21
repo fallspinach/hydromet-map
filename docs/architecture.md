@@ -11,6 +11,7 @@ At a high level:
 - `MapCanvas.jsx` renders the map, visible layers, built-in controls, overlay widgets, and popups.
 - Layer modules in `src/layers/` encapsulate map sources, styles, hover/click behavior, and popup entry points.
 - Popup feature modules in `src/features/` encapsulate remote CSV loading, plot/table/map configs, and popup UIs.
+- Some shared popup features may be rendered once from `MapCanvas.jsx` when multiple layers feed the same popup state.
 
 ## Main concepts
 
@@ -103,6 +104,7 @@ But the structure now supports multiple families, with the rule that each projec
 - `src/features/snowStationPopup/`
 - `src/features/b120PointPopup/`
 - `src/features/yampaPointPopup/`
+- `src/features/globalReachPopup/`
 
 ## Data flow
 
@@ -113,7 +115,8 @@ But the structure now supports multiple families, with the rule that each projec
 3. `MapCanvas.jsx` receives only the active project's runtime state.
 4. `MapCanvas.jsx` filters layer modules against the active project's `availableLayerIds`.
 5. Each visible layer module renders sources/layers and optional popup content.
-6. `MapHud.jsx` renders only the controls relevant to the active project's raster family and layers.
+6. `MapCanvas.jsx` may also render shared popup components that are driven by `selectedStation`.
+7. `MapHud.jsx` renders only the controls relevant to the active project's raster family and layers.
 
 ### Interaction flow
 
@@ -123,6 +126,8 @@ But the structure now supports multiple families, with the rule that each projec
   visible layer modules may handle clicks through `handleClick`
 - popup:
   selected feature state is stored in `selectedStation` and rendered by popup modules
+
+For the global hydrography layers, `selectedStation` is populated by the layer click handlers and the shared `GlobalReachPopup` is rendered once from `MapCanvas.jsx`.
 
 ## Design rules in the current app
 

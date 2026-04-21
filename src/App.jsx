@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { startTransition, useEffect, useRef, useState } from 'react'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import 'react-datepicker/dist/react-datepicker.css'
 import './App.css'
@@ -388,12 +388,21 @@ function App() {
   }, [statusBoundaryByProjectId])
 
   function updateTopLevel(key, value) {
-    setAppState((current) =>
-      updateActiveProjectState(current, (activeProjectStateValue) => ({
-        ...activeProjectStateValue,
-        [key]: value,
-      })),
-    )
+    const applyUpdate = () => {
+      setAppState((current) =>
+        updateActiveProjectState(current, (activeProjectStateValue) => ({
+          ...activeProjectStateValue,
+          [key]: value,
+        })),
+      )
+    }
+
+    if (key === 'view') {
+      startTransition(applyUpdate)
+      return
+    }
+
+    applyUpdate()
   }
 
   function updateRaster(key, value) {

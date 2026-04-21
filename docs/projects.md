@@ -64,6 +64,25 @@ Default raster variable:
 
 This project uses the `ucrb` raster family but presents a Yampa-focused layer set and view.
 
+### `global`
+
+Includes:
+
+- `gradesHydroDl`
+- `meritBasins`
+- `swordReaches`
+
+Raster family:
+
+- none
+
+This project is intended for large-domain hydrography exploration without a raster overlay.
+
+Known issue:
+
+- on `Terrain` or `Satellite` basemaps, interacting with `GRADES-hydroDL` and `SWORD Reaches` can occasionally lead to drag freeze / popup-close glitches when terrain is switched off
+- recommended workaround: keep terrain enabled in the `global` project, or switch to `Flat` / `mercator` if needed
+
 ## Definition vs state
 
 The app intentionally separates project definition from project state.

@@ -1,4 +1,5 @@
 import { Layer, Popup, Source } from 'react-map-gl/maplibre'
+import { createSelectedGlobalReachPopupState } from '../features/globalReachPopup/globalReachPopupData'
 import {
   GRADES_HYDRODL_PMTILES_URL,
   MERIT_BASINS_SOURCE_LAYER,
@@ -107,6 +108,25 @@ const gradesHydroDlLayer = {
   getPointerLeaveState() {
     return { hoveredGradesHydroDl: null }
   },
+  handleClick({ event, setSelectedStation }) {
+    const clickedFeature = event.features?.find((feature) => feature.layer.id === 'grades-hydrodl-line')
+
+    if (!clickedFeature || clickedFeature.geometry.type !== 'LineString') {
+      return false
+    }
+
+    setSelectedStation(
+      createSelectedGlobalReachPopupState(clickedFeature, {
+        layerId: 'gradesHydroDl',
+        popupOwnerId: 'gradesHydroDl',
+        hydrography: 'MERIT',
+        longitude: event.lngLat.lng,
+        latitude: event.lngLat.lat,
+      }),
+    )
+
+    return true
+  },
   renderLayers({ interactionState }) {
     return (
       <Source id="grades-hydrodl-source" type="vector" url={`pmtiles://${GRADES_HYDRODL_PMTILES_URL}`}>
@@ -142,47 +162,47 @@ const gradesHydroDlLayer = {
       </Source>
     )
   },
-  renderPopups({ interactionState }) {
+  renderPopups({ interactionState, selectedStation, setSelectedStation }) {
     const hoveredGradesHydroDl = interactionState.hoveredGradesHydroDl
 
-    if (!hoveredGradesHydroDl) {
-      return null
-    }
-
     return (
-      <Popup
-        anchor="bottom"
-        closeButton={false}
-        closeOnClick={false}
-        latitude={hoveredGradesHydroDl.latitude}
-        longitude={hoveredGradesHydroDl.longitude}
-        offset={10}
-      >
-        <div className="river-popup">
-          <strong>COMID: {hoveredGradesHydroDl.comid}</strong>
-          <p>Length: {hoveredGradesHydroDl.lengthKm} km</p>
-          <p>Start-to-end Distance: {hoveredGradesHydroDl.lengthDirKm} km</p>
-          <p>Sinuosity: {hoveredGradesHydroDl.sinuosity}</p>
-          <p>Slope: {hoveredGradesHydroDl.slopePermil}&permil;</p>
-          <p>
-            Upstream Area: {hoveredGradesHydroDl.upstreamArea} km<sup>2</sup>
-          </p>
-          <p>Stream Order: {Number.isFinite(hoveredGradesHydroDl.order) ? hoveredGradesHydroDl.order : 'Unknown'}</p>
-          <p>Downstream COMID: {hoveredGradesHydroDl.nextDownId}</p>
-          {Number.isFinite(hoveredGradesHydroDl.order) && hoveredGradesHydroDl.order > 1 ? (
-            <>
-              <p>Upstream COMID 1: {hoveredGradesHydroDl.up1}</p>
-              <p>Upstream COMID 2: {hoveredGradesHydroDl.up2}</p>
-            </>
-          ) : null}
-          {Number.isFinite(hoveredGradesHydroDl.maxup) && hoveredGradesHydroDl.maxup > 2 ? (
-            <p>Upstream COMID 3: {hoveredGradesHydroDl.up3}</p>
-          ) : null}
-          {Number.isFinite(hoveredGradesHydroDl.maxup) && hoveredGradesHydroDl.maxup > 3 ? (
-            <p>Upstream COMID 4: {hoveredGradesHydroDl.up4}</p>
-          ) : null}
-        </div>
-      </Popup>
+      <>
+        {hoveredGradesHydroDl ? (
+          <Popup
+            anchor="bottom"
+            closeButton={false}
+            closeOnClick={false}
+            latitude={hoveredGradesHydroDl.latitude}
+            longitude={hoveredGradesHydroDl.longitude}
+            offset={10}
+          >
+            <div className="river-popup">
+              <strong>COMID: {hoveredGradesHydroDl.comid}</strong>
+              <p>Length: {hoveredGradesHydroDl.lengthKm} km</p>
+              <p>Start-to-end Distance: {hoveredGradesHydroDl.lengthDirKm} km</p>
+              <p>Sinuosity: {hoveredGradesHydroDl.sinuosity}</p>
+              <p>Slope: {hoveredGradesHydroDl.slopePermil}&permil;</p>
+              <p>
+                Upstream Area: {hoveredGradesHydroDl.upstreamArea} km<sup>2</sup>
+              </p>
+              <p>Stream Order: {Number.isFinite(hoveredGradesHydroDl.order) ? hoveredGradesHydroDl.order : 'Unknown'}</p>
+              <p>Downstream COMID: {hoveredGradesHydroDl.nextDownId}</p>
+              {Number.isFinite(hoveredGradesHydroDl.order) && hoveredGradesHydroDl.order > 1 ? (
+                <>
+                  <p>Upstream COMID 1: {hoveredGradesHydroDl.up1}</p>
+                  <p>Upstream COMID 2: {hoveredGradesHydroDl.up2}</p>
+                </>
+              ) : null}
+              {Number.isFinite(hoveredGradesHydroDl.maxup) && hoveredGradesHydroDl.maxup > 2 ? (
+                <p>Upstream COMID 3: {hoveredGradesHydroDl.up3}</p>
+              ) : null}
+              {Number.isFinite(hoveredGradesHydroDl.maxup) && hoveredGradesHydroDl.maxup > 3 ? (
+                <p>Upstream COMID 4: {hoveredGradesHydroDl.up4}</p>
+              ) : null}
+            </div>
+          </Popup>
+        ) : null}
+      </>
     )
   },
 }

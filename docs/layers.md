@@ -16,6 +16,8 @@ Examples:
 - [src/layers/yampaPointsLayer.jsx](../src/layers/yampaPointsLayer.jsx)
 - [src/layers/cnrfcBasinsLayer.jsx](../src/layers/cnrfcBasinsLayer.jsx)
 - [src/layers/b120PointsLayer.jsx](../src/layers/b120PointsLayer.jsx)
+- [src/layers/gradesHydroDlLayer.jsx](../src/layers/gradesHydroDlLayer.jsx)
+- [src/layers/swordReachesLayer.jsx](../src/layers/swordReachesLayer.jsx)
 
 ## Typical layer module shape
 
@@ -87,6 +89,14 @@ Returns the React MapLibre `Source`/`Layer` tree.
 
 Returns hover info popups and/or feature popup components.
 
+Most layers render both hover info and feature popups directly from the layer module.
+
+The global hydrography layers are a small exception:
+
+- `gradesHydroDl` and `swordReaches` still render hover popups from their layer modules
+- the shared feature popup for both layers is rendered once from `MapCanvas.jsx`
+- layer click handlers only populate `selectedStation`
+
 ## Current layer categories
 
 ### Raster overlay
@@ -119,6 +129,12 @@ This is a PNG image overlay driven by raster family state.
 
 - `snowCourses`
 - `snowPillows`
+
+### Global hydrography layers
+
+- `gradesHydroDl`
+- `meritBasins`
+- `swordReaches`
 
 ## Layer ordering
 

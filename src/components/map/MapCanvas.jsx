@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import Map, { NavigationControl, ScaleControl } from 'react-map-gl/maplibre'
 import { BASEMAP_STYLES, PROJECT_OPTIONS } from '../../config/mapConfig'
+import GlobalReachPopup from '../../features/globalReachPopup/GlobalReachPopup'
 import { formatCoordinate, formatViewValue } from '../../lib/appState'
 import { MAP_LAYER_MODULES } from '../../layers'
 import BookmarkControl from './BookmarkControl'
@@ -18,6 +19,7 @@ const INITIAL_INTERACTION_STATE = {
   hoveredRiver: null,
   hoveredSnowCourseStation: null,
   hoveredSnowPillowStation: null,
+  hoveredSwordReach: null,
   hoveredYampaPoint: null,
   hoveredUcrbRiver: null,
 }
@@ -27,6 +29,10 @@ function mergeInteractionState(layerModules, callback) {
     const patch = callback(layerModule)
     return patch ? { ...nextState, ...patch } : nextState
   }, {})
+}
+
+function hasInteractionStateChanges(currentState, patch) {
+  return Object.entries(patch).some(([key, value]) => currentState[key] !== value)
 }
 
 export default function MapCanvas({
@@ -62,6 +68,7 @@ export default function MapCanvas({
   const [interactionState, setInteractionState] = useState(INITIAL_INTERACTION_STATE)
   const mapRef = useRef(null)
   const mouseReadoutRef = useRef(null)
+  const isDraggingRef = useRef(false)
   const availableLayerIdSet = new Set(activeProject?.availableLayerIds ?? [])
 
   const layerContext = {
@@ -96,15 +103,23 @@ export default function MapCanvas({
   function handlePointerMove(event) {
     mouseReadoutRef.current?.setCoordinates(event.lngLat.lng, event.lngLat.lat)
 
+    if (isDraggingRef.current) {
+      return
+    }
+
     const nextInteractionState = mergeInteractionState(visibleLayerModules, (layerModule) =>
       layerModule.getPointerState?.({ ...layerContext, event }),
     )
 
     if (Object.keys(nextInteractionState).length > 0) {
-      setInteractionState((current) => ({
-        ...current,
-        ...nextInteractionState,
-      }))
+      setInteractionState((current) =>
+        hasInteractionStateChanges(current, nextInteractionState)
+          ? {
+              ...current,
+              ...nextInteractionState,
+            }
+          : current,
+      )
     }
   }
 
@@ -116,10 +131,14 @@ export default function MapCanvas({
     )
 
     if (Object.keys(nextInteractionState).length > 0) {
-      setInteractionState((current) => ({
-        ...current,
-        ...nextInteractionState,
-      }))
+      setInteractionState((current) =>
+        hasInteractionStateChanges(current, nextInteractionState)
+          ? {
+              ...current,
+              ...nextInteractionState,
+            }
+          : current,
+      )
     }
   }
 
@@ -133,6 +152,16 @@ export default function MapCanvas({
     }
   }
 
+  function handleDragStart() {
+    isDraggingRef.current = true
+  }
+
+  function handleDragEnd() {
+    window.requestAnimationFrame(() => {
+      isDraggingRef.current = false
+    })
+  }
+
   return (
     <section className="map-canvas">
       <Map
@@ -144,6 +173,8 @@ export default function MapCanvas({
         ref={mapRef}
         reuseMaps
         onClick={handleMapClick}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
         onMouseLeave={handlePointerLeave}
         onMouseMove={handlePointerMove}
         onMove={handleMapMove}
@@ -167,6 +198,14 @@ export default function MapCanvas({
             />
           ) : null,
         )}
+
+        {selectedStation?.popupType === 'global-reach' ? (
+          <GlobalReachPopup
+            ownerLayerId={selectedStation.popupOwnerId}
+            selectedStation={selectedStation}
+            setSelectedStation={setSelectedStation}
+          />
+        ) : null}
       </Map>
 
       <MapHud

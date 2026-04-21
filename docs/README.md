@@ -10,6 +10,7 @@ Recommended reading order:
 4. [Raster Families](./raster.md)
 5. [Popups](./popups.md)
 6. [State and Bookmarks](./state-and-bookmarks.md)
-7. [Adding a Layer](./adding-a-layer.md)
+7. [Known Issues](./known-issues.md)
+8. [Adding a Layer](./adding-a-layer.md)
 
 These docs are intentionally focused on how the app is organized today and how to extend it safely.
