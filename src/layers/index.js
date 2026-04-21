@@ -6,6 +6,8 @@ import cnrfcRasterLayer from './cnrfcRasterLayer'
 import cnrfcRiversLayer from './cnrfcRiversLayer'
 import ucrbRiversLayer from './ucrbRiversLayer'
 import cnrfcPointsLayer from './cnrfcPointsLayer'
+import geodarLayer from './geodarLayer'
+import gshaLayer from './gshaLayer'
 import gradesHydroDlLayer from './gradesHydroDlLayer'
 import gritLayer from './gritLayer'
 import hydroRiversLayer from './hydroRiversLayer'
@@ -26,6 +28,8 @@ export const MAP_LAYER_MODULES = [
   camaFloodLayer,
   cnrfcRiversLayer,
   ucrbRiversLayer,
+  geodarLayer,
+  gshaLayer,
   gradesHydroDlLayer,
   gritLayer,
   hydroRiversLayer,

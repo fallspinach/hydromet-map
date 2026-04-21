@@ -131,6 +131,22 @@ export const ALL_MAP_LAYERS = [
     symbolColor: '#8a2be2',
   },
   {
+    id: 'gsha',
+    label: 'GSHA (v1.1)',
+    type: 'vector-tile',
+    description: 'Global GSHA gauge points from tiled vector sources.',
+    symbol: '\u25CF',
+    symbolColor: '#ff8c00',
+  },
+  {
+    id: 'geodar',
+    label: 'GeoDAR (v1.1)',
+    type: 'vector-tile',
+    description: 'Global GeoDAR reservoir points from tiled vector sources.',
+    symbol: '\u0394',
+    symbolColor: '#000000',
+  },
+  {
     id: 'cnrfcBasins',
     label: 'CNRFC Basins',
     type: 'vector-tile',
@@ -664,13 +680,15 @@ export const PROJECTS = {
     defaultProjection: 'globe',
     availableLayerIds: [
       'gradesHydroDl',
-      'swordReaches',
-      'meritBasins',
       'camaFlood',
-      'grit',
       'hydroRivers',
+      'meritBasins',
+      'grit',
+      'swordReaches',
+      'gsha',
+      'geodar',
     ],
-    defaultVisibleLayerIds: ['gradesHydroDl'],
+    defaultVisibleLayerIds: ['gradesHydroDl', 'gsha'],
   },
 }
 
@@ -739,6 +757,12 @@ export const GRIT_SOURCE_LAYER = 'GRITv06_segments'
 export const HYDRO_RIVERS_PMTILES_URL =
   'https://cw3e.ucsd.edu/hydro/hydrosheds/HydroRIVERS_v10.pmtiles'
 export const HYDRO_RIVERS_SOURCE_LAYER = 'HydroRIVERS_v10'
+export const GSHA_PMTILES_URL =
+  'https://cw3e.ucsd.edu/hydro/gsha/pmtiles/GSHA_MERIT.pmtiles'
+export const GSHA_SOURCE_LAYER = 'GSHA_MERIT'
+export const GEODAR_PMTILES_URL =
+  'https://cw3e.ucsd.edu/hydro/geodar/GeoDAR_MERIT.pmtiles'
+export const GEODAR_SOURCE_LAYER = 'GeoDAR_MERIT'
 export const GRADES_HYDRODL_PMTILES_URL =
   'https://cw3e.ucsd.edu/hydro/grades_hydrodl/pmtiles/riv_20251231.pmtiles'
 export const SWORD_REACHES_PMTILES_URL =

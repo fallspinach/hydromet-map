@@ -74,6 +74,8 @@ Includes:
 - `camaFlood`
 - `grit`
 - `hydroRivers`
+- `gsha`
+- `geodar`
 
 Raster family:
 
@@ -84,7 +86,7 @@ This project is intended for large-domain hydrography exploration without a rast
 Current popup coverage:
 
 - `gradesHydroDl` and `swordReaches` support the shared global reach popup
-- `meritBasins`, `camaFlood`, `grit`, and `hydroRivers` currently provide hover inspection only
+- `meritBasins`, `camaFlood`, `grit`, `hydroRivers`, `gsha`, and `geodar` currently provide hover inspection only
 
 Default map setup:
 

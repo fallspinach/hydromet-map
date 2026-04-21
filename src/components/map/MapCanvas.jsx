@@ -15,6 +15,8 @@ const INITIAL_INTERACTION_STATE = {
   hoveredB120Point: null,
   hoveredCamaFlood: null,
   hoveredCnrfcPoint: null,
+  hoveredGeodar: null,
+  hoveredGsha: null,
   hoveredGradesHydroDl: null,
   hoveredGrit: null,
   hoveredHydroRivers: null,

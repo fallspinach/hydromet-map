@@ -138,6 +138,13 @@ This is a PNG image overlay driven by raster family state.
 - `camaFlood`
 - `grit`
 - `hydroRivers`
+- `gsha`
+- `geodar`
+
+Notes:
+
+- `gsha` is a point-tile inspection layer with hover info and a station label layer that appears from zoom 10 upward.
+- `geodar` is a symbol-based point-tile inspection layer that renders a `Δ` glyph with a dedicated font stack.
 
 ## Layer ordering
 
