@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import { Popup } from 'react-map-gl/maplibre'
+import PopupCsvDownloadButton from '../../components/PopupCsvDownloadButton'
+import { downloadCsvFiles } from '../../lib/csvExport'
 import { CNRFC_POINT_POPUP_WIDTH } from './cnrfcPointPopupConfig'
 import {
   CNRFC_POINT_POPUP_FORECAST_PRODUCTS,
@@ -40,6 +43,8 @@ export default function CnrfcPointPopup({
   selectedStation,
   setSelectedStation,
 }) {
+  const [isDownloadingCsv, setIsDownloadingCsv] = useState(false)
+
   if (!selectedStation || selectedStation.popupType !== 'cnrfc-points') {
     return null
   }
@@ -47,6 +52,36 @@ export default function CnrfcPointPopup({
   const tabs = getCnrfcPointPopupTabs()
   const activeTabId = selectedStation.popup?.activeTabId ?? tabs[0]?.id ?? 'daily'
   const forecastProduct = selectedStation.popup?.forecastProduct ?? CNRFC_POINT_POPUP_FORECAST_PRODUCTS[0].id
+  const activeTabDefinition = getCnrfcPointPopupTabDefinition(activeTabId)
+  const activeTabState = selectedStation.popup?.tabDataById?.[activeTabId]
+  const exportablePlots = (activeTabDefinition?.plots ?? []).filter(
+    (plotDefinition) => plotDefinition.csvDownload?.enabled,
+  )
+  const activeTabDownloadFiles = exportablePlots.flatMap(
+    (plotDefinition) => activeTabState?.plotsById?.[plotDefinition.id]?.downloadFiles ?? [],
+  )
+  const isCsvDownloadReady =
+    exportablePlots.length > 0
+    && exportablePlots.every(
+      (plotDefinition) => activeTabState?.plotsById?.[plotDefinition.id]?.status === 'ready',
+    )
+    && activeTabDownloadFiles.length > 0
+
+  async function handleDownloadCsv() {
+    if (!isCsvDownloadReady || isDownloadingCsv) {
+      return
+    }
+
+    setIsDownloadingCsv(true)
+
+    try {
+      await downloadCsvFiles(activeTabDownloadFiles)
+    } catch (error) {
+      console.error('Failed to download CSV files for CNRFC popup.', error)
+    } finally {
+      setIsDownloadingCsv(false)
+    }
+  }
 
   return (
     <Popup
@@ -103,6 +138,12 @@ export default function CnrfcPointPopup({
               ))}
             </select>
           </label>
+
+          <PopupCsvDownloadButton
+            disabled={!isCsvDownloadReady || isDownloadingCsv}
+            onClick={handleDownloadCsv}
+            title={isDownloadingCsv ? 'Downloading CSV files...' : 'Download CSV files'}
+          />
         </div>
 
         {tabs.map((tab) => {

@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import { Popup } from 'react-map-gl/maplibre'
+import PopupCsvDownloadButton from '../../components/PopupCsvDownloadButton'
+import { downloadCsvFiles } from '../../lib/csvExport'
 import TimeSeriesPlot from '../cnrfcPointPopup/TimeSeriesPlot'
 import { getDefaultSnowPopupTabId, getSnowPopupTabDefinition, getSnowPopupTabs } from './snowStationPopupConfig'
 import { loadSnowStationPopupTabData, setActiveSnowStationPopupTab } from './snowStationPopupData'
@@ -32,12 +35,44 @@ export default function SnowStationPopup({
   selectedStation,
   setSelectedStation,
 }) {
+  const [isDownloadingCsv, setIsDownloadingCsv] = useState(false)
+
   if (!selectedStation || selectedStation.popupType !== popupDefinition.popupType) {
     return null
   }
 
   const tabs = getSnowPopupTabs(popupDefinition)
   const activeTabId = selectedStation.popup?.activeTabId ?? getDefaultSnowPopupTabId(popupDefinition)
+  const activeTabDefinition = getSnowPopupTabDefinition(popupDefinition, activeTabId)
+  const activeTabState = selectedStation.popup?.tabDataById?.[activeTabId]
+  const exportablePlots = (activeTabDefinition?.plots ?? []).filter(
+    (plotDefinition) => plotDefinition.csvDownload?.enabled,
+  )
+  const activeTabDownloadFiles = exportablePlots.flatMap(
+    (plotDefinition) => activeTabState?.plotsById?.[plotDefinition.id]?.downloadFiles ?? [],
+  )
+  const isCsvDownloadReady =
+    exportablePlots.length > 0
+    && exportablePlots.every(
+      (plotDefinition) => activeTabState?.plotsById?.[plotDefinition.id]?.status === 'ready',
+    )
+    && activeTabDownloadFiles.length > 0
+
+  async function handleDownloadCsv() {
+    if (!isCsvDownloadReady || isDownloadingCsv) {
+      return
+    }
+
+    setIsDownloadingCsv(true)
+
+    try {
+      await downloadCsvFiles(activeTabDownloadFiles)
+    } catch (error) {
+      console.error('Failed to download CSV files for snow popup.', error)
+    } finally {
+      setIsDownloadingCsv(false)
+    }
+  }
 
   return (
     <Popup
@@ -68,6 +103,12 @@ export default function SnowStationPopup({
               </button>
             ))}
           </div>
+
+          <PopupCsvDownloadButton
+            disabled={!isCsvDownloadReady || isDownloadingCsv}
+            onClick={handleDownloadCsv}
+            title={isDownloadingCsv ? 'Downloading CSV files...' : 'Download CSV files'}
+          />
         </div>
 
         {tabs.map((tab) => {

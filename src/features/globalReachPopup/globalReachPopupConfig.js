@@ -2,6 +2,7 @@ import {
   CLIMATOLOGY_COLUMN_NAMES,
   fetchGradesBinaryDescriptor,
 } from '../../lib/gradesBinaryData'
+import { buildCsvDownloadFileName } from '../../lib/csvExport'
 import {
   DEFAULT_TIMESERIES_LAYOUT,
   DEFAULT_TIMESERIES_PLOTLY_CONFIG,
@@ -33,7 +34,7 @@ const CLIMATOLOGY_FILL_COLORS = [
 const CLIMATOLOGY_SERIES_DEFINITIONS = {
   p95: {
     sourceId: 'climatology',
-    column: 'Pctl7',
+    column: 'Pctl95',
     label: '95<sup>th</sup>',
     line: { color: CLIMATOLOGY_LINE_COLORS[0], width: 1 },
     fill: 'tozeroy',
@@ -42,7 +43,7 @@ const CLIMATOLOGY_SERIES_DEFINITIONS = {
   },
   p90: {
     sourceId: 'climatology',
-    column: 'Pctl6',
+    column: 'Pctl90',
     label: '90<sup>th</sup>',
     line: { color: CLIMATOLOGY_LINE_COLORS[1], width: 1 },
     fill: 'tozeroy',
@@ -51,7 +52,7 @@ const CLIMATOLOGY_SERIES_DEFINITIONS = {
   },
   p80: {
     sourceId: 'climatology',
-    column: 'Pctl5',
+    column: 'Pctl80',
     label: '80<sup>th</sup>',
     line: { color: CLIMATOLOGY_LINE_COLORS[2], width: 1 },
     fill: 'tozeroy',
@@ -60,7 +61,7 @@ const CLIMATOLOGY_SERIES_DEFINITIONS = {
   },
   p50: {
     sourceId: 'climatology',
-    column: 'Pctl4',
+    column: 'Pctl50',
     label: '50<sup>th</sup>',
     line: { color: CLIMATOLOGY_LINE_COLORS[3], width: 1 },
     fill: 'tozeroy',
@@ -69,7 +70,7 @@ const CLIMATOLOGY_SERIES_DEFINITIONS = {
   },
   p20: {
     sourceId: 'climatology',
-    column: 'Pctl3',
+    column: 'Pctl20',
     label: '20<sup>th</sup>',
     line: { color: CLIMATOLOGY_LINE_COLORS[4], width: 1 },
     fill: 'tozeroy',
@@ -78,7 +79,7 @@ const CLIMATOLOGY_SERIES_DEFINITIONS = {
   },
   p10: {
     sourceId: 'climatology',
-    column: 'Pctl2',
+    column: 'Pctl10',
     label: '10<sup>th</sup>',
     line: { color: CLIMATOLOGY_LINE_COLORS[5], width: 1 },
     fill: 'tozeroy',
@@ -87,7 +88,7 @@ const CLIMATOLOGY_SERIES_DEFINITIONS = {
   },
   p5: {
     sourceId: 'climatology',
-    column: 'Pctl1',
+    column: 'Pctl5',
     label: '5<sup>th</sup>',
     line: { color: CLIMATOLOGY_LINE_COLORS[6], width: 1 },
     fill: 'tozeroy',
@@ -186,6 +187,18 @@ function buildGlobalReachFullHistorySeries() {
   }
 }
 
+function buildGlobalReachCsvDownloadFileName(context) {
+  const station = context.station ?? {}
+
+  return buildCsvDownloadFileName({
+    prefix: station.layerId === 'swordReaches' ? 'grades-hydrodl_sword' : 'grades-hydrodl',
+    stationId: station.comid ?? station.id ?? 'reach',
+    sourceId: context.sourceId,
+    defaultFileName: context.defaultFileName,
+    extraParts: ['history'],
+  })
+}
+
 function buildGlobalReachTitle(station) {
   if (station.layerId === 'swordReaches') {
     const firstLineParts = [
@@ -256,6 +269,10 @@ export const GLOBAL_REACH_POPUP_TABS = [
         titleText: ({ station }) => buildGlobalReachTitle(station),
         layout: DEFAULT_TIMESERIES_LAYOUT,
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
+        csvDownload: {
+          enabled: true,
+          fileName: buildGlobalReachCsvDownloadFileName,
+        },
         axes: {
           y: {
             title: { text: 'Flow (m<sup>3</sup>/s)', standoff: 0 },
@@ -278,6 +295,10 @@ export const GLOBAL_REACH_POPUP_TABS = [
         titleText: ({ station }) => buildGlobalReachTitle(station),
         layout: DEFAULT_TIMESERIES_LAYOUT,
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
+        csvDownload: {
+          enabled: true,
+          fileName: buildGlobalReachCsvDownloadFileName,
+        },
         axes: {
           y: {
             title: { text: 'Flow (m<sup>3</sup>/s)', standoff: 0 },

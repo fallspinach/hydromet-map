@@ -3,6 +3,7 @@ import {
   DEFAULT_TIMESERIES_PLOTLY_CONFIG,
   TIMESERIES_POPUP_WIDTH,
 } from '../cnrfcPointPopup/cnrfcPointPopupConfig'
+import { buildCsvDownloadFileName } from '../../lib/csvExport'
 
 function formatCompactDate(date) {
   const year = date.getFullYear()
@@ -171,6 +172,25 @@ function buildEnsembleSeries(start = 1, end = 46) {
   )
 }
 
+function buildYampaCsvDownloadFileName(context) {
+  const stationId = context.station?.stationId ?? 'station'
+  const popupState = context.popupState ?? {}
+  const extraParts = [
+    popupState.forecastUpdateDate,
+    popupState.forecastPostProcessing,
+    context.exportType === 'table' ? 'table' : null,
+  ]
+
+  return buildCsvDownloadFileName({
+    prefix: 'yampa',
+    stationId,
+    plotId: context.plotDefinition?.id,
+    sourceId: context.sourceId,
+    defaultFileName: context.defaultFileName,
+    extraParts,
+  })
+}
+
 export const YAMPA_POINT_POPUP_WIDTH = TIMESERIES_POPUP_WIDTH
 export const YAMPA_POINT_FORECAST_UPDATES_URL =
   'https://cw3e.ucsd.edu/hydro/yampa/csv/fcst_tupdates.json'
@@ -233,6 +253,10 @@ export const YAMPA_POINT_POPUP_TABS = [
           },
         },
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
+        csvDownload: {
+          enabled: true,
+          fileName: buildYampaCsvDownloadFileName,
+        },
         axes: {
           y: {
             title: { text: 'Monthly Flow (af)', standoff: 0 },
@@ -342,6 +366,10 @@ export const YAMPA_POINT_POPUP_TABS = [
           },
         },
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
+        csvDownload: {
+          enabled: true,
+          fileName: buildYampaCsvDownloadFileName,
+        },
         axes: {
           y: {
             title: { text: 'Daily Flow (cfs)', standoff: 0 },
@@ -417,6 +445,10 @@ export const YAMPA_POINT_POPUP_TABS = [
           },
         },
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
+        csvDownload: {
+          enabled: true,
+          fileName: buildYampaCsvDownloadFileName,
+        },
         axes: {
           y: {
             title: { text: 'Monthly Flow (af)', standoff: 0 },
@@ -490,6 +522,10 @@ export const YAMPA_POINT_POPUP_TABS = [
           },
         },
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
+        csvDownload: {
+          enabled: true,
+          fileName: buildYampaCsvDownloadFileName,
+        },
         axes: {
           y: {
             title: { text: 'Daily Flow (cfs)', standoff: 0 },
@@ -516,7 +552,7 @@ export const YAMPA_POINT_POPUP_TABS = [
   },
   {
     id: 'forecast-summary',
-    label: 'Forecast Table',
+    label: 'Table',
     plots: [
       {
         id: 'main',
@@ -545,6 +581,10 @@ export const YAMPA_POINT_POPUP_TABS = [
           },
         },
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
+        csvDownload: {
+          enabled: true,
+          fileName: buildYampaCsvDownloadFileName,
+        },
         footerText: '[Note] 50%, 90%, 10%: exceedance levels within the forecast ensemble, calculated in two units: (1) %Avg: percentage of Avg, (2) af: acre-feet.<br>Avg: month of year average during 1979-2024.',
         columns: [
           {
@@ -599,4 +639,3 @@ export function getYampaPointPopupTabDefinition(tabId) {
 export function getDefaultYampaPointPopupTabId() {
   return YAMPA_POINT_POPUP_TABS[0]?.id ?? 'nrt-forecast'
 }
-

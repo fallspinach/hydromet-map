@@ -1,4 +1,5 @@
 import { fetchAndParseCsv } from '../../lib/csvData'
+import { buildRawSourceDownloadFiles } from '../../lib/csvExport'
 import {
   DEFAULT_CNRFC_POINT_POPUP_FORECAST_PRODUCT,
   CNRFC_POINT_POPUP_TABS,
@@ -118,6 +119,7 @@ function createEmptyPlotState(plotDefinition) {
     hovermode: plotDefinition.hovermode ?? 'closest',
     traceFingerprint: 'empty',
     sources: {},
+    downloadFiles: [],
   }
 }
 
@@ -273,6 +275,13 @@ async function buildTimeSeriesPlotState(plotDefinition, station) {
         },
       ]),
     ),
+    downloadFiles: buildRawSourceDownloadFiles({
+      plotDefinition,
+      station,
+      popupState: station.popup,
+      plotState: null,
+      sourceRecords,
+    }),
   }
 }
 

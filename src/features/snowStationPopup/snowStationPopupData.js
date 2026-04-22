@@ -1,4 +1,5 @@
 import { fetchAndParseCsv } from '../../lib/csvData'
+import { buildRawSourceDownloadFiles } from '../../lib/csvExport'
 import {
   getDefaultSnowPopupTabId,
   getSnowPopupTabDefinition,
@@ -132,6 +133,7 @@ function createEmptyPlotState(plotDefinition) {
     hovermode: plotDefinition.hovermode ?? 'closest',
     traceFingerprint: 'empty',
     sources: {},
+    downloadFiles: [],
   }
 }
 
@@ -318,6 +320,13 @@ async function buildTimeSeriesPlotState(plotDefinition, station, tabDefinition) 
         },
       ]),
     ),
+    downloadFiles: buildRawSourceDownloadFiles({
+      plotDefinition,
+      station,
+      popupState: station.popup,
+      plotState: null,
+      sourceRecords,
+    }),
   }
 }
 

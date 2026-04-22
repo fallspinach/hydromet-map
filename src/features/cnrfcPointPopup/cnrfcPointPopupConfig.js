@@ -1,3 +1,5 @@
+import { buildCsvDownloadFileName } from '../../lib/csvExport'
+
 const buildStationCsvUrl = (product, timestep) => ({ stationId, popupState }) => {
   if (product === 'fcst') {
     const forecastProductPath = getCnrfcPointPopupForecastProductPath(popupState?.forecastProduct)
@@ -97,6 +99,23 @@ function buildRelativeTimeAxis({
   }
 }
 
+function buildCnrfcCsvDownloadFileName(context) {
+  const stationId = context.station?.id ?? 'station'
+  const popupState = context.popupState ?? {}
+  const sourceExtras = context.sourceId === 'fcst'
+    ? [popupState.forecastProduct]
+    : []
+
+  return buildCsvDownloadFileName({
+    prefix: 'cnrfc',
+    stationId,
+    plotId: context.plotDefinition?.id,
+    sourceId: context.sourceId,
+    defaultFileName: context.defaultFileName,
+    extraParts: sourceExtras,
+  })
+}
+
 export const DEFAULT_TIMESERIES_LAYOUT = {
   autosize: true,
   margin: {
@@ -150,6 +169,10 @@ export const CNRFC_POINT_POPUP_TABS = [
         titleTemplate: DEFAULT_TIMESERIES_TITLE_TEMPLATE,
         layout: DEFAULT_TIMESERIES_LAYOUT,
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
+        csvDownload: {
+          enabled: true,
+          fileName: buildCnrfcCsvDownloadFileName,
+        },
         xAxis: ({ popupState }) =>
           buildRelativeTimeAxis({
             popupState,
@@ -272,6 +295,10 @@ export const CNRFC_POINT_POPUP_TABS = [
         titleTemplate: DEFAULT_TIMESERIES_TITLE_TEMPLATE,
         layout: DEFAULT_TIMESERIES_LAYOUT,
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
+        csvDownload: {
+          enabled: true,
+          fileName: buildCnrfcCsvDownloadFileName,
+        },
         xAxis: ({ popupState }) =>
           buildRelativeTimeAxis({
             popupState,
@@ -420,6 +447,10 @@ export const CNRFC_POINT_POPUP_TABS = [
         titleTemplate: DEFAULT_TIMESERIES_TITLE_TEMPLATE,
         layout: DEFAULT_TIMESERIES_LAYOUT,
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
+        csvDownload: {
+          enabled: true,
+          fileName: buildCnrfcCsvDownloadFileName,
+        },
         xAxis: ({ popupState }) =>
           buildRelativeTimeAxis({
             popupState,

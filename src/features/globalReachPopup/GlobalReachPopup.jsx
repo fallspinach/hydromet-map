@@ -1,5 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Popup } from 'react-map-gl/maplibre'
+import PopupCsvDownloadButton from '../../components/PopupCsvDownloadButton'
+import { downloadCsvFiles } from '../../lib/csvExport'
 import TimeSeriesPlot from '../cnrfcPointPopup/TimeSeriesPlot'
 import {
   GLOBAL_REACH_POPUP_WIDTH,
@@ -40,11 +42,27 @@ export default function GlobalReachPopup({
   selectedStation,
   setSelectedStation,
 }) {
+  const [isDownloadingCsv, setIsDownloadingCsv] = useState(false)
   const tabs = getGlobalReachPopupTabs(selectedStation)
   const requestedTabId = selectedStation?.popup?.activeTabId
   const activeTabId = tabs.some((tab) => tab.id === requestedTabId)
     ? requestedTabId
     : (tabs[0]?.id ?? 'daily')
+  const activeTabDefinition = getGlobalReachPopupTabDefinition(activeTabId)
+  const activeTabState = selectedStation?.popup?.tabDataById?.[activeTabId]
+  const exportablePlots = (activeTabDefinition?.plots ?? []).filter(
+    (plotDefinition) => plotDefinition.csvDownload?.enabled,
+  )
+  const activeTabDownloadFiles = exportablePlots.flatMap(
+    (plotDefinition) => activeTabState?.plotsById?.[plotDefinition.id]?.downloadFiles ?? [],
+  )
+  const canDownloadCsv = exportablePlots.length > 0
+  const isCsvDownloadReady =
+    canDownloadCsv
+    && exportablePlots.every(
+      (plotDefinition) => activeTabState?.plotsById?.[plotDefinition.id]?.status === 'ready',
+    )
+    && activeTabDownloadFiles.length > 0
 
   useEffect(() => {
     if (
@@ -64,6 +82,22 @@ export default function GlobalReachPopup({
     || selectedStation.popupOwnerId !== ownerLayerId
   ) {
     return null
+  }
+
+  async function handleDownloadCsv() {
+    if (!isCsvDownloadReady || isDownloadingCsv) {
+      return
+    }
+
+    setIsDownloadingCsv(true)
+
+    try {
+      await downloadCsvFiles(activeTabDownloadFiles)
+    } catch (error) {
+      console.error('Failed to download CSV files for global reach popup.', error)
+    } finally {
+      setIsDownloadingCsv(false)
+    }
   }
 
   return (
@@ -96,6 +130,16 @@ export default function GlobalReachPopup({
               </button>
             ))}
           </div>
+
+          <PopupCsvDownloadButton
+            disabled={!isCsvDownloadReady || isDownloadingCsv}
+            onClick={handleDownloadCsv}
+            title={
+              canDownloadCsv
+                ? (isDownloadingCsv ? 'Downloading CSV files...' : 'Download CSV files')
+                : 'CSV download is not available for this tab'
+            }
+          />
         </div>
 
         {tabs.map((tab) => {

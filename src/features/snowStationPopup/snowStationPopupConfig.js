@@ -3,6 +3,7 @@ import {
   DEFAULT_TIMESERIES_PLOTLY_CONFIG,
   TIMESERIES_POPUP_WIDTH,
 } from '../cnrfcPointPopup/cnrfcPointPopupConfig'
+import { buildCsvDownloadFileName } from '../../lib/csvExport'
 
 function parsePopupStatusTimestamp(rawValue) {
   if (typeof rawValue !== 'string' || !rawValue.trim()) {
@@ -258,6 +259,19 @@ function buildStatsSeries(sourceRecords) {
   )
 }
 
+function buildSnowCsvDownloadFileName(context) {
+  const stationId = context.station?.id ?? 'station'
+  const popupType = context.station?.popupType ?? 'snow'
+
+  return buildCsvDownloadFileName({
+    prefix: popupType,
+    stationId,
+    plotId: context.plotDefinition?.id,
+    sourceId: context.sourceId,
+    defaultFileName: context.defaultFileName,
+  })
+}
+
 function createSinglePlotTab({
   id,
   label,
@@ -300,6 +314,10 @@ function createSinglePlotTab({
         titleTemplate,
         layout: DEFAULT_TIMESERIES_LAYOUT,
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
+        csvDownload: {
+          enabled: true,
+          fileName: buildSnowCsvDownloadFileName,
+        },
         xAxis: isNrtTab
           ? ({ popupState }) => buildSnowNrtXAxis({ popupState, observationNetwork })
           : undefined,

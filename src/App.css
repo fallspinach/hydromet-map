@@ -1006,6 +1006,39 @@ button:disabled {
   padding: 0.2rem 0.24rem;
 }
 
+.station-popup__download-button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(244, 249, 252, 0.92);
+  color: #244050;
+  border: 1px solid rgba(74, 113, 137, 0.2);
+  border-radius: 10px;
+  box-shadow: none;
+  transform: none;
+}
+
+.station-popup__download-button svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.station-popup__download-button:hover:not(:disabled) {
+  transform: none;
+  background: rgba(29, 105, 150, 0.12);
+}
+
+.station-popup__download-button:disabled {
+  opacity: 0.45;
+}
+
 .station-popup__tabs {
   display: inline-flex;
   gap: 0.35rem;

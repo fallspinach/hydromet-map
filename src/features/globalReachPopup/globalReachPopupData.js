@@ -1,4 +1,5 @@
 import { loadConfiguredSources } from '../../lib/plotDataSources'
+import { buildGeneratedCsvDownloadFiles } from '../../lib/csvExport'
 import {
   GLOBAL_REACH_POPUP_TABS,
   getDefaultGlobalReachPopupTabId,
@@ -111,6 +112,7 @@ function createEmptyPlotState(plotDefinition) {
     hovermode: plotDefinition.hovermode ?? 'closest',
     traceFingerprint: 'empty',
     sources: {},
+    downloadFiles: [],
   }
 }
 
@@ -245,6 +247,22 @@ async function buildTimeSeriesPlotState(plotDefinition, station) {
 
   const primarySource = sourceRecords[Object.keys(sourceRecords)[0]]
   const { yAxesLayout, leftAxisCount, rightAxisCount } = buildYAxisLayout(plotDefinition, traces)
+  const downloadFiles =
+    plotDefinition.csvDownload?.enabled
+      ? Object.entries(sourceRecords).flatMap(([sourceId, sourceRecord]) =>
+        buildGeneratedCsvDownloadFiles({
+          plotDefinition,
+          station,
+          popupState: station.popup,
+          plotState: null,
+          sourceId,
+          sourceUrl: sourceRecord.url,
+          columns: sourceRecord.fields ?? [],
+          rows: sourceRecord.rows ?? [],
+          defaultFileName: `${plotDefinition.id}_${sourceId}.csv`,
+        }),
+      )
+      : []
 
   return {
     plotId: plotDefinition.id,
@@ -272,6 +290,7 @@ async function buildTimeSeriesPlotState(plotDefinition, station) {
         },
       ]),
     ),
+    downloadFiles,
   }
 }
 

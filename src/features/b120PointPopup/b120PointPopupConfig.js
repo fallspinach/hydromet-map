@@ -3,6 +3,7 @@ import {
   DEFAULT_TIMESERIES_PLOTLY_CONFIG,
   TIMESERIES_POPUP_WIDTH,
 } from '../cnrfcPointPopup/cnrfcPointPopupConfig'
+import { buildCsvDownloadFileName } from '../../lib/csvExport'
 
 function formatCompactDate(date) {
   const year = date.getFullYear()
@@ -204,6 +205,25 @@ function buildEnsembleSeries(start = 1, end = 46) {
   )
 }
 
+function buildB120CsvDownloadFileName(context) {
+  const stationId = context.station?.stationId ?? 'station'
+  const popupState = context.popupState ?? {}
+  const extraParts = [
+    popupState.forecastUpdateDate,
+    popupState.forecastPostProcessing,
+    context.exportType === 'table' ? 'table' : null,
+  ]
+
+  return buildCsvDownloadFileName({
+    prefix: 'b120',
+    stationId,
+    plotId: context.plotDefinition?.id,
+    sourceId: context.sourceId,
+    defaultFileName: context.defaultFileName,
+    extraParts,
+  })
+}
+
 export const B120_POINT_POPUP_WIDTH = TIMESERIES_POPUP_WIDTH
 export const B120_POINT_FORECAST_UPDATES_URL =
   'https://cw3e.ucsd.edu/hydro/b120/csv/fcst_tupdates.json'
@@ -265,6 +285,10 @@ export const B120_POINT_POPUP_TABS = [
           },
         },
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
+        csvDownload: {
+          enabled: true,
+          fileName: buildB120CsvDownloadFileName,
+        },
         axes: {
           y: {
             title: { text: 'Monthly Flow (taf)', standoff: 0 },
@@ -381,6 +405,10 @@ export const B120_POINT_POPUP_TABS = [
           },
         },
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
+        csvDownload: {
+          enabled: true,
+          fileName: buildB120CsvDownloadFileName,
+        },
         axes: {
           y: {
             title: { text: 'Daily Flow (cfs)', standoff: 0 },
@@ -456,6 +484,10 @@ export const B120_POINT_POPUP_TABS = [
           },
         },
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
+        csvDownload: {
+          enabled: true,
+          fileName: buildB120CsvDownloadFileName,
+        },
         axes: {
           y: {
             title: { text: 'Monthly Flow (taf)', standoff: 0 },
@@ -525,6 +557,10 @@ export const B120_POINT_POPUP_TABS = [
           },
         },
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
+        csvDownload: {
+          enabled: true,
+          fileName: buildB120CsvDownloadFileName,
+        },
         axes: {
           y: {
             title: { text: 'Daily Flow (cfs)', standoff: 0 },
@@ -551,7 +587,7 @@ export const B120_POINT_POPUP_TABS = [
   },
   {
     id: 'forecast-summary',
-    label: 'Forecast Table',
+    label: 'Table',
     plots: [
       {
         id: 'main',
@@ -580,6 +616,10 @@ export const B120_POINT_POPUP_TABS = [
           },
         },
         plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
+        csvDownload: {
+          enabled: true,
+          fileName: buildB120CsvDownloadFileName,
+        },
         footerText: '[Note] 50%, 90%, 10%: exceedance levels within the forecast ensemble, calculated in two units: (1) %Avg: percentage of Avg, (2) taf: thousand-acre-feet.<br>Avg: month of year average during 1979-2024.',
         columns: [
           {

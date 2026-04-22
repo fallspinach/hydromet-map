@@ -11,6 +11,7 @@ At a high level:
 - `MapCanvas.jsx` renders the map, visible layers, built-in controls, overlay widgets, and popups.
 - Layer modules in `src/layers/` encapsulate map sources, styles, hover/click behavior, and popup entry points.
 - Popup feature modules in `src/features/` encapsulate remote CSV loading, plot/table/map configs, and popup UIs.
+- Shared export helpers in `src/lib/` handle popup CSV download behavior.
 - Some shared popup features may be rendered once from `MapCanvas.jsx` when multiple layers feed the same popup state.
 
 ## Main concepts
@@ -106,6 +107,11 @@ But the structure now supports multiple families, with the rule that each projec
 - `src/features/yampaPointPopup/`
 - `src/features/globalReachPopup/`
 
+### Shared export utilities
+
+- [src/lib/csvExport.js](../src/lib/csvExport.js)
+- [src/components/PopupCsvDownloadButton.jsx](../src/components/PopupCsvDownloadButton.jsx)
+
 ## Data flow
 
 ### Render flow
@@ -127,6 +133,12 @@ But the structure now supports multiple families, with the rule that each projec
 - popup:
   selected feature state is stored in `selectedStation` and rendered by popup modules
 
+For popup CSV export:
+
+- popup data builders attach download-ready file metadata to each plot state
+- popup components aggregate exportable files from the active tab
+- the shared header download button triggers one or more CSV downloads
+
 For the global hydrography layers, `selectedStation` is populated by the layer click handlers and the shared `GlobalReachPopup` is rendered once from `MapCanvas.jsx`.
 
 ## Design rules in the current app
@@ -135,6 +147,7 @@ For the global hydrography layers, `selectedStation` is populated by the layer c
 - Layers are globally reusable, but each project controls availability and order.
 - Raster variables/products shown in the HUD always come from the active project's raster family.
 - Bookmarks encode the active project and that project's visible state.
+- CSV export is configured per plot, not per popup family globally.
 
 ## Extension strategy
 

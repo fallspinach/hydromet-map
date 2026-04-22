@@ -1,4 +1,5 @@
 import { fetchAndParseCsv } from '../../lib/csvData'
+import { buildRawSourceDownloadFiles, buildTableDownloadFiles } from '../../lib/csvExport'
 import {
   B120_POINT_POPUP_TABS,
   DEFAULT_B120_POINT_FORECAST_UPDATE_DATE,
@@ -121,6 +122,7 @@ function createEmptyPlotState(plotDefinition) {
     traceFingerprint: 'empty',
     sources: {},
     footerText: plotDefinition.footerText ?? null,
+    downloadFiles: [],
   }
 }
 
@@ -330,6 +332,13 @@ async function buildTimeSeriesPlotState(plotDefinition, station) {
       ]),
     ),
     footerText: plotDefinition.footerText ?? null,
+    downloadFiles: buildRawSourceDownloadFiles({
+      plotDefinition,
+      station,
+      popupState: station.popup,
+      plotState: null,
+      sourceRecords,
+    }),
   }
 }
 
@@ -362,6 +371,14 @@ async function buildTablePlotState(plotDefinition, station) {
   const headerValues = columns.map((column) => column.label ?? column.key)
   const cellValues = columns.map((column) =>
     selectedRows.map((row) => formatTableCellValue(row[column.key], column.format)),
+  )
+  const tableDownloadRows = selectedRows.map((row) =>
+    Object.fromEntries(
+      columns.map((column) => [
+        column.label ?? column.key,
+        formatTableCellValue(row[column.key], column.format),
+      ]),
+    ),
   )
 
   return {
@@ -415,6 +432,14 @@ async function buildTablePlotState(plotDefinition, station) {
       ]),
     ),
     footerText: plotDefinition.footerText ?? null,
+    downloadFiles: buildTableDownloadFiles({
+      plotDefinition,
+      station,
+      popupState: station.popup,
+      plotState: null,
+      columns: columns.map((column) => column.label ?? column.key),
+      rows: tableDownloadRows,
+    }),
   }
 }
 
@@ -525,6 +550,7 @@ async function buildChoroplethMapPlotState(plotDefinition, station) {
       },
     },
     footerText: plotDefinition.footerText ?? null,
+    downloadFiles: [],
   }
 }
 

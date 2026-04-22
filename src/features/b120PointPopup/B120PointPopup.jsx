@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Popup } from 'react-map-gl/maplibre'
 import TimeSeriesPlot from '../cnrfcPointPopup/TimeSeriesPlot'
+import PopupCsvDownloadButton from '../../components/PopupCsvDownloadButton'
+import { downloadCsvFiles } from '../../lib/csvExport'
 import { fetchJsonNoCache } from '../../lib/network'
 import B120PointPopupTable from './B120PointPopupTable'
 import {
@@ -68,6 +70,7 @@ export default function B120PointPopup({
   setSelectedStation,
 }) {
   const [forecastUpdateOptions, setForecastUpdateOptions] = useState(B120_POINT_FORECAST_UPDATE_OPTIONS)
+  const [isDownloadingCsv, setIsDownloadingCsv] = useState(false)
   const tabs = getB120PointPopupTabs()
   const activeTabId = selectedStation?.popup?.activeTabId ?? tabs[0]?.id ?? 'nrt-forecast'
   const forecastUpdateDate = selectedStation?.popup?.forecastUpdateDate ?? ''
@@ -75,6 +78,37 @@ export default function B120PointPopup({
     selectedStation?.popup?.forecastPostProcessing ?? B120_POINT_POST_PROCESSING_OPTIONS[0].id
   const forecastUpdateEnabled = doesB120PointTabUseForecastUpdate(activeTabId)
   const postProcessingEnabled = doesB120PointTabUsePostProcessing(activeTabId)
+  const activeTabDefinition = getB120PointPopupTabDefinition(activeTabId)
+  const activeTabState = selectedStation?.popup?.tabDataById?.[activeTabId]
+  const exportablePlots = (activeTabDefinition?.plots ?? []).filter(
+    (plotDefinition) => plotDefinition.csvDownload?.enabled,
+  )
+  const activeTabDownloadFiles = exportablePlots.flatMap(
+    (plotDefinition) => activeTabState?.plotsById?.[plotDefinition.id]?.downloadFiles ?? [],
+  )
+  const canDownloadCsv = exportablePlots.length > 0
+  const isCsvDownloadReady =
+    canDownloadCsv
+    && exportablePlots.every(
+      (plotDefinition) => activeTabState?.plotsById?.[plotDefinition.id]?.status === 'ready',
+    )
+    && activeTabDownloadFiles.length > 0
+
+  async function handleDownloadCsv() {
+    if (!isCsvDownloadReady || isDownloadingCsv) {
+      return
+    }
+
+    setIsDownloadingCsv(true)
+
+    try {
+      await downloadCsvFiles(activeTabDownloadFiles)
+    } catch (error) {
+      console.error('Failed to download CSV files for B120 popup.', error)
+    } finally {
+      setIsDownloadingCsv(false)
+    }
+  }
 
   useEffect(() => {
     let isCancelled = false
@@ -240,11 +274,19 @@ export default function B120PointPopup({
               ))}
             </select>
           </label>
+
+          <PopupCsvDownloadButton
+            disabled={!isCsvDownloadReady || isDownloadingCsv}
+            onClick={handleDownloadCsv}
+            title={
+              canDownloadCsv
+                ? (isDownloadingCsv ? 'Downloading CSV files...' : 'Download CSV files')
+                : 'CSV download is not available for this tab'
+            }
+          />
         </div>
 
         {(() => {
-          const activeTabDefinition = getB120PointPopupTabDefinition(activeTabId)
-          const activeTabState = selectedStation.popup?.tabDataById?.[activeTabId]
           const tabPanelClassName =
             activeTabDefinition?.plots?.length > 1
               ? 'station-popup__tab-panel station-popup__tab-panel--grid'
