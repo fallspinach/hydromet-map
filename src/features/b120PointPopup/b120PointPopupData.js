@@ -1,5 +1,5 @@
 import { fetchAndParseCsv } from '../../lib/csvData'
-import { buildRawSourceDownloadFiles, buildTableDownloadFiles } from '../../lib/csvExport'
+import { buildGeneratedCsvDownloadFiles, buildRawSourceDownloadFiles, buildTableDownloadFiles } from '../../lib/csvExport'
 import {
   B120_POINT_POPUP_TABS,
   DEFAULT_B120_POINT_FORECAST_UPDATE_DATE,
@@ -354,6 +354,17 @@ function formatTableCellValue(value, formatter) {
   return String(value)
 }
 
+function buildRowsForTableDownload(rows, columns) {
+  return rows.map((row) =>
+    Object.fromEntries(
+      columns.map((column) => [
+        column.label ?? column.key,
+        formatTableCellValue(row[column.key], column.format),
+      ]),
+    ),
+  )
+}
+
 async function buildTablePlotState(plotDefinition, station) {
   const sourceRecords = await fetchPlotSources(plotDefinition, station)
   const sourceRecord = getSourceRecord(sourceRecords, plotDefinition.sourceId, plotDefinition.id)
@@ -372,14 +383,7 @@ async function buildTablePlotState(plotDefinition, station) {
   const cellValues = columns.map((column) =>
     selectedRows.map((row) => formatTableCellValue(row[column.key], column.format)),
   )
-  const tableDownloadRows = selectedRows.map((row) =>
-    Object.fromEntries(
-      columns.map((column) => [
-        column.label ?? column.key,
-        formatTableCellValue(row[column.key], column.format),
-      ]),
-    ),
-  )
+  const tableDownloadRows = buildRowsForTableDownload(selectedRows, columns)
 
   return {
     plotId: plotDefinition.id,
@@ -457,7 +461,9 @@ async function buildChoroplethMapPlotState(plotDefinition, station) {
       const lastRow = rows?.[rows.length - 1] ?? null
       return {
         stationId,
+        rows,
         lastRow,
+        url,
       }
     }),
   )
@@ -482,6 +488,36 @@ async function buildChoroplethMapPlotState(plotDefinition, station) {
   if (!values.length) {
     throw new Error(`No numeric values were found for "${plotDefinition.valueKey}".`)
   }
+
+  const downloadColumns = plotDefinition.downloadTableColumns ?? []
+  const downloadRows =
+    downloadColumns.length > 0
+      ? forecastRows.flatMap(({ stationId, rows }) =>
+          rows.map((row, index) => ({
+            ...row,
+            stationId,
+            Date:
+              index === rows.length - 1
+                ? 'Apr-Jul'
+                : formatTableCellValue(row?.Date, (value) => {
+                    const dateText = String(value ?? '')
+                    const parsedDate = /^\d{4}-\d{2}-\d{2}$/.test(dateText)
+                      ? new Date(`${dateText}T00:00:00`)
+                      : /^\d{8}$/.test(dateText)
+                        ? new Date(`${dateText.slice(0, 4)}-${dateText.slice(4, 6)}-${dateText.slice(6, 8)}T00:00:00`)
+                        : null
+
+                    return parsedDate && !Number.isNaN(parsedDate.getTime())
+                      ? parsedDate.toLocaleString('en-US', {
+                          month: 'short',
+                          year: 'numeric',
+                          timeZone: 'UTC',
+                        })
+                      : value
+                  }),
+          })),
+        )
+      : []
 
   return {
     plotId: plotDefinition.id,
@@ -550,7 +586,16 @@ async function buildChoroplethMapPlotState(plotDefinition, station) {
       },
     },
     footerText: plotDefinition.footerText ?? null,
-    downloadFiles: [],
+    downloadFiles: buildGeneratedCsvDownloadFiles({
+      plotDefinition,
+      station,
+      popupState: station.popup,
+      plotState: null,
+      sourceId: 'all-stations',
+      columns: downloadColumns.map((column) => column.label ?? column.key),
+      rows: buildRowsForTableDownload(downloadRows, downloadColumns),
+      defaultFileName: 'b120_forecast_table_all_stations.csv',
+    }),
   }
 }
 

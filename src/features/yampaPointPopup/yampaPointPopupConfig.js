@@ -216,11 +216,11 @@ export function getYampaPointPostProcessingLabel(postProcessingId) {
 }
 
 export function doesYampaPointTabUsePostProcessing(tabId) {
-  return tabId === 'nrt-fcst' || tabId === 'nrt-fcst-daily' || tabId === 'forecast-summary'
+  return tabId === 'nrt-fcst' || tabId === 'nrt-fcst-daily' || tabId === 'forecast-table'
 }
 
 export function doesYampaPointTabUseForecastUpdate(tabId) {
-  return tabId === 'nrt-fcst' || tabId === 'nrt-fcst-daily' || tabId === 'forecast-summary'
+  return tabId === 'nrt-fcst' || tabId === 'nrt-fcst-daily' || tabId === 'forecast-table'
 }
 
 export const YAMPA_POINT_POPUP_TABS = [
@@ -551,7 +551,7 @@ export const YAMPA_POINT_POPUP_TABS = [
     ],
   },
   {
-    id: 'forecast-summary',
+    id: 'forecast-table',
     label: 'Table',
     plots: [
       {

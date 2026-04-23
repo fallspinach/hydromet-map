@@ -150,7 +150,7 @@ export function buildCsvDownloadFileName({
   extraParts = [],
 }) {
   const extension = getFileExtension(defaultFileName)
-  const fileNameRoot = joinFileNameParts([prefix, stationId, ...extraParts, sourceId])
+  const fileNameRoot = joinFileNameParts([stationId, ...extraParts, sourceId])
 
   return `${fileNameRoot || sanitizeFilenamePart(defaultFileName) || 'download'}${extension}`
 }

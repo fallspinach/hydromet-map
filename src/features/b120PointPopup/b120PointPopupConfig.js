@@ -224,6 +224,48 @@ function buildB120CsvDownloadFileName(context) {
   })
 }
 
+export const B120_FORECAST_TABLE_COLUMNS = [
+  {
+    key: 'Date',
+    label: 'Date',
+  },
+  {
+    key: 'Exc50',
+    label: '50% (taf)',
+    format: formatIntegerValue,
+  },
+  {
+    key: 'Pav50',
+    label: '50% (%Avg)',
+    format: formatIntegerValue,
+  },
+  {
+    key: 'Exc90',
+    label: '90% (taf)',
+    format: formatIntegerValue,
+  },
+  {
+    key: 'Pav90',
+    label: '90% (%Avg)',
+    format: formatIntegerValue,
+  },
+  {
+    key: 'Exc10',
+    label: '10% (taf)',
+    format: formatIntegerValue,
+  },
+  {
+    key: 'Pav10',
+    label: '10% (%Avg)',
+    format: formatIntegerValue,
+  },
+  {
+    key: 'Avg',
+    label: 'Avg (taf)',
+    format: formatIntegerValue,
+  },
+]
+
 export const B120_POINT_POPUP_WIDTH = TIMESERIES_POPUP_WIDTH
 export const B120_POINT_FORECAST_UPDATES_URL =
   'https://cw3e.ucsd.edu/hydro/b120/csv/fcst_tupdates.json'
@@ -248,11 +290,11 @@ export function getB120PointPostProcessingLabel(postProcessingId) {
 }
 
 export function doesB120PointTabUsePostProcessing(tabId) {
-  return tabId === 'nrt-fcst' || tabId === 'forecast-summary' || tabId === 'map'
+  return tabId === 'nrt-fcst' || tabId === 'forecast-table' || tabId === 'map'
 }
 
 export function doesB120PointTabUseForecastUpdate(tabId) {
-  return tabId === 'nrt-fcst' || tabId === 'nrt-fcst-daily' || tabId === 'forecast-summary' || tabId === 'map'
+  return tabId === 'nrt-fcst' || tabId === 'nrt-fcst-daily' || tabId === 'forecast-table' || tabId === 'map'
 }
 
 export const B120_POINT_POPUP_TABS = [
@@ -586,7 +628,7 @@ export const B120_POINT_POPUP_TABS = [
     ],
   },
   {
-    id: 'forecast-summary',
+    id: 'forecast-table',
     label: 'Table',
     plots: [
       {
@@ -621,47 +663,7 @@ export const B120_POINT_POPUP_TABS = [
           fileName: buildB120CsvDownloadFileName,
         },
         footerText: '[Note] 50%, 90%, 10%: exceedance levels within the forecast ensemble, calculated in two units: (1) %Avg: percentage of Avg, (2) taf: thousand-acre-feet.<br>Avg: month of year average during 1979-2024.',
-        columns: [
-          {
-            key: 'Date',
-            label: 'Date',
-          },
-          {
-            key: 'Exc50',
-            label: '50% (taf)',
-            format: formatIntegerValue,
-          },
-          {
-            key: 'Pav50',
-            label: '50% (%Avg)',
-            format: formatIntegerValue,
-          },
-          {
-            key: 'Exc90',
-            label: '90% (taf)',
-            format: formatIntegerValue,
-          },
-          {
-            key: 'Pav90',
-            label: '90% (%Avg)',
-            format: formatIntegerValue,
-          },
-          {
-            key: 'Exc10',
-            label: '10% (taf)',
-            format: formatIntegerValue,
-          },
-          {
-            key: 'Pav10',
-            label: '10% (%Avg)',
-            format: formatIntegerValue,
-          },
-          {
-            key: 'Avg',
-            label: 'Avg (taf)',
-            format: formatIntegerValue,
-          },
-        ],
+        columns: B120_FORECAST_TABLE_COLUMNS,
       },
     ],
   },
@@ -686,6 +688,17 @@ export const B120_POINT_POPUP_TABS = [
         basinGeoJsonUrl: B120_BASINS_GEOJSON_URL,
         stationIds: B120_POINT_FORECAST_MAP_STATION_IDS,
         buildStationUrl: buildB120FcstUrl(),
+        csvDownload: {
+          enabled: true,
+          fileName: buildB120CsvDownloadFileName,
+        },
+        downloadTableColumns: [
+          {
+            key: 'stationId',
+            label: 'Station ID',
+          },
+          ...B120_FORECAST_TABLE_COLUMNS,
+        ],
         valueKey: 'Pav50',
         valueLabel: '50% (%Avg)',
         colorbarTitle: '% of Historical Average',
