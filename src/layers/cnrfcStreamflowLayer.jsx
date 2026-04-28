@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Layer, Popup, Source } from 'react-map-gl/maplibre'
+import { createSelectedCnrfcStreamflowPopupState } from '../features/cnrfcStreamflowPopup/cnrfcStreamflowPopupData'
 import {
   CNRFC_STREAMFLOW_DATA_SOURCE_LAYER,
   RIVER_NETWORK_PMTILES_URL,
@@ -288,6 +289,24 @@ const cnrfcStreamflowLayer = {
   getPointerLeaveState() {
     return { hoveredCnrfcStreamflow: null }
   },
+  handleClick({ event, setSelectedStation }) {
+    const clickedFeature = event.features?.find((feature) => feature.layer.id === 'cnrfc-streamflow-line')
+
+    if (!clickedFeature || clickedFeature.geometry.type !== 'LineString') {
+      return false
+    }
+
+    setSelectedStation(
+      createSelectedCnrfcStreamflowPopupState(clickedFeature, {
+        layerId: 'cnrfcStreamflow',
+        popupOwnerId: 'cnrfcStreamflow',
+        longitude: event.lngLat.lng,
+        latitude: event.lngLat.lat,
+      }),
+    )
+
+    return true
+  },
   renderLayers(props) {
     return <CnrfcStreamflowLayers {...props} />
   },
@@ -315,9 +334,9 @@ const cnrfcStreamflowLayer = {
             Length: {hoveredStreamflow.lengthKm ?? 'Unknown'}{hoveredStreamflow.lengthKm ? ' km' : ''}
           </p>
           <p>Stream Order: {hoveredStreamflow.streamOrder}</p>
-          <p>WRF-Hydro Estimated Natural Flow:</p>
+          <p>WRF-Hydro Estimated Natural Flow: (UNCORRECTED!)</p>
           <p style={{ paddingLeft: '0.4rem' }}>
-            Flow: {formatNumber(hoveredStreamflow.streamflowValue, 1) ?? 'Unknown'}
+            Rate: {formatNumber(hoveredStreamflow.streamflowValue, 1) ?? 'Unknown'}
             {hoveredStreamflow.streamflowValue != null ? (
               <>
                 {' '}m<sup>3</sup>/s

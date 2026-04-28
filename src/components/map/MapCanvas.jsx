@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import Map, { NavigationControl, ScaleControl } from 'react-map-gl/maplibre'
 import { BASEMAP_STYLES, PROJECT_OPTIONS } from '../../config/mapConfig'
+import CnrfcStreamflowPopup from '../../features/cnrfcStreamflowPopup/CnrfcStreamflowPopup'
 import GlobalReachPopup from '../../features/globalReachPopup/GlobalReachPopup'
 import { formatCoordinate, formatViewValue } from '../../lib/appState'
 import { MAP_LAYER_MODULES } from '../../layers'
@@ -229,6 +230,14 @@ export default function MapCanvas({
 
         {selectedStation?.popupType === 'global-reach' ? (
           <GlobalReachPopup
+            ownerLayerId={selectedStation.popupOwnerId}
+            selectedStation={selectedStation}
+            setSelectedStation={setSelectedStation}
+          />
+        ) : null}
+
+        {selectedStation?.popupType === 'cnrfc-streamflow' ? (
+          <CnrfcStreamflowPopup
             ownerLayerId={selectedStation.popupOwnerId}
             selectedStation={selectedStation}
             setSelectedStation={setSelectedStation}

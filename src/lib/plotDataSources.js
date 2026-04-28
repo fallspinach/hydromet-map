@@ -1,5 +1,9 @@
 import { fetchAndParseCsv } from './csvData'
 import {
+  loadCnrfcPercentilesSource,
+  loadCnrfcSeriesSource,
+} from './cnrfcBinaryData'
+import {
   loadGradesPercentilesSource,
   loadGradesSeriesSource,
 } from './gradesBinaryData'
@@ -100,6 +104,40 @@ async function loadGradesPercentiles(sourceDefinition, context) {
   return normalizeSourceRecord(sourceDefinition, loadedSource, context)
 }
 
+async function loadCnrfcSeries(sourceDefinition, context) {
+  const request = sourceDefinition.buildRequest
+    ? await sourceDefinition.buildRequest({
+      station: context.station,
+      popupState: context.station?.popup,
+    })
+    : {}
+  const loadedSource = await loadCnrfcSeriesSource({
+    product: request.product,
+    idx: request.idx,
+    valueColumn: request.valueColumn,
+  })
+
+  return normalizeSourceRecord(sourceDefinition, loadedSource, context)
+}
+
+async function loadCnrfcPercentiles(sourceDefinition, context) {
+  const request = sourceDefinition.buildRequest
+    ? await sourceDefinition.buildRequest({
+      station: context.station,
+      popupState: context.station?.popup,
+    })
+    : {}
+  const loadedSource = await loadCnrfcPercentilesSource({
+    idx: request.idx,
+    endDateText: request.endDateText,
+    dayCount: request.dayCount,
+    columnNames: request.columnNames,
+    descriptorProduct: request.descriptorProduct,
+  })
+
+  return normalizeSourceRecord(sourceDefinition, loadedSource, context)
+}
+
 export async function loadConfiguredSource(sourceDefinition, context) {
   const loader = sourceDefinition.loader ?? 'csv'
 
@@ -113,6 +151,14 @@ export async function loadConfiguredSource(sourceDefinition, context) {
 
   if (loader === 'gradesPercentiles') {
     return loadGradesPercentiles(sourceDefinition, context)
+  }
+
+  if (loader === 'cnrfcSeries') {
+    return loadCnrfcSeries(sourceDefinition, context)
+  }
+
+  if (loader === 'cnrfcPercentiles') {
+    return loadCnrfcPercentiles(sourceDefinition, context)
   }
 
   throw new Error(`Unsupported source loader "${loader}".`)

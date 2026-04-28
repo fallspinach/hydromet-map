@@ -31,6 +31,12 @@ Default family variable:
 
 - `soilMoistureDaily`
 
+Current popup coverage:
+
+- `cnrfcPoints` supports the forecast point popup
+- `cnrfcStreamflow` supports the dedicated CNRFC streamflow popup
+- `snowCourses` and `snowPillows` support the shared snow-station popup
+
 ### `b120`
 
 Includes:

@@ -11,17 +11,24 @@ const TimeSeriesPlot = memo(function TimeSeriesPlot({
   plotState,
 }) {
   const layout = useMemo(
-    () => ({
-      ...(plotState.layout ?? {}),
+    () => {
+      const plotLayout = plotState.layout ?? {}
+      const plotTitleLayout = plotLayout.title ?? {}
+
+      return {
+        ...plotLayout,
       uirevision: `${stationId}-${plotState.plotId}-${plotState.traceFingerprint}`,
       title: {
+        ...plotTitleLayout,
         text: plotState.titleText ?? `${stationName} (${stationId})`,
-        x: 0.5,
-        xanchor: 'center',
-        y: 0.96,
-        yanchor: 'top',
+        x: plotTitleLayout.x ?? 0.5,
+        xanchor: plotTitleLayout.xanchor ?? 'center',
+        y: plotTitleLayout.y ?? 0.96,
+        yanchor: plotTitleLayout.yanchor ?? 'top',
         font: {
+          ...(plotTitleLayout.font ?? {}),
           size: 15,
+          ...(plotTitleLayout.font?.size ? { size: plotTitleLayout.font.size } : {}),
         },
       },
       hovermode: plotState.hovermode ?? 'closest',
@@ -31,7 +38,8 @@ const TimeSeriesPlot = memo(function TimeSeriesPlot({
         ...(plotState.xAxisLayout ?? {}),
       },
       ...plotState.yAxesLayout,
-    }),
+      }
+    },
     [
       plotState.hovermode,
       plotState.layout,

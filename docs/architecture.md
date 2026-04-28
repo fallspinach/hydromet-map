@@ -17,7 +17,7 @@ At a high level:
 - Layer modules in `src/layers/` encapsulate map sources, styles, hover/click behavior, and popup entry points.
 - Popup feature modules in `src/features/` encapsulate remote CSV loading, plot/table/map configs, and popup UIs.
 - Shared export helpers in `src/lib/` handle popup CSV download behavior.
-- Some shared popup features may be rendered once from `MapCanvas.jsx` when multiple layers feed the same popup state.
+- Some popup features are rendered once from `MapCanvas.jsx` when layers populate shared popup state.
 
 ## Main concepts
 
@@ -110,6 +110,7 @@ Each project may reference at most one layer family.
 ### Popup features
 
 - `src/features/cnrfcPointPopup/`
+- `src/features/cnrfcStreamflowPopup/`
 - `src/features/snowStationPopup/`
 - `src/features/b120PointPopup/`
 - `src/features/yampaPointPopup/`
@@ -156,7 +157,10 @@ For popup CSV export:
 - popup components aggregate exportable files from the active tab
 - the shared header download button triggers one or more CSV downloads
 
-For the global hydrography layers, `selectedStation` is populated by the layer click handlers and the shared `GlobalReachPopup` is rendered once from `MapCanvas.jsx`.
+For the river-line popup families rendered from `MapCanvas.jsx`:
+
+- `gradesHydroDl` and `swordReaches` populate `selectedStation` for the shared `GlobalReachPopup`
+- `cnrfcStreamflow` populates `selectedStation` for the dedicated `CnrfcStreamflowPopup`
 
 ## Map tools
 

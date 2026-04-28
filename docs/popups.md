@@ -2,9 +2,10 @@
 
 ## Overview
 
-The app has four popup feature families:
+The app currently has six popup feature families:
 
 - forecast/CNRFC points
+- CNRFC streamflow rivers
 - snow stations
 - B120 points
 - Yampa points
@@ -49,6 +50,30 @@ Characteristics:
 - time series only
 - shared `TimeSeriesPlot`
 - CSV download button exports raw source CSVs used by the active tab
+
+## CNRFC streamflow popup
+
+Files:
+
+- [src/features/cnrfcStreamflowPopup/cnrfcStreamflowPopupConfig.js](../src/features/cnrfcStreamflowPopup/cnrfcStreamflowPopupConfig.js)
+- [src/features/cnrfcStreamflowPopup/cnrfcStreamflowPopupData.js](../src/features/cnrfcStreamflowPopup/cnrfcStreamflowPopupData.js)
+- [src/features/cnrfcStreamflowPopup/CnrfcStreamflowPopup.jsx](../src/features/cnrfcStreamflowPopup/CnrfcStreamflowPopup.jsx)
+- [src/lib/cnrfcBinaryData.js](../src/lib/cnrfcBinaryData.js)
+- [src/lib/plotDataSources.js](../src/lib/plotDataSources.js)
+
+Characteristics:
+
+- dedicated to the `cnrfcStreamflow` linked family layer in the `cnrfc` project
+- uses binary range requests instead of CSV loading
+- has two tabs:
+  - `NRT/Forecast`
+  - `Retrospective`
+- the first tab overlays four products (`nrt`, `wwrf_ecmwf`, `wwrf_gfs`, `gfs`) on one plot
+- uses the same 7-band climatology rendering style as the GRADES recent-year popup
+- extends climatology to the full current water year while `nrt` ends at the current available date
+- title text is built from clicked river metadata such as feature id, name, length, and stream order
+- rendered once from `MapCanvas.jsx`, while the layer keeps its own hover popup
+- both tabs can export generated CSV built from the normalized in-memory date/value rows
 
 ## Snow station popup
 

@@ -92,11 +92,14 @@ Returns hover info popups and/or feature popup components.
 
 Most layers render both hover info and feature popups directly from the layer module.
 
-The global hydrography layers are a small exception:
+Some line-inspection layers are small exceptions:
 
 - `gradesHydroDl` and `swordReaches` still render hover popups from their layer modules
 - the shared feature popup for both layers is rendered once from `MapCanvas.jsx`
 - layer click handlers only populate `selectedStation`
+- `cnrfcStreamflow` still renders its hover popup from the layer module
+- its feature popup is rendered once from `MapCanvas.jsx` through `CnrfcStreamflowPopup`
+- its click handler also only populates `selectedStation`
 
 ## Current layer categories
 

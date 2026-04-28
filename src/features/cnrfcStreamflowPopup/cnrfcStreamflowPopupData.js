@@ -1,10 +1,10 @@
-import { loadConfiguredSources } from '../../lib/plotDataSources'
 import { buildGeneratedCsvDownloadFiles } from '../../lib/csvExport'
+import { loadConfiguredSources } from '../../lib/plotDataSources'
 import {
-  GLOBAL_REACH_POPUP_TABS,
-  getDefaultGlobalReachPopupTabId,
-  getGlobalReachPopupTabDefinition,
-} from './globalReachPopupConfig'
+  CNRFC_STREAMFLOW_POPUP_TABS,
+  getCnrfcStreamflowPopupTabDefinition,
+  getDefaultCnrfcStreamflowPopupTabId,
+} from './cnrfcStreamflowPopupConfig'
 
 function normalizeAxisTitle(title) {
   if (!title) {
@@ -126,7 +126,7 @@ function createEmptyTabState(tabDefinition) {
 
 function createEmptyTabDataById() {
   return Object.fromEntries(
-    GLOBAL_REACH_POPUP_TABS.map((tabDefinition) => [tabDefinition.id, createEmptyTabState(tabDefinition)]),
+    CNRFC_STREAMFLOW_POPUP_TABS.map((tabDefinition) => [tabDefinition.id, createEmptyTabState(tabDefinition)]),
   )
 }
 
@@ -319,54 +319,41 @@ function triggerPlotResize() {
   })
 }
 
-export function createInitialGlobalReachPopupState(layerId = null) {
-  const defaultTabId = layerId === 'swordReaches' ? 'history' : getDefaultGlobalReachPopupTabId()
-
+export function createInitialCnrfcStreamflowPopupState() {
   return {
-    activeTabId: defaultTabId,
+    activeTabId: getDefaultCnrfcStreamflowPopupTabId(),
     tabDataById: createEmptyTabDataById(),
   }
 }
 
-export function createSelectedGlobalReachPopupState(feature, {
+export function createSelectedCnrfcStreamflowPopupState(feature, {
   layerId,
   popupOwnerId,
-  hydrography,
   longitude,
   latitude,
 }) {
   const properties = feature?.properties ?? {}
   const rawLength = Number.parseFloat(properties.Shape_Length)
+  const parsedLengthKm = Number.parseFloat(properties.lengthkm)
 
   return {
-    popupType: 'global-reach',
+    popupType: 'cnrfc-streamflow',
     popupOwnerId,
     layerId,
-    hydrography,
-    id: properties.reach_id ?? properties.COMID ?? properties.feature_id ?? 'Unknown',
+    id: properties.feature_id ?? 'Unknown',
     featureId: properties.feature_id ?? null,
-    comid: properties.COMID ?? properties.comid ?? null,
-    name: properties.river_name ?? properties.gnis_name ?? '',
+    name: properties.gnis_name ?? '',
     source: properties.source ?? '',
-    riverName: properties.river_name ?? '',
-    lengthKm: Number.parseFloat(properties.lengthkm) || (Number.isFinite(rawLength) ? rawLength * 111.1 : null),
-    upstreamAreaKm2: Number.parseFloat(properties.uparea),
-    streamOrder: Number.parseInt(properties.order ?? properties.strm_order ?? properties.stream_order, 10),
-    reachIdV16: properties.reach_id_v16 ?? null,
-    reachLengthKm: Number.parseFloat(properties.reach_len),
-    slopeMPerKm: Number.parseFloat(properties.slope),
-    flowAccumulationKm2: Number.parseFloat(properties.facc),
-    widthM: Number.parseFloat(properties.width),
-    binaryComid: Number.parseFloat(properties.COMID ?? properties.comid ?? properties.reach_id),
-    dindex: Number.parseInt(properties.dindex ?? 0, 10),
+    lengthKm: Number.isFinite(parsedLengthKm) ? parsedLengthKm : (Number.isFinite(rawLength) ? rawLength * 111.1 : null),
+    streamOrder: Number.parseInt(properties.stream_order, 10),
     idx: Number.parseInt(properties.idx ?? 0, 10),
     longitude,
     latitude,
-    popup: createInitialGlobalReachPopupState(layerId),
+    popup: createInitialCnrfcStreamflowPopupState(),
   }
 }
 
-export function setActiveGlobalReachPopupTab(setSelectedStation, tabId) {
+export function setActiveCnrfcStreamflowPopupTab(setSelectedStation, tabId) {
   setSelectedStation((current) =>
     current
       ? {
@@ -382,8 +369,8 @@ export function setActiveGlobalReachPopupTab(setSelectedStation, tabId) {
   triggerPlotResize()
 }
 
-export function loadGlobalReachPopupTabData(setSelectedStation, station, tabId) {
-  const tabDefinition = getGlobalReachPopupTabDefinition(tabId)
+export function loadCnrfcStreamflowPopupTabData(setSelectedStation, station, tabId) {
+  const tabDefinition = getCnrfcStreamflowPopupTabDefinition(tabId)
 
   if (!tabDefinition) {
     return
@@ -471,12 +458,4 @@ export function loadGlobalReachPopupTabData(setSelectedStation, station, tabId) 
           : current,
       )
     })
-}
-
-export function getGlobalReachPopupTabs(station = null) {
-  if (station?.layerId === 'swordReaches') {
-    return GLOBAL_REACH_POPUP_TABS.filter((tab) => tab.id === 'history')
-  }
-
-  return GLOBAL_REACH_POPUP_TABS
 }

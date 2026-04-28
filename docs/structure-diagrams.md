@@ -36,6 +36,7 @@ flowchart TD
 
     D --> O[Shared Popups]
     O --> O1[GlobalReachPopup.jsx]
+    O --> O2[CnrfcStreamflowPopup.jsx]
 ```
 
 ## 2. Project-centered organization
@@ -143,10 +144,11 @@ flowchart TD
 flowchart LR
     F[src/features/]
     F --> A[cnrfcPointPopup]
-    F --> B[snowStationPopup]
-    F --> C[b120PointPopup]
-    F --> D[yampaPointPopup]
-    F --> E[globalReachPopup]
+    F --> B[cnrfcStreamflowPopup]
+    F --> C[snowStationPopup]
+    F --> D[b120PointPopup]
+    F --> E[yampaPointPopup]
+    F --> G[globalReachPopup]
 
     A --> A1[config]
     A --> A2[data]
@@ -159,18 +161,22 @@ flowchart LR
     C --> C1[config]
     C --> C2[data]
     C --> C3[component]
-    C --> C4[table/map renderer]
 
     D --> D1[config]
     D --> D2[data]
     D --> D3[component]
-    D --> D4[table renderer]
+    D --> D4[table/map renderer]
 
     E --> E1[config]
     E --> E2[data]
     E --> E3[component]
-    E --> E4[gradesBinaryData.js]
-    E --> E5[plotDataSources.js]
+    E --> E4[table renderer]
+
+    G --> G1[config]
+    G --> G2[data]
+    G --> G3[component]
+    G --> G4[gradesBinaryData.js]
+    G --> G5[plotDataSources.js]
 ```
 
 ## 7. Layer family hierarchy
