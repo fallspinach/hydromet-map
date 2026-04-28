@@ -35,6 +35,40 @@ const RIVERS_LINE_WIDTH = [
   ['+', ['get', 'stream_order'], 1],
 ]
 
+const RIVERS_CASING_LINE_WIDTH = [
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  0,
+  ['-', ['get', 'stream_order'], 5],
+  1,
+  ['-', ['get', 'stream_order'], 5],
+  2,
+  ['-', ['get', 'stream_order'], 5],
+  3,
+  ['-', ['get', 'stream_order'], 4.5],
+  4,
+  ['-', ['get', 'stream_order'], 4],
+  5,
+  ['-', ['get', 'stream_order'], 4],
+  6,
+  ['-', ['get', 'stream_order'], 3],
+  7,
+  ['-', ['get', 'stream_order'], 2],
+  8,
+  ['-', ['get', 'stream_order'], 1],
+  9,
+  ['-', ['get', 'stream_order'], 0],
+  10,
+  ['-', ['get', 'stream_order'], 0],
+  11,
+  ['-', ['get', 'stream_order'], 0],
+  12,
+  ['+', ['get', 'stream_order'], 1],
+  13,
+  ['+', ['get', 'stream_order'], 2],
+]
+
 function buildHoveredRiver(event, feature) {
   const properties = feature?.properties ?? {}
   const rawLength = Number.parseFloat(properties.Shape_Length)
@@ -70,6 +104,16 @@ const cnrfcRiversLayer = {
   renderLayers({ interactionState }) {
     return (
       <Source id="rivers-source" type="vector" url={`pmtiles://${RIVER_NETWORK_PMTILES_URL}`}>
+        <Layer
+          id="rivers-line-casing"
+          type="line"
+          source-layer={RIVER_NETWORK_SOURCE_LAYER}
+          paint={{
+            'line-color': '#ffffff',
+            'line-opacity': 1,
+            'line-width': RIVERS_CASING_LINE_WIDTH,
+          }}
+        />
         <Layer
           id="rivers-line"
           type="line"

@@ -18,6 +18,7 @@ import useMapTools from './useMapTools'
 const INITIAL_INTERACTION_STATE = {
   hoveredB120Point: null,
   hoveredCamaFlood: null,
+  hoveredCnrfcStreamflow: null,
   hoveredCnrfcPoint: null,
   hoveredGeodar: null,
   hoveredGsha: null,
@@ -60,7 +61,7 @@ export default function MapCanvas({
   onCloseBookmark,
   onCopyBookmark,
   onToggleBookmark,
-  rasterFamily,
+  layerFamily,
   selectedBasemap,
   selectedStation,
   selectedVariable,
@@ -70,7 +71,7 @@ export default function MapCanvas({
   statusBoundary,
   terrainEnabled,
   toggleLayer,
-  updateRaster,
+  updateFamily,
   updateTopLevel,
   viewState,
 }) {
@@ -84,6 +85,8 @@ export default function MapCanvas({
   const layerContext = {
     appState,
     interactionState,
+    layerFamily,
+    mapInstance,
     selectedStation,
     selectedVariable,
     setSelectedStation,
@@ -240,17 +243,17 @@ export default function MapCanvas({
         basemapMenuOpen={basemapMenuOpen}
         layerMenuOpen={layerMenuOpen}
         layerMenuRef={layerMenuRef}
-        rasterFamily={rasterFamily}
+        layerFamily={layerFamily}
         selectedBasemap={selectedBasemap}
         setBasemapMenuOpen={setBasemapMenuOpen}
         setLayerMenuOpen={setLayerMenuOpen}
         statusBoundary={statusBoundary}
         toggleLayer={toggleLayer}
-        updateRaster={updateRaster}
+        updateFamily={updateFamily}
         updateTopLevel={updateTopLevel}
       />
 
-      {rasterFamily && selectedVariable && appState.layers[rasterFamily.layerId] ? (
+      {layerFamily && selectedVariable && appState.layers[layerFamily.raster?.layerId] ? (
         <MapLegend
           palette={selectedVariable.palette}
           units={selectedVariable.units}

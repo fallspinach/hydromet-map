@@ -9,7 +9,7 @@ For a visual overview, see [Structure Diagrams](./structure-diagrams.md).
 At a high level:
 
 - `App.jsx` owns application state, bookmark state, and project switching.
-- `mapConfig.js` defines reusable registries for basemaps, layers, raster families, and projects.
+- `mapConfig.js` defines reusable registries for basemaps, layers, layer families, and projects.
 - `MapCanvas.jsx` is now the top-level map composition layer: it wires the map instance, visible layers, controls, shared popups, and map tools together.
 - `useMapTools.js` owns context-menu tool state, tool API calls, measurement logic, and temporary map-tool overlays/dialog state.
 - `MapToolOverlays.jsx` renders temporary tool outputs such as watershed polygons, upstream river lines, downstream flowpaths, and measurement lines.
@@ -30,8 +30,8 @@ A project defines:
 - which layers are available
 - the order of those layers in the toggle UI
 - which layers are visible by default
-- which raster family is used, if any
-- optional default raster overrides
+- which layer family is used, if any
+- optional default family-selector overrides
 
 Current definitions live in [src/config/mapConfig.js](../src/config/mapConfig.js).
 
@@ -51,7 +51,7 @@ The current model is:
       terrainEnabled,
       projection,
       layers,
-      raster,
+      family,
     }
   }
 }
@@ -67,22 +67,21 @@ A layer is a reusable map module registered in:
 
 Projects choose which layer ids to expose. The actual implementation lives once in `src/layers/`.
 
-### Raster family
+### Layer family
 
-A raster family groups:
+A layer family groups:
 
-- raster variables
-- product list
-- ensemble list
-- default date/datetime values
-- per-variable PNG URL builders and palettes
+- shared selector definitions
+- shared selector defaults
+- optional raster configuration
+- optional linked vector/vector-tile layer configuration
 
-The current app has two raster families:
+The current app currently has two layer families:
 
 - `cnrfc`
 - `ucrb`
 
-But the structure now supports multiple families, with the rule that each project may reference at most one raster family.
+Each project may reference at most one layer family.
 
 ## Important files
 
@@ -126,7 +125,7 @@ But the structure now supports multiple families, with the rule that each projec
 ### Render flow
 
 1. `App.jsx` reads URL state and builds the active project state.
-2. `App.jsx` derives the active project definition, active raster family, and selected raster variable.
+2. `App.jsx` derives the active project definition, active layer family, and selected raster variable.
 3. `MapCanvas.jsx` receives only the active project's runtime state.
 4. `MapCanvas.jsx` filters layer modules against the active project's `availableLayerIds`.
 5. Each visible layer module renders sources/layers and optional popup content.
@@ -134,7 +133,7 @@ But the structure now supports multiple families, with the rule that each projec
 7. `useMapTools.js` manages right-click/long-press map tools and temporary tool results.
 8. `MapToolOverlays.jsx` renders temporary tool outputs inside the main map.
 9. `MapToolDialogs.jsx` renders tool result dialogs outside the map canvas tree.
-10. `MapHud.jsx` renders only the controls relevant to the active project's raster family and layers.
+10. `MapHud.jsx` renders only the controls relevant to the active project's layer family and layers.
 
 ### Interaction flow
 
@@ -186,9 +185,10 @@ These map tools intentionally live outside the layer module system because they 
 
 ## Design rules in the current app
 
-- Projects may include zero or one raster family.
+- Projects may include zero or one layer family.
 - Layers are globally reusable, but each project controls availability and order.
-- Raster variables/products shown in the HUD always come from the active project's raster family.
+- Family selector options shown in the HUD always come from the active project's layer family.
+- A layer family may drive more than one layer at once.
 - Bookmarks encode the active project and that project's visible state.
 - CSV export is configured per plot, not per popup family globally.
 
@@ -197,7 +197,7 @@ These map tools intentionally live outside the layer module system because they 
 If you add new functionality, prefer extending one of these existing seams:
 
 - add a new reusable layer module
-- add a new raster family
+- add a new layer family
 - add a new project definition
 - add a new popup feature module
 

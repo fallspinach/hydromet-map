@@ -75,6 +75,14 @@ export const ALL_MAP_LAYERS = [
     symbolColor: '#008b8b',
   },
   {
+    id: 'cnrfcStreamflow',
+    label: 'CNRFC Streamflow',
+    type: 'vector-tile',
+    description: 'CNRFC-region flowlines colored by streamflow attributes from a separate tiled source.',
+    symbol: '\uFF5E',
+    symbolColor: '#8b5cf6',
+  },
+  {
     id: 'ucrbRivers',
     label: 'NWM Rivers (UCRB)',
     type: 'vector-tile',
@@ -519,44 +527,72 @@ export const UCRB_RASTER_VARIABLES = cloneRasterVariablesForDomain(CNRFC_RASTER_
   domain: 'ucrb',
 })
 
-export const RASTER_FAMILIES = {
+export const LAYER_FAMILIES = {
   cnrfc: {
     id: 'cnrfc',
-    label: 'CNRFC Raster Overlay',
-    layerId: 'cnrfcRaster',
-    variables: CNRFC_RASTER_VARIABLES,
-    products: ['NRT', 'WWRF-ECMWF', 'WWRF-GFS', 'GFS'],
-    ensembleTraces: ['Control', 'Mean', 'P10', 'P50', 'P90'],
-    statusUrl: 'https://cw3e.ucsd.edu/hydro/cnrfc/csv/status.json',
-    statusKey: 'WRF-Hydro NRT',
-    defaultDate: '2026-04-13',
-    defaultDateTime: '2026-04-13T12:00',
+    label: 'CNRFC Hydro',
+    raster: {
+      layerId: 'cnrfcRaster',
+      variables: CNRFC_RASTER_VARIABLES,
+    },
+    selectors: {
+      products: ['NRT', 'WWRF-ECMWF', 'WWRF-GFS', 'GFS'],
+      ensembleTraces: ['Control', 'Mean', 'P10', 'P50', 'P90'],
+      statusUrl: 'https://cw3e.ucsd.edu/hydro/cnrfc/csv/status.json',
+      statusKey: 'WRF-Hydro NRT',
+      defaultDate: '2026-04-13',
+      defaultDateTime: '2026-04-13T12:00',
+    },
+    linkedLayers: {
+      cnrfcStreamflow: {
+        buildDataPmtilesUrl: ({ date, product }) => {
+          if (!date) {
+            return null
+          }
+
+          const yyyymmdd = date.replaceAll('-', '')
+
+          if (yyyymmdd.length !== 8) {
+            return null
+          }
+
+          return `https://cw3e.ucsd.edu/wrf_hydro/cnrfc/pmtiles/${getRasterProductPath(product)}/data_cnrfc_idx_${yyyymmdd}.pmtiles`
+        },
+      },
+    },
   },
   ucrb: {
     id: 'ucrb',
-    label: 'UCRB Raster Overlay',
-    layerId: 'ucrbRaster',
-    variables: UCRB_RASTER_VARIABLES,
-    products: ['NRT'],
-    ensembleTraces: [],
-    statusUrl: 'https://cw3e.ucsd.edu/hydro/ucrb/csv/status.json',
-    statusKey: 'WRF-Hydro NRT',
-    defaultDate: '2026-04-13',
-    defaultDateTime: '2026-04-13T12:00',
+    label: 'UCRB Hydro',
+    raster: {
+      layerId: 'ucrbRaster',
+      variables: UCRB_RASTER_VARIABLES,
+    },
+    selectors: {
+      products: ['NRT'],
+      ensembleTraces: [],
+      statusUrl: 'https://cw3e.ucsd.edu/hydro/ucrb/csv/status.json',
+      statusKey: 'WRF-Hydro NRT',
+      defaultDate: '2026-04-13',
+      defaultDateTime: '2026-04-13T12:00',
+    },
+    linkedLayers: {},
   },
 }
 
-function buildDefaultRasterState(rasterFamily) {
-  const variableIds = Object.keys(rasterFamily?.variables ?? {})
+function buildDefaultFamilyState(layerFamily) {
+  const familyVariables = layerFamily?.raster?.variables ?? {}
+  const familySelectors = layerFamily?.selectors ?? {}
+  const variableIds = Object.keys(familyVariables)
   const defaultVariable = variableIds[0] ?? ''
 
   return {
     variable: defaultVariable,
-    product: rasterFamily?.products?.[0] ?? 'NRT',
-    ensemble: rasterFamily?.ensembleTraces?.[1] ?? rasterFamily?.ensembleTraces?.[0] ?? '',
+    product: familySelectors.products?.[0] ?? 'NRT',
+    ensemble: familySelectors.ensembleTraces?.[1] ?? familySelectors.ensembleTraces?.[0] ?? '',
     temporalMode: 'date',
-    date: rasterFamily?.defaultDate ?? '2026-04-13',
-    datetime: rasterFamily?.defaultDateTime ?? '2026-04-13T12:00',
+    date: familySelectors.defaultDate ?? '2026-04-13',
+    datetime: familySelectors.defaultDateTime ?? '2026-04-13T12:00',
   }
 }
 
@@ -569,13 +605,13 @@ function buildLayerState(visibleLayerIds = []) {
 }
 
 function buildDefaultProjectState(projectDefinition) {
-  const rasterFamily = projectDefinition.rasterFamilyId
-    ? RASTER_FAMILIES[projectDefinition.rasterFamilyId]
+  const layerFamily = projectDefinition.layerFamilyId
+    ? LAYER_FAMILIES[projectDefinition.layerFamilyId]
     : null
-  const defaultRasterState = rasterFamily
+  const defaultFamilyState = layerFamily
     ? {
-        ...buildDefaultRasterState(rasterFamily),
-        ...(projectDefinition.defaultRaster ?? {}),
+        ...buildDefaultFamilyState(layerFamily),
+        ...(projectDefinition.defaultFamily ?? {}),
       }
     : null
 
@@ -590,7 +626,7 @@ function buildDefaultProjectState(projectDefinition) {
     terrainEnabled: projectDefinition.defaultTerrainEnabled ?? true,
     projection: projectDefinition.defaultProjection ?? 'mercator',
     layers: buildLayerState(projectDefinition.defaultVisibleLayerIds ?? []),
-    raster: defaultRasterState,
+    family: defaultFamilyState,
   }
 }
 
@@ -598,14 +634,15 @@ export const PROJECTS = {
   cnrfc: {
     id: 'cnrfc',
     label: 'CNRFC',
-    rasterFamilyId: 'cnrfc',
-    defaultRaster: {
+    layerFamilyId: 'cnrfc',
+    defaultFamily: {
       variable: 'soilMoistureDaily',
     },
     availableLayerIds: [
       'cnrfcRaster',
       'cnrfcRegion',
       'cnrfcRivers',
+      'cnrfcStreamflow',
       'cnrfcBasins',
       'cnrfcPoints',
       'snowCourses',
@@ -628,8 +665,8 @@ export const PROJECTS = {
       bearing: '0',
       pitch: '0',
     },
-    rasterFamilyId: 'cnrfc',
-    defaultRaster: {
+    layerFamilyId: 'cnrfc',
+    defaultFamily: {
       variable: 'sweDaily',
     },
     availableLayerIds: [
@@ -653,8 +690,8 @@ export const PROJECTS = {
   yampa: {
     id: 'yampa',
     label: 'Yampa',
-    rasterFamilyId: 'ucrb',
-    defaultRaster: {
+    layerFamilyId: 'ucrb',
+    defaultFamily: {
       variable: 'sweDaily',
     },
     defaultView: {
@@ -699,14 +736,18 @@ export function getProjectDefinition(projectId = DEFAULT_PROJECT_ID) {
   return PROJECTS[projectId] ?? PROJECTS[DEFAULT_PROJECT_ID]
 }
 
-export function getRasterFamilyDefinition(rasterFamilyId) {
-  return rasterFamilyId ? RASTER_FAMILIES[rasterFamilyId] ?? null : null
+export function getLayerFamilyDefinition(layerFamilyId) {
+  return layerFamilyId ? LAYER_FAMILIES[layerFamilyId] ?? null : null
 }
 
-export function getProjectRasterFamily(projectId = DEFAULT_PROJECT_ID) {
+export function getProjectLayerFamily(projectId = DEFAULT_PROJECT_ID) {
   const projectDefinition = getProjectDefinition(projectId)
-  return getRasterFamilyDefinition(projectDefinition?.rasterFamilyId)
+  return getLayerFamilyDefinition(projectDefinition?.layerFamilyId)
 }
+
+export const RASTER_FAMILIES = LAYER_FAMILIES
+export const getRasterFamilyDefinition = getLayerFamilyDefinition
+export const getProjectRasterFamily = getProjectLayerFamily
 
 export function getProjectMapLayers(projectId = DEFAULT_PROJECT_ID) {
   const projectDefinition = getProjectDefinition(projectId)
@@ -730,21 +771,24 @@ export function createDefaultAppState() {
   }
 }
 
-const defaultRasterFamily = getProjectRasterFamily(DEFAULT_PROJECT_ID)
+const defaultLayerFamily = getProjectLayerFamily(DEFAULT_PROJECT_ID)
 
-export const RASTER_VARIABLES = defaultRasterFamily?.variables ?? {}
+export const RASTER_VARIABLES = defaultLayerFamily?.raster?.variables ?? {}
 export const DEFAULT_RASTER_VARIABLE = Object.keys(RASTER_VARIABLES)[0] ?? ''
-export const RASTER_PRODUCTS = defaultRasterFamily?.products ?? ['NRT']
-export const ENSEMBLE_TRACES = defaultRasterFamily?.ensembleTraces ?? ['Mean']
-export const DEFAULT_DATE = defaultRasterFamily?.defaultDate ?? '2026-04-13'
-export const DEFAULT_DATETIME = defaultRasterFamily?.defaultDateTime ?? '2026-04-13T12:00'
+export const RASTER_PRODUCTS = defaultLayerFamily?.selectors?.products ?? ['NRT']
+export const ENSEMBLE_TRACES = defaultLayerFamily?.selectors?.ensembleTraces ?? ['Mean']
+export const DEFAULT_DATE = defaultLayerFamily?.selectors?.defaultDate ?? '2026-04-13'
+export const DEFAULT_DATETIME = defaultLayerFamily?.selectors?.defaultDateTime ?? '2026-04-13T12:00'
 export const TERRAIN_SOURCE_ID = 'terrain_source'
 export const TERRAIN_SPEC = { source: TERRAIN_SOURCE_ID, exaggeration: 1 }
 export const RIVER_NETWORK_PMTILES_URL =
   'https://cw3e.ucsd.edu/wrf_hydro/cnrfc/pmtiles/nwm_reaches_cnrfc_idx.pmtiles'
+export const CNRFC_STREAMFLOW_DATA_PMTILES_URL =
+  'https://cw3e.ucsd.edu/wrf_hydro/cnrfc/pmtiles/nrt/data_cnrfc_idx_20260426.pmtiles'
 export const UCRB_RIVER_NETWORK_PMTILES_URL =
   'https://cw3e.ucsd.edu/wrf_hydro/ucrb/pmtiles/nwm_reaches_ucrb.pmtiles'
 export const RIVER_NETWORK_SOURCE_LAYER = 'NWM_v2.1_channels'
+export const CNRFC_STREAMFLOW_DATA_SOURCE_LAYER = 'CNRFC_Streamflow'
 export const MERIT_BASINS_PMTILES_URL =
   'https://cw3e.ucsd.edu/hydro/merit_rivers/riv_MERIT_Hydro_v07_Basins_v01_dense.pmtiles'
 export const MERIT_BASINS_SOURCE_LAYER = 'MERIT-Basins_Rivers'

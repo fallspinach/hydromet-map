@@ -37,11 +37,11 @@ Each project state contains:
   terrainEnabled,
   projection,
   layers,
-  raster,
+  family,
 }
 ```
 
-`raster` may be `null` if a project has no raster family.
+`family` may be `null` if a project has no layer family.
 
 ## URL bookmarks
 
@@ -85,14 +85,14 @@ Main functions:
 `App.jsx` also applies remote status-based constraints to raster state:
 
 - fetches latest boundary timestamp from `status.json`
-- updates default raster date/datetime on first load
+- updates default family date/datetime on first load
 - clamps max forecast range
-- restricts raster product choices based on time relative to the boundary
+- restricts product choices based on time relative to the boundary
 
-This logic currently applies to every project that has a raster family.
+This logic currently applies to every project that has a layer family.
 
 ## Practical implications
 
 - Project switching preserves in-memory project state.
 - Refreshing a bookmarked URL restores the bookmarked project's state.
-- Layer visibility and raster selection are project-specific, not global.
+- Layer visibility and family selector state are project-specific, not global.

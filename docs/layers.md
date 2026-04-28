@@ -12,6 +12,7 @@ Examples:
 
 - [src/layers/cnrfcRasterLayer.jsx](../src/layers/cnrfcRasterLayer.jsx)
 - [src/layers/ucrbRasterLayer.jsx](../src/layers/ucrbRasterLayer.jsx)
+- [src/layers/cnrfcStreamflowLayer.jsx](../src/layers/cnrfcStreamflowLayer.jsx)
 - [src/layers/cnrfcPointsLayer.jsx](../src/layers/cnrfcPointsLayer.jsx)
 - [src/layers/yampaPointsLayer.jsx](../src/layers/yampaPointsLayer.jsx)
 - [src/layers/cnrfcBasinsLayer.jsx](../src/layers/cnrfcBasinsLayer.jsx)
@@ -104,12 +105,25 @@ The global hydrography layers are a small exception:
 - `cnrfcRaster`
 - `ucrbRaster`
 
-This is a PNG image overlay driven by raster family state.
+This is a PNG image overlay driven by layer-family selector state.
+
+### Layer-family-linked thematic vector layer
+
+- `cnrfcStreamflow`
+
+This is a vector-tile layer that:
+
+- uses the same CNRFC layer-family selectors as `cnrfcRaster`
+- builds a separate data PMTiles URL from family state
+- joins lightweight attribute tiles to river geometry tiles through `feature_id`
+- pushes attributes onto the geometry layer through `setFeatureState(...)`
+- colors the visible rivers from feature-state instead of direct source properties
 
 ### Shared CNRFC vector layers
 
 - `cnrfcRegion`
 - `cnrfcRivers`
+- `cnrfcStreamflow`
 - `cnrfcBasins`
 - `cnrfcPoints`
 

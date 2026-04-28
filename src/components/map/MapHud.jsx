@@ -21,48 +21,48 @@ export default function MapHud({
   basemapMenuOpen,
   layerMenuOpen,
   layerMenuRef,
-  rasterFamily,
+  layerFamily,
   selectedBasemap,
   setBasemapMenuOpen,
   setLayerMenuOpen,
   statusBoundary,
-  updateRaster,
+  updateFamily,
   updateTopLevel,
   toggleLayer,
 }) {
   const projectLayers = getProjectMapLayers(activeProject?.id)
-  const rasterVariables = rasterFamily?.variables ?? {}
-  const rasterVariableIds = Object.keys(rasterVariables)
+  const familyVariables = layerFamily?.raster?.variables ?? {}
+  const familyVariableIds = Object.keys(familyVariables)
   const selectedRasterVariable =
-    rasterVariables[appState.raster?.variable] ?? rasterVariables[rasterVariableIds[0]] ?? null
-  const rasterProducts = rasterFamily?.products ?? []
-  const ensembleTraces = rasterFamily?.ensembleTraces ?? []
+    familyVariables[appState.family?.variable] ?? familyVariables[familyVariableIds[0]] ?? null
+  const familyProducts = layerFamily?.selectors?.products ?? []
+  const ensembleTraces = layerFamily?.selectors?.ensembleTraces ?? []
   const isDateTimeMode =
     selectedRasterVariable
       ? getTemporalModeForTimestep(selectedRasterVariable.timestep) === 'datetime'
       : false
   const shortStep = parseTimestep(selectedRasterVariable?.timestep ?? '1day')
   const shortStepLabel = `${shortStep.amount} ${shortStep.unit}${shortStep.amount === 1 ? '' : 's'}`
-  const forecastProducts = rasterProducts.filter((product) => product !== 'NRT')
+  const forecastProducts = familyProducts.filter((product) => product !== 'NRT')
   const allowsForecastProducts = selectedRasterVariable
     ? (
         isDateTimeMode
-          ? appState.raster.datetime > statusBoundary.boundaryDateTime
-          : appState.raster.date > statusBoundary.boundaryDate
+          ? appState.family.datetime > statusBoundary.boundaryDateTime
+          : appState.family.date > statusBoundary.boundaryDate
       )
     : false
   const allowedProducts =
-    !rasterFamily
+    !layerFamily
       ? []
       : forecastProducts.length === 0
-        ? rasterProducts
+        ? familyProducts
         : (allowsForecastProducts ? forecastProducts : ['NRT'])
   const allowedProductSet = new Set(allowedProducts)
-  const isForecastProduct = appState.raster?.product !== 'NRT'
-  const activeRasterLayerId = rasterFamily?.layerId
+  const isForecastProduct = appState.family?.product !== 'NRT'
+  const activeRasterLayerId = layerFamily?.raster?.layerId
   const maxPickerDate = parseIsoDate(statusBoundary.maxDate)
   const maxPickerDateTime = parseIsoDateTime(statusBoundary.maxDateTime)
-  const selectedDateTime = parseIsoDateTime(appState.raster?.datetime ?? '')
+  const selectedDateTime = parseIsoDateTime(appState.family?.datetime ?? '')
   const isSelectedOnMaxDate =
     selectedDateTime &&
     maxPickerDateTime &&
@@ -152,7 +152,7 @@ export default function MapHud({
           </div>
         </div>
 
-        {rasterFamily && appState.raster && selectedRasterVariable ? (
+        {layerFamily && appState.family && selectedRasterVariable ? (
           <div className="date-row date-row--map">
             {isDateTimeMode ? (
               <>
@@ -162,7 +162,7 @@ export default function MapHud({
                   aria-label="Previous day"
                   title="-1 day"
                   onClick={() => {
-                    updateRaster('datetime', shiftIsoDateTime(appState.raster.datetime, -1, 0))
+                    updateFamily('datetime', shiftIsoDateTime(appState.family.datetime, -1, 0))
                   }}
                 >
                   <span aria-hidden="true">{'<<'}</span>
@@ -174,7 +174,7 @@ export default function MapHud({
                   aria-label="Previous hour"
                   title={`-${shortStepLabel}`}
                   onClick={() => {
-                    updateRaster('datetime', shiftIsoDateTime(appState.raster.datetime, 0, -shortStep.amount))
+                    updateFamily('datetime', shiftIsoDateTime(appState.family.datetime, 0, -shortStep.amount))
                   }}
                 >
                   <span aria-hidden="true">{'<'}</span>
@@ -189,14 +189,14 @@ export default function MapHud({
                     maxTime={maxTime}
                     placeholderText="YYYY-MM-DD HH:mm"
                     popperPlacement="bottom-start"
-                    selected={parseIsoDateTime(appState.raster.datetime)}
+                    selected={parseIsoDateTime(appState.family.datetime)}
                     showTimeSelect
                     timeCaption="Time"
                     timeFormat="HH:mm"
                     timeIntervals={60}
                     onChange={(date) => {
                       if (date) {
-                        updateRaster('datetime', formatIsoDateTimeLocal(date))
+                        updateFamily('datetime', formatIsoDateTimeLocal(date))
                       }
                     }}
                   />
@@ -208,7 +208,7 @@ export default function MapHud({
                   aria-label="Next hour"
                   title={`+${shortStepLabel}`}
                   onClick={() => {
-                    updateRaster('datetime', shiftIsoDateTime(appState.raster.datetime, 0, shortStep.amount))
+                    updateFamily('datetime', shiftIsoDateTime(appState.family.datetime, 0, shortStep.amount))
                   }}
                 >
                   <span aria-hidden="true">{'>'}</span>
@@ -220,7 +220,7 @@ export default function MapHud({
                   aria-label="Next day"
                   title="+1 day"
                   onClick={() => {
-                    updateRaster('datetime', shiftIsoDateTime(appState.raster.datetime, 1, 0))
+                    updateFamily('datetime', shiftIsoDateTime(appState.family.datetime, 1, 0))
                   }}
                 >
                   <span aria-hidden="true">{'>>'}</span>
@@ -234,7 +234,7 @@ export default function MapHud({
                   aria-label="One month before"
                   title="-1 month"
                   onClick={() => {
-                    updateRaster('date', shiftIsoMonth(appState.raster.date, -1))
+                    updateFamily('date', shiftIsoMonth(appState.family.date, -1))
                   }}
                 >
                   <span aria-hidden="true">{'<<'}</span>
@@ -246,7 +246,7 @@ export default function MapHud({
                   aria-label="Previous day"
                   title="-1 day"
                   onClick={() => {
-                    updateRaster('date', shiftIsoDate(appState.raster.date, -1))
+                    updateFamily('date', shiftIsoDate(appState.family.date, -1))
                   }}
                 >
                   <span aria-hidden="true">{'<'}</span>
@@ -260,10 +260,10 @@ export default function MapHud({
                     maxDate={maxPickerDate}
                     placeholderText="YYYY-MM-DD"
                     popperPlacement="bottom-start"
-                    selected={parseIsoDate(appState.raster.date)}
+                    selected={parseIsoDate(appState.family.date)}
                     onChange={(date) => {
                       if (date) {
-                        updateRaster('date', date.toISOString().slice(0, 10))
+                        updateFamily('date', date.toISOString().slice(0, 10))
                       }
                     }}
                   />
@@ -275,7 +275,7 @@ export default function MapHud({
                   aria-label="Next day"
                   title="+1 day"
                   onClick={() => {
-                    updateRaster('date', shiftIsoDate(appState.raster.date, 1))
+                    updateFamily('date', shiftIsoDate(appState.family.date, 1))
                   }}
                 >
                   <span aria-hidden="true">{'>'}</span>
@@ -287,7 +287,7 @@ export default function MapHud({
                   aria-label="One month after"
                   title="+1 month"
                   onClick={() => {
-                    updateRaster('date', shiftIsoMonth(appState.raster.date, 1))
+                    updateFamily('date', shiftIsoMonth(appState.family.date, 1))
                   }}
                 >
                   <span aria-hidden="true">{'>>'}</span>
@@ -299,14 +299,14 @@ export default function MapHud({
       </div>
 
       <div className="raster-toolbar">
-        {rasterFamily && appState.raster ? (
+        {layerFamily && appState.family ? (
           <>
             <select
-              value={appState.raster.variable}
+              value={appState.family.variable}
               title="Raster variable"
-              onChange={(event) => updateRaster('variable', event.target.value)}
+              onChange={(event) => updateFamily('variable', event.target.value)}
             >
-              {Object.entries(rasterVariables).map(([value, item]) => (
+              {Object.entries(familyVariables).map(([value, item]) => (
                 <option key={value} value={value}>
                   {item.label}
                 </option>
@@ -315,11 +315,11 @@ export default function MapHud({
 
             <select
               className={isForecastProduct ? 'raster-toolbar__select raster-toolbar__select--forecast' : 'raster-toolbar__select'}
-              value={appState.raster.product}
+              value={appState.family.product}
               title="Raster product"
-              onChange={(event) => updateRaster('product', event.target.value)}
+              onChange={(event) => updateFamily('product', event.target.value)}
             >
-              {rasterProducts.map((product) => (
+              {familyProducts.map((product) => (
                 <option key={product} value={product} disabled={!allowedProductSet.has(product)}>
                   {product}
                 </option>
@@ -328,9 +328,9 @@ export default function MapHud({
 
             {ensembleTraces.length > 1 ? (
               <select
-                value={appState.raster.ensemble}
+                value={appState.family.ensemble}
                 title="Ensemble trace"
-                onChange={(event) => updateRaster('ensemble', event.target.value)}
+                onChange={(event) => updateFamily('ensemble', event.target.value)}
               >
                 {ensembleTraces.map((trace) => (
                   <option key={trace} value={trace}>

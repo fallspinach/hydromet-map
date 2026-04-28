@@ -14,7 +14,7 @@ flowchart TD
 
     C --> C1[Projects]
     C --> C2[Basemaps]
-    C --> C3[Raster Families]
+    C --> C3[Layer Families]
     C --> C4[Layer Definitions]
 
     D --> E[MapHud.jsx]
@@ -48,14 +48,14 @@ flowchart LR
     P --> P3[defaultBasemapId]
     P --> P4[defaultTerrainEnabled]
     P --> P5[defaultProjection]
-    P --> P6[rasterFamilyId or null]
+    P --> P6[layerFamilyId or null]
 
-    P6 --> R[Raster Family]
-    R --> R1[variables]
-    R --> R2[products]
-    R --> R3[ensembles]
+    P6 --> R[Layer Family]
+    R --> R1[shared selectors]
+    R --> R2[raster config]
+    R --> R3[linked layer config]
     R --> R4[statusUrl]
-    R --> R5[default variable override]
+    R --> R5[default family override]
 
     P1 --> L[Reusable Layer Modules]
     L --> L1[vector layers]
@@ -80,7 +80,7 @@ flowchart TD
     T1 --> U3[terrainEnabled]
     T1 --> U4[projection]
     T1 --> U5[layers]
-    T1 --> U6[raster]
+    T1 --> U6[family]
 
     U6 --> V1[variable]
     U6 --> V2[product]
@@ -173,24 +173,33 @@ flowchart LR
     E --> E5[plotDataSources.js]
 ```
 
-## 7. Raster family hierarchy
+## 7. Layer family hierarchy
 
 ```mermaid
 flowchart TD
-    A[Raster Family]
-    A --> B[statusUrl]
-    A --> C[variables]
-    A --> D[products]
-    A --> E[ensembles]
-    A --> F[default dates]
+    A[Layer Family]
+    A --> B[selectors]
+    A --> C[raster config]
+    A --> D[linked layer config]
 
-    C --> C1[variable definition]
-    C1 --> G[label]
-    C1 --> H[timestep]
-    C1 --> I[units]
-    C1 --> J[palette]
-    C1 --> K[buildRasterUrl]
-    C1 --> L[extent]
+    B --> B1[products]
+    B --> B2[ensembles]
+    B --> B3[default date/datetime]
+    B --> B4[statusUrl]
+    B --> B5[statusKey]
+
+    C --> C1[raster layerId]
+    C --> C2[variable definitions]
+    C2 --> G[label]
+    C2 --> H[timestep]
+    C2 --> I[units]
+    C2 --> J[palette]
+    C2 --> K[buildRasterUrl]
+    C2 --> L[extent]
+
+    D --> D1[example: cnrfcStreamflow]
+    D1 --> D2[buildDataPmtilesUrl]
+    D1 --> D3[feature-state join]
 ```
 
 ## 8. Map tool system
@@ -247,5 +256,5 @@ flowchart LR
 - Start with diagram 1 if you want the bird's-eye view.
 - Use diagrams 2 and 3 to understand how projects and state fit together.
 - Use diagrams 5 and 6 when adding or modifying popup families.
-- Use diagram 7 when adding a raster family or raster variable.
+- Use diagram 7 when adding a layer family, linked family layer, or raster variable.
 - Use diagram 8 when adding more context-menu map tools.

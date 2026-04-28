@@ -4,11 +4,11 @@
 
 A project is a named map experience that selects:
 
-- a raster family or no raster family
+- a layer family or no layer family
 - available layer ids
 - layer order in the toggle menu
 - default visible layers
-- optional default raster overrides
+- optional default family overrides
 
 Current project definitions live in [src/config/mapConfig.js](../src/config/mapConfig.js) under `PROJECTS`.
 
@@ -21,12 +21,13 @@ Includes:
 - `cnrfcRaster`
 - `cnrfcRegion`
 - `cnrfcRivers`
+- `cnrfcStreamflow`
 - `cnrfcBasins`
 - `cnrfcPoints`
 - `snowCourses`
 - `snowPillows`
 
-Default raster variable:
+Default family variable:
 
 - `soilMoistureDaily`
 
@@ -42,7 +43,7 @@ Includes:
 - `snowCourses`
 - `snowPillows`
 
-Default raster variable:
+Default family variable:
 
 - `sweDaily`
 
@@ -58,11 +59,11 @@ Includes:
 - `yampaRegion`
 - `yampaPoints`
 
-Default raster variable:
+Default family variable:
 
 - `sweDaily`
 
-This project uses the `ucrb` raster family but presents a Yampa-focused layer set and view.
+This project uses the `ucrb` layer family but presents a Yampa-focused layer set and view.
 
 ### `global`
 
@@ -77,7 +78,7 @@ Includes:
 - `gsha`
 - `geodar`
 
-Raster family:
+Layer family:
 
 - none
 
@@ -111,10 +112,10 @@ Definition is static configuration:
 {
   id,
   label,
-  rasterFamilyId,
+  layerFamilyId,
   availableLayerIds,
   defaultVisibleLayerIds,
-  defaultRaster,
+  defaultFamily,
 }
 ```
 
@@ -129,7 +130,7 @@ State is user/runtime data:
   terrainEnabled,
   projection,
   layers,
-  raster,
+  family,
 }
 ```
 
@@ -156,7 +157,7 @@ So when a user switches from `cnrfc` to `b120` and back, the previous project's:
 - basemap
 - terrain
 - projection
-- raster selection
+- family selector state
 
 are preserved in memory.
 
@@ -165,10 +166,10 @@ are preserved in memory.
 To add a new project:
 
 1. Add a new entry to `PROJECTS` in [src/config/mapConfig.js](../src/config/mapConfig.js).
-2. Set `rasterFamilyId` to a raster family id or leave it unset/null for a no-raster project.
+2. Set `layerFamilyId` to a layer family id or leave it unset/null for a no-family project.
 3. Define `availableLayerIds` in the exact order you want in the toggle list.
 4. Define `defaultVisibleLayerIds`.
-5. Optionally define `defaultRaster` overrides.
+5. Optionally define `defaultFamily` overrides.
 
 Minimal example:
 
@@ -176,8 +177,8 @@ Minimal example:
 myProject: {
   id: 'myProject',
   label: 'My Project',
-  rasterFamilyId: 'cnrfc',
-  defaultRaster: {
+  layerFamilyId: 'cnrfc',
+  defaultFamily: {
     variable: 'precipitationDaily',
   },
   availableLayerIds: [
@@ -194,6 +195,6 @@ myProject: {
 
 ## Recommended conventions
 
-- Treat a raster family change as a new project.
+- Treat a layer family change as a new project.
 - Reuse layers across projects whenever possible.
 - Keep project-specific differences in project config rather than duplicating layer modules.

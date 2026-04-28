@@ -8,7 +8,7 @@ import {
   DEFAULT_DATETIME,
   DEFAULT_PROJECT_ID,
   getProjectDefinition,
-  getProjectRasterFamily,
+  getProjectLayerFamily,
   PROJECTS,
 } from './config/mapConfig'
 import MapCanvas from './components/map/MapCanvas'
@@ -91,76 +91,77 @@ function buildInitialStatusBoundaryByProjectId() {
   )
 }
 
-function applyTemporalModeToRasterState(rasterState, rasterFamily) {
-  if (!rasterState || !rasterFamily) {
-    return rasterState
+function applyTemporalModeToFamilyState(familyState, layerFamily) {
+  if (!familyState || !layerFamily) {
+    return familyState
   }
 
+  const familyVariables = layerFamily.raster?.variables ?? {}
   const selectedVariable =
-    rasterFamily.variables[rasterState.variable]
-    ?? rasterFamily.variables[Object.keys(rasterFamily.variables)[0]]
+    familyVariables[familyState.variable]
+    ?? familyVariables[Object.keys(familyVariables)[0]]
 
   if (!selectedVariable) {
-    return rasterState
+    return familyState
   }
 
   const temporalMode = getTemporalModeForTimestep(selectedVariable.timestep)
 
-  if (temporalMode === rasterState.temporalMode) {
-    return rasterState
+  if (temporalMode === familyState.temporalMode) {
+    return familyState
   }
 
   return {
-    ...rasterState,
+    ...familyState,
     date:
       temporalMode === 'date'
-        ? getDatePartFromDateTime(rasterState.datetime, rasterState.date)
-        : rasterState.date,
+        ? getDatePartFromDateTime(familyState.datetime, familyState.date)
+        : familyState.date,
     datetime:
       temporalMode === 'datetime'
-        ? mergeDateIntoDateTime(rasterState.date, rasterState.datetime)
-        : rasterState.datetime,
+        ? mergeDateIntoDateTime(familyState.date, familyState.datetime)
+        : familyState.datetime,
     temporalMode,
   }
 }
 
-function constrainRasterStateToStatusBoundary(rasterState, statusBoundary, rasterFamily) {
-  if (!rasterState) {
-    return rasterState
+function constrainFamilyStateToStatusBoundary(familyState, statusBoundary, layerFamily) {
+  if (!familyState) {
+    return familyState
   }
 
-  const nextRaster = { ...rasterState }
-  const rasterProducts = rasterFamily?.products ?? []
-  const forecastProducts = rasterProducts.filter((product) => product !== NRT_PRODUCT)
+  const nextFamily = { ...familyState }
+  const familyProducts = layerFamily?.selectors?.products ?? []
+  const forecastProducts = familyProducts.filter((product) => product !== NRT_PRODUCT)
 
-  if (nextRaster.date > statusBoundary.maxDate) {
-    nextRaster.date = statusBoundary.maxDate
+  if (nextFamily.date > statusBoundary.maxDate) {
+    nextFamily.date = statusBoundary.maxDate
   }
 
-  if (nextRaster.datetime > statusBoundary.maxDateTime) {
-    nextRaster.datetime = statusBoundary.maxDateTime
+  if (nextFamily.datetime > statusBoundary.maxDateTime) {
+    nextFamily.datetime = statusBoundary.maxDateTime
   }
 
   const shouldUseForecastProducts =
     forecastProducts.length > 0
       && (
-        nextRaster.temporalMode === 'datetime'
-          ? nextRaster.datetime > statusBoundary.boundaryDateTime
-          : nextRaster.date > statusBoundary.boundaryDate
+        nextFamily.temporalMode === 'datetime'
+          ? nextFamily.datetime > statusBoundary.boundaryDateTime
+          : nextFamily.date > statusBoundary.boundaryDate
       )
 
   const allowedProducts =
     forecastProducts.length === 0
-      ? rasterProducts
+      ? familyProducts
       : shouldUseForecastProducts
         ? forecastProducts
-        : (rasterProducts.includes(NRT_PRODUCT) ? [NRT_PRODUCT] : [rasterProducts[0]])
+        : (familyProducts.includes(NRT_PRODUCT) ? [NRT_PRODUCT] : [familyProducts[0]])
 
-  if (allowedProducts.length > 0 && !allowedProducts.includes(nextRaster.product)) {
-    nextRaster.product = allowedProducts[0]
+  if (allowedProducts.length > 0 && !allowedProducts.includes(nextFamily.product)) {
+    nextFamily.product = allowedProducts[0]
   }
 
-  return nextRaster
+  return nextFamily
 }
 
 function updateActiveProjectState(current, updater) {
@@ -200,12 +201,12 @@ function App() {
   const activeProject = getProjectDefinition(activeProjectId)
   const activeProjectState =
     appState.projectStateById?.[activeProjectId] ?? createProjectState(activeProjectId)
-  const activeRasterFamily = getProjectRasterFamily(activeProjectId)
-  const rasterVariables = activeRasterFamily?.variables ?? {}
-  const rasterVariableIds = Object.keys(rasterVariables)
+  const activeLayerFamily = getProjectLayerFamily(activeProjectId)
+  const familyVariables = activeLayerFamily?.raster?.variables ?? {}
+  const familyVariableIds = Object.keys(familyVariables)
   const selectedVariable =
-    rasterVariables[activeProjectState.raster?.variable]
-    ?? rasterVariables[rasterVariableIds[0]]
+    familyVariables[activeProjectState.family?.variable]
+    ?? familyVariables[familyVariableIds[0]]
     ?? null
   const selectedBasemap =
     BASEMAPS.find((item) => item.id === activeProjectState.basemapId) ?? BASEMAPS[0]
@@ -270,11 +271,11 @@ function App() {
       const loadedStatusByProjectId = {}
 
       await Promise.all(projectIds.map(async (projectId) => {
-        const rasterFamily = getProjectRasterFamily(projectId)
-        const statusUrl = rasterFamily?.statusUrl
-        const statusKey = rasterFamily?.statusKey
+        const layerFamily = getProjectLayerFamily(projectId)
+        const statusUrl = layerFamily?.selectors?.statusUrl
+        const statusKey = layerFamily?.selectors?.statusKey
 
-        if (!rasterFamily || !statusUrl || !statusKey) {
+        if (!layerFamily || !statusUrl || !statusKey) {
           return
         }
 
@@ -324,10 +325,10 @@ function App() {
         ...current,
         projectStateById: Object.fromEntries(
           Object.entries(current.projectStateById).map(([projectId, projectState]) => {
-            const rasterFamily = getProjectRasterFamily(projectId)
+            const layerFamily = getProjectLayerFamily(projectId)
             const loadedStatusState = loadedStatusByProjectId[projectId]
 
-            if (!rasterFamily || !projectState.raster || !loadedStatusState) {
+            if (!layerFamily || !projectState.family || !loadedStatusState) {
               return [projectId, projectState]
             }
 
@@ -335,16 +336,16 @@ function App() {
               projectId,
               {
                 ...projectState,
-                raster: {
-                  ...projectState.raster,
+                family: {
+                  ...projectState.family,
                   date:
-                    projectState.raster.date === rasterFamily.defaultDate
+                    projectState.family.date === layerFamily.selectors?.defaultDate
                       ? loadedStatusState.date
-                      : projectState.raster.date,
+                      : projectState.family.date,
                   datetime:
-                    projectState.raster.datetime === rasterFamily.defaultDateTime
+                    projectState.family.datetime === layerFamily.selectors?.defaultDateTime
                       ? loadedStatusState.datetime
-                      : projectState.raster.datetime,
+                      : projectState.family.datetime,
                 },
               },
             ]
@@ -365,12 +366,12 @@ function App() {
       ...current,
       projectStateById: Object.fromEntries(
         Object.entries(current.projectStateById).map(([projectId, projectState]) => {
-          const rasterFamily = getProjectRasterFamily(projectId)
+          const layerFamily = getProjectLayerFamily(projectId)
           const projectStatusBoundary =
             statusBoundaryByProjectId[projectId]
             ?? buildStatusBoundary(getInitialStatusTimestamp())
 
-          if (!rasterFamily || !projectState.raster) {
+          if (!layerFamily || !projectState.family) {
             return [projectId, projectState]
           }
 
@@ -378,10 +379,10 @@ function App() {
             projectId,
             {
               ...projectState,
-              raster: constrainRasterStateToStatusBoundary(
-                applyTemporalModeToRasterState(projectState.raster, rasterFamily),
+              family: constrainFamilyStateToStatusBoundary(
+                applyTemporalModeToFamilyState(projectState.family, layerFamily),
                 projectStatusBoundary,
-                rasterFamily,
+                layerFamily,
               ),
             },
           ]
@@ -408,53 +409,54 @@ function App() {
     applyUpdate()
   }
 
-  function updateRaster(key, value) {
+  function updateFamily(key, value) {
     setAppState((current) =>
       updateActiveProjectState(current, (activeProjectStateValue, projectId) => {
-        const rasterFamily = getProjectRasterFamily(projectId)
+        const layerFamily = getProjectLayerFamily(projectId)
+        const familyVariablesForProject = layerFamily?.raster?.variables ?? {}
 
-        if (!rasterFamily || !activeProjectStateValue.raster) {
+        if (!layerFamily || !activeProjectStateValue.family) {
           return activeProjectStateValue
         }
 
-        const nextRaster = {
-          ...activeProjectStateValue.raster,
+        const nextFamily = {
+          ...activeProjectStateValue.family,
           [key]: value,
         }
 
         if (key === 'date') {
-          nextRaster.datetime = mergeDateIntoDateTime(value, activeProjectStateValue.raster.datetime)
+          nextFamily.datetime = mergeDateIntoDateTime(value, activeProjectStateValue.family.datetime)
         }
 
         if (key === 'datetime') {
-          nextRaster.date = getDatePartFromDateTime(value, activeProjectStateValue.raster.date)
+          nextFamily.date = getDatePartFromDateTime(value, activeProjectStateValue.family.date)
         }
 
         if (key === 'variable') {
           const nextVariable =
-            rasterFamily.variables[value]
-            ?? rasterFamily.variables[Object.keys(rasterFamily.variables)[0]]
+            familyVariablesForProject[value]
+            ?? familyVariablesForProject[Object.keys(familyVariablesForProject)[0]]
           const nextTemporalMode = getTemporalModeForTimestep(nextVariable?.timestep)
-          nextRaster.temporalMode = nextTemporalMode
+          nextFamily.temporalMode = nextTemporalMode
 
           if (nextTemporalMode === 'datetime') {
-            nextRaster.datetime = mergeDateIntoDateTime(
-              activeProjectStateValue.raster.date,
-              activeProjectStateValue.raster.datetime,
+            nextFamily.datetime = mergeDateIntoDateTime(
+              activeProjectStateValue.family.date,
+              activeProjectStateValue.family.datetime,
             )
           }
 
           if (nextTemporalMode === 'date') {
-            nextRaster.date = getDatePartFromDateTime(
-              activeProjectStateValue.raster.datetime,
-              activeProjectStateValue.raster.date,
+            nextFamily.date = getDatePartFromDateTime(
+              activeProjectStateValue.family.datetime,
+              activeProjectStateValue.family.date,
             )
           }
         }
 
         return {
           ...activeProjectStateValue,
-          raster: constrainRasterStateToStatusBoundary(nextRaster, statusBoundary, rasterFamily),
+          family: constrainFamilyStateToStatusBoundary(nextFamily, statusBoundary, layerFamily),
         }
       }),
     )
@@ -530,7 +532,7 @@ function App() {
             })
           }}
           bookmarkUrl={bookmarkUrl}
-          rasterFamily={activeRasterFamily}
+          layerFamily={activeLayerFamily}
           selectedBasemap={selectedBasemap}
           selectedStation={selectedStation}
           selectedVariable={selectedVariable}
@@ -540,7 +542,7 @@ function App() {
           statusBoundary={statusBoundary}
           terrainEnabled={terrainEnabled}
           toggleLayer={toggleLayer}
-          updateRaster={updateRaster}
+          updateFamily={updateFamily}
           updateTopLevel={updateTopLevel}
           viewState={viewState}
         />

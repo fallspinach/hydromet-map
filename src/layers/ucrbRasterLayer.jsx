@@ -12,7 +12,7 @@ const ucrbRasterLayer = {
       return null
     }
 
-    const rasterUrl = selectedVariable.buildRasterUrl?.(appState.raster)
+    const rasterUrl = selectedVariable.buildRasterUrl?.(appState.family)
     const rasterCoordinates = selectedVariable.coordinates
 
     if (rasterUrl && rasterCoordinates) {

@@ -1,26 +1,26 @@
-# Raster Families
+# Layer Families and Raster Layers
 
 ## Purpose
 
-A raster family defines the raster overlay behavior for a project.
+A layer family defines the shared selector behavior for a project and may drive one or more dependent layers.
 
 Each project may include:
 
-- zero raster families
-- or exactly one raster family
+- zero layer families
+- or exactly one layer family
 
-This keeps the raster selectors unambiguous and avoids overlapping raster overlays.
+This keeps the selector UI unambiguous and lets multiple layers share the same date/product/ensemble state.
 
 ## Current location
 
-Raster family definitions live in [src/config/mapConfig.js](../src/config/mapConfig.js) under `RASTER_FAMILIES`.
+Layer family definitions live in [src/config/mapConfig.js](../src/config/mapConfig.js) under `LAYER_FAMILIES`.
 
 Current families:
 
 - `cnrfc`
 - `ucrb`
 
-## What a raster family defines
+## What a layer family defines
 
 Typical fields:
 
@@ -28,14 +28,25 @@ Typical fields:
 {
   id,
   label,
-  layerId,
-  variables,
-  products,
-  ensembleTraces,
-  defaultDate,
-  defaultDateTime,
+  selectors,
+  raster,
+  linkedLayers,
 }
 ```
+
+Typical selector fields:
+
+- `products`
+- `ensembleTraces`
+- `statusUrl`
+- `statusKey`
+- `defaultDate`
+- `defaultDateTime`
+
+Typical raster fields:
+
+- `layerId`
+- `variables`
 
 ## Variable definitions
 
@@ -68,13 +79,13 @@ precipitationDaily: {
 
 ## How selector options are derived
 
-The raster toolbar in [src/components/map/MapHud.jsx](../src/components/map/MapHud.jsx) reads everything from the active project's raster family.
+The raster toolbar in [src/components/map/MapHud.jsx](../src/components/map/MapHud.jsx) reads everything from the active project's layer family.
 
 That means:
 
-- variable options come from `rasterFamily.variables`
-- product options come from `rasterFamily.products`
-- ensemble options come from `rasterFamily.ensembleTraces`
+- variable options come from `layerFamily.raster.variables`
+- product options come from `layerFamily.selectors.products`
+- ensemble options come from `layerFamily.selectors.ensembleTraces`
 
 The selected variable also determines whether the app uses:
 
@@ -83,9 +94,9 @@ The selected variable also determines whether the app uses:
 
 through `getTemporalModeForTimestep()`.
 
-## Project-level raster defaults
+## Project-level family defaults
 
-Projects can override family defaults through `defaultRaster`.
+Projects can override family defaults through `defaultFamily`.
 
 Current examples:
 
@@ -93,7 +104,7 @@ Current examples:
 - `b120` defaults to `sweDaily`
 - `yampa` defaults to `sweDaily`
 
-This is implemented by merging `projectDefinition.defaultRaster` over `buildDefaultRasterState(rasterFamily)` in [src/config/mapConfig.js](../src/config/mapConfig.js).
+This is implemented by merging `projectDefinition.defaultFamily` over `buildDefaultFamilyState(layerFamily)` in [src/config/mapConfig.js](../src/config/mapConfig.js).
 
 ## Raster rendering
 
@@ -111,13 +122,24 @@ Current opacity:
 
 - `0.7`
 
-## When adding a new raster family
+## Linked family layers
 
-1. Add a new entry to `RASTER_FAMILIES`.
-2. Define a variable registry for that family.
-3. Assign a layer id for the family.
-4. Reference the family from a project through `rasterFamilyId`.
-5. Optionally set project-specific `defaultRaster`.
+A layer family can also declare linked non-raster layers that depend on the same selector state.
+
+Current example:
+
+- `cnrfcStreamflow`
+
+It uses a linked-layer URL builder to load date/product-specific PMTiles and then joins lightweight attribute tiles to the river geometry layer through `feature_id` and `feature-state`.
+
+## When adding a new layer family
+
+1. Add a new entry to `LAYER_FAMILIES`.
+2. Define selector options/defaults.
+3. Define raster config if the family drives a raster overlay.
+4. Define any linked layer builders if vector/vector-tile layers also depend on the family state.
+5. Reference the family from a project through `layerFamilyId`.
+6. Optionally set project-specific `defaultFamily`.
 
 ## Recommendation
 
@@ -128,4 +150,4 @@ If the new raster source has:
 - a different product list
 - or different date semantics
 
-prefer creating a new raster family and a new project rather than overloading the existing `cnrfc` family.
+prefer creating a new layer family and a new project rather than overloading the existing `cnrfc` family.

@@ -3,16 +3,16 @@ import {
   createDefaultAppState,
   DEFAULT_PROJECT_ID,
   getProjectDefinition,
+  getProjectLayerFamily,
   getProjectMapLayers,
-  getProjectRasterFamily,
 } from '../config/mapConfig'
 
 function getDefaultProjectState(projectId = DEFAULT_PROJECT_ID) {
   return createDefaultAppState().projectStateById[projectId]
 }
 
-function getDefaultRasterState(projectId = DEFAULT_PROJECT_ID) {
-  return getDefaultProjectState(projectId)?.raster ?? null
+function getDefaultFamilyState(projectId = DEFAULT_PROJECT_ID) {
+  return getDefaultProjectState(projectId)?.family ?? null
 }
 
 export function readStateFromUrl() {
@@ -31,7 +31,10 @@ export function readStateFromUrl() {
 
   const activeProjectId = nextState.activeProjectId
   const activeProjectState = nextState.projectStateById[activeProjectId]
-  const rasterFamily = getProjectRasterFamily(activeProjectId)
+  const layerFamily = getProjectLayerFamily(activeProjectId)
+  const familyVariables = layerFamily?.raster?.variables ?? {}
+  const familyProducts = layerFamily?.selectors?.products ?? []
+  const familyEnsembleTraces = layerFamily?.selectors?.ensembleTraces ?? []
   const basemapId = params.get('basemap')
   const projection = params.get('projection')
   const terrain = params.get('terrain')
@@ -75,29 +78,29 @@ export function readStateFromUrl() {
     activeProjectState.view.pitch = pitch
   }
 
-  if (activeProjectState.raster && rasterFamily) {
-    if (Object.hasOwn(rasterFamily.variables, variable)) {
-      activeProjectState.raster.variable = variable
+  if (activeProjectState.family && layerFamily) {
+    if (Object.hasOwn(familyVariables, variable)) {
+      activeProjectState.family.variable = variable
     }
 
-    if (rasterFamily.products.includes(product)) {
-      activeProjectState.raster.product = product
+    if (familyProducts.includes(product)) {
+      activeProjectState.family.product = product
     }
 
-    if (rasterFamily.ensembleTraces.includes(ensemble)) {
-      activeProjectState.raster.ensemble = ensemble
+    if (familyEnsembleTraces.includes(ensemble)) {
+      activeProjectState.family.ensemble = ensemble
     }
 
     if (temporalMode === 'date' || temporalMode === 'datetime') {
-      activeProjectState.raster.temporalMode = temporalMode
+      activeProjectState.family.temporalMode = temporalMode
     }
 
     if (date) {
-      activeProjectState.raster.date = date
+      activeProjectState.family.date = date
     }
 
     if (datetime) {
-      activeProjectState.raster.datetime = datetime
+      activeProjectState.family.datetime = datetime
     }
   }
 
@@ -125,13 +128,13 @@ export function writeStateToUrl(state) {
   params.set('bearing', activeProjectState.view.bearing)
   params.set('pitch', activeProjectState.view.pitch)
 
-  if (activeProjectState.raster) {
-    params.set('variable', activeProjectState.raster.variable || getDefaultRasterState(activeProjectId)?.variable || '')
-    params.set('product', activeProjectState.raster.product)
-    params.set('ensemble', activeProjectState.raster.ensemble)
-    params.set('temporalMode', activeProjectState.raster.temporalMode)
-    params.set('date', activeProjectState.raster.date)
-    params.set('datetime', activeProjectState.raster.datetime)
+  if (activeProjectState.family) {
+    params.set('variable', activeProjectState.family.variable || getDefaultFamilyState(activeProjectId)?.variable || '')
+    params.set('product', activeProjectState.family.product)
+    params.set('ensemble', activeProjectState.family.ensemble)
+    params.set('temporalMode', activeProjectState.family.temporalMode)
+    params.set('date', activeProjectState.family.date)
+    params.set('datetime', activeProjectState.family.datetime)
   }
 
   params.set(
@@ -208,14 +211,14 @@ export function parseIsoDateTime(datetimeText) {
   return matchedDateTime && !Number.isNaN(matchedDateTime.getTime()) ? matchedDateTime : null
 }
 
-export function getDatePartFromDateTime(datetimeText, fallbackDate = getDefaultRasterState()?.date ?? '2026-04-13') {
+export function getDatePartFromDateTime(datetimeText, fallbackDate = getDefaultFamilyState()?.date ?? '2026-04-13') {
   return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(datetimeText)
     ? datetimeText.slice(0, 10)
     : fallbackDate
 }
 
 export function mergeDateIntoDateTime(dateText, datetimeText, fallbackTime = '12:00') {
-  const datePart = parseIsoDate(dateText) ? dateText : (getDefaultRasterState()?.date ?? '2026-04-13')
+  const datePart = parseIsoDate(dateText) ? dateText : (getDefaultFamilyState()?.date ?? '2026-04-13')
   const timePart = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(datetimeText)
     ? datetimeText.slice(11, 16)
     : fallbackTime

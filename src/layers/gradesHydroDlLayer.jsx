@@ -37,6 +37,38 @@ const GRADES_HYDRODL_LINE_WIDTH = [
   ['+', ['get', 'order'], 2],
 ]
 
+const GRADES_HYDRODL_CASING_LINE_WIDTH = [
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  0,
+  ['-', ['get', 'order'], 4],
+  1,
+  ['-', ['get', 'order'], 4],
+  2,
+  ['-', ['get', 'order'], 4],
+  3,
+  ['-', ['get', 'order'], 3.5],
+  4,
+  ['-', ['get', 'order'], 3],
+  5,
+  ['-', ['get', 'order'], 3],
+  6,
+  ['-', ['get', 'order'], 2],
+  7,
+  ['-', ['get', 'order'], 1],
+  8,
+  ['-', ['get', 'order'], 0],
+  9,
+  ['+', ['get', 'order'], 1],
+  10,
+  ['+', ['get', 'order'], 1],
+  11,
+  ['+', ['get', 'order'], 2],
+  12,
+  ['+', ['get', 'order'], 3],
+]
+
 const GRADES_HYDRODL_LINE_COLOR = [
   'match',
   ['get', 'pctl_range'],
@@ -130,6 +162,20 @@ const gradesHydroDlLayer = {
   renderLayers({ interactionState }) {
     return (
       <Source id="grades-hydrodl-source" type="vector" url={`pmtiles://${GRADES_HYDRODL_PMTILES_URL}`}>
+        <Layer
+          id="grades-hydrodl-line-casing"
+          type="line"
+          source-layer={MERIT_BASINS_SOURCE_LAYER}
+          layout={{
+            'line-cap': 'round',
+            'line-join': 'round',
+          }}
+          paint={{
+            'line-color': '#ffffff',
+            'line-opacity': 1,
+            'line-width': GRADES_HYDRODL_CASING_LINE_WIDTH,
+          }}
+        />
         <Layer
           id="grades-hydrodl-line"
           type="line"
