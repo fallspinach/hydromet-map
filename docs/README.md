@@ -20,6 +20,5 @@ Recommended reading order:
 7. [Popups](./popups.md)
 8. [State and Bookmarks](./state-and-bookmarks.md)
 9. [Known Issues](./known-issues.md)
-10. [Legacy Adding a Layer Note](./adding-a-layer.md)
 
 These docs are intentionally focused on how the app is organized today and how to extend it safely.

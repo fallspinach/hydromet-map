@@ -258,6 +258,10 @@ function App() {
 
   useEffect(() => {
     const abortController = new AbortController()
+    const params = new URLSearchParams(window.location.search)
+    const bookmarkedProjectId = getProjectDefinition(params.get('project'))?.id ?? DEFAULT_PROJECT_ID
+    const hasExplicitBookmarkedDate = params.has('date')
+    const hasExplicitBookmarkedDateTime = params.has('datetime')
 
     async function loadStatusDefaults() {
       const projectIds = Object.keys(PROJECTS)
@@ -325,6 +329,11 @@ function App() {
               return [projectId, projectState]
             }
 
+            const shouldPreserveBookmarkedDate =
+              projectId === bookmarkedProjectId && hasExplicitBookmarkedDate
+            const shouldPreserveBookmarkedDateTime =
+              projectId === bookmarkedProjectId && hasExplicitBookmarkedDateTime
+
             return [
               projectId,
               {
@@ -332,11 +341,15 @@ function App() {
                 family: {
                   ...projectState.family,
                   date:
-                    projectState.family.date === layerFamily.selectors?.defaultDate
+                    shouldPreserveBookmarkedDate
+                      ? projectState.family.date
+                      : projectState.family.date === layerFamily.selectors?.defaultDate
                       ? loadedStatusState.date
                       : projectState.family.date,
                   datetime:
-                    projectState.family.datetime === layerFamily.selectors?.defaultDateTime
+                    shouldPreserveBookmarkedDateTime
+                      ? projectState.family.datetime
+                      : projectState.family.datetime === layerFamily.selectors?.defaultDateTime
                       ? loadedStatusState.datetime
                       : projectState.family.datetime,
                 },

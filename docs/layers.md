@@ -1,33 +1,55 @@
 # Layers
 
-## Layer module pattern
+## Overview
 
-Each layer lives in its own module under `src/layers/`.
+In this app, a layer is a reusable map module.
+
+A layer module is responsible for map-facing behavior such as:
+
+- rendering MapLibre `Source` and `Layer` nodes
+- defining hover and click hit-testing
+- producing hover popup state
+- optionally opening a feature popup
+
+Projects do not reimplement layers. Instead:
+
+- layer modules live once under `src/layers/`
+- projects decide which layer ids are available
+- layer families may supply shared selector state that some layers depend on
+
+For the higher-level system view, see:
+
+- [Architecture](./architecture.md)
+- [Projects](./projects.md)
+- [Layer Families and Raster Layers](./raster.md)
+
+## Where layers live
 
 Current registry:
 
 - [src/layers/index.js](../src/layers/index.js)
 
-Examples:
+Each layer module is registered there and then filtered by `MapCanvas.jsx` against the active project's `availableLayerIds`.
 
-- [src/layers/cnrfcRasterLayer.jsx](../src/layers/cnrfcRasterLayer.jsx)
-- [src/layers/ucrbRasterLayer.jsx](../src/layers/ucrbRasterLayer.jsx)
-- [src/layers/cnrfcStreamflowLayer.jsx](../src/layers/cnrfcStreamflowLayer.jsx)
-- [src/layers/cnrfcPointsLayer.jsx](../src/layers/cnrfcPointsLayer.jsx)
-- [src/layers/yampaPointsLayer.jsx](../src/layers/yampaPointsLayer.jsx)
-- [src/layers/cnrfcBasinsLayer.jsx](../src/layers/cnrfcBasinsLayer.jsx)
-- [src/layers/b120PointsLayer.jsx](../src/layers/b120PointsLayer.jsx)
-- [src/layers/gradesHydroDlLayer.jsx](../src/layers/gradesHydroDlLayer.jsx)
-- [src/layers/swordReachesLayer.jsx](../src/layers/swordReachesLayer.jsx)
+Important related files:
 
-## Typical layer module shape
+- [src/components/map/MapCanvas.jsx](../src/components/map/MapCanvas.jsx)
+- [src/config/mapConfig.js](../src/config/mapConfig.js)
 
-Layer modules are plain objects. Common fields:
+## The layer model
+
+The current app has three distinct concepts:
+
+### 1. Layer module
+
+A layer module is the implementation.
+
+It usually exports an object like:
 
 ```js
 const myLayer = {
-  id: 'layerId',
-  stateKey: 'hoveredThing',
+  id: 'myLayer',
+  stateKey: 'hoveredMyFeature',
   isVisible(context) { ... },
   getInteractiveLayerIds(context) { ... },
   getPointerState(context) { ... },
@@ -38,29 +60,60 @@ const myLayer = {
 }
 ```
 
-Not every layer uses every field.
+Not every layer needs every field.
 
-## Responsibilities
+### 2. Project membership
+
+Projects decide:
+
+- whether a layer is available
+- whether it is visible by default
+- where it appears in the toggle list
+
+That configuration lives in:
+
+- [src/config/mapConfig.js](../src/config/mapConfig.js)
+
+under:
+
+- `PROJECTS[*].availableLayerIds`
+- `PROJECTS[*].defaultVisibleLayerIds`
+
+### 3. Layer family dependency
+
+Some layers are independent.
+
+Others depend on the active layer family and its selector state:
+
+- variable
+- product
+- date
+- datetime
+- ensemble
+
+This is what lets one project-level selector row drive multiple layers at once.
+
+## Layer module responsibilities
 
 ### `id`
 
-Must match the layer id used in project configuration.
+Must match the id used in:
+
+- `ALL_MAP_LAYERS`
+- project `availableLayerIds`
 
 Examples:
 
 - `cnrfcRaster`
-- `ucrbRaster`
-- `cnrfcPoints`
-- `cnrfcBasins`
+- `cnrfcStreamflow`
 - `b120Points`
-- `b120Basins`
-- `yampaPoints`
+- `gradesHydroDl`
 
 ### `isVisible`
 
-Determines whether the layer module is active for the current project state.
+Controls whether the module should render in the current project state.
 
-Common pattern:
+Most common pattern:
 
 ```js
 isVisible: ({ appState }) => appState.layers.myLayerId
@@ -68,152 +121,272 @@ isVisible: ({ appState }) => appState.layers.myLayerId
 
 ### `getInteractiveLayerIds`
 
-Returns MapLibre layer ids used for hover/click hit testing.
+Returns the MapLibre style-layer ids that should participate in hover/click hit testing.
 
 ### `getPointerState`
 
-Maps hovered feature data into app interaction state.
+Transforms hovered features into a small normalized hover object stored in `interactionState`.
 
 ### `getPointerLeaveState`
 
-Clears hover state when the pointer leaves the map or feature context.
+Clears that hover object when the pointer leaves the map or hit-tested area.
 
 ### `handleClick`
 
-Used by clickable layers to open popup state. Return `true` when the click was handled.
+Opens a feature popup or other selection state.
+
+Return `true` when the click was handled so `MapCanvas.jsx` knows not to fall through.
 
 ### `renderLayers`
 
-Returns the React MapLibre `Source`/`Layer` tree.
+Returns the actual `Source` / `Layer` tree.
+
+This is where styling, highlights, labels, and source definitions live.
 
 ### `renderPopups`
 
-Returns hover info popups and/or feature popup components.
+Returns hover popups and any layer-owned popup UI.
 
-Most layers render both hover info and feature popups directly from the layer module.
+Some layers fully own their popups here. Others only render hover popups and let `MapCanvas.jsx` mount the feature popup once from shared state.
 
-Some line-inspection layers are small exceptions:
+## How projects and layers relate
 
-- `gradesHydroDl` and `swordReaches` still render hover popups from their layer modules
-- the shared feature popup for both layers is rendered once from `MapCanvas.jsx`
-- layer click handlers only populate `selectedStation`
-- `cnrfcStreamflow` still renders its hover popup from the layer module
-- its feature popup is rendered once from `MapCanvas.jsx` through `CnrfcStreamflowPopup`
-- its click handler also only populates `selectedStation`
+Projects do not own layer code. They only choose from the shared layer registry.
 
-## Current layer categories
+That means a project config answers:
 
-### Raster overlay
+- which layers can be turned on
+- which layers start on
+- what order the layer toggle list uses
+
+The layer code itself remains global and reusable.
+
+This is why the same layer can appear in more than one project:
+
+- `cnrfcRaster` appears in both `cnrfc` and `b120`
+- `snowCourses` and `snowPillows` appear across multiple projects
+
+## How layer families and layers relate
+
+A layer family is not a layer by itself. It is shared selector state plus optional configuration that one or more layers can consume.
+
+Two important current patterns:
+
+### Family-driven raster layer
+
+Examples:
 
 - `cnrfcRaster`
 - `ucrbRaster`
 
-This is a PNG image overlay driven by layer-family selector state.
+These use:
 
-### Layer-family-linked thematic vector layer
+- family variable definitions
+- family products
+- family dates/datetimes
+
+### Family-linked vector layer
+
+Current example:
 
 - `cnrfcStreamflow`
 
-This is a vector-tile layer that:
+This layer:
 
-- uses the same CNRFC layer-family selectors as `cnrfcRaster`
-- builds a separate data PMTiles URL from family state
-- joins lightweight attribute tiles to river geometry tiles through `feature_id`
-- pushes attributes onto the geometry layer through `setFeatureState(...)`
-- colors the visible rivers from feature-state instead of direct source properties
+- shares the `cnrfc` family selectors with `cnrfcRaster`
+- builds a date/product-specific PMTiles URL from family state
+- joins lightweight attribute tiles to river geometry through `feature_id`
+- uses `feature-state` for styling and hover values
 
-### Shared CNRFC vector layers
+That is the clearest example of why the app now uses the broader term `layer family` instead of `raster family`.
+
+## Current layer categories
+
+### Family-driven raster overlays
+
+- `cnrfcRaster`
+- `ucrbRaster`
+
+### Family-linked thematic vector layer
+
+- `cnrfcStreamflow`
+
+### Regional static/shared vector layers
+
+#### CNRFC
 
 - `cnrfcRegion`
 - `cnrfcRivers`
-- `cnrfcStreamflow`
 - `cnrfcBasins`
 - `cnrfcPoints`
 
-### Shared UCRB/Yampa vector layers
+#### UCRB / Yampa
 
 - `ucrbRegion`
 - `ucrbRivers`
 - `yampaRegion`
 - `yampaPoints`
 
-### B120-specific vector layers
+#### B120
 
-- `b120Points`
 - `b120Basins`
+- `b120Points`
 
-### Shared observation layers
+### Observation layers
 
 - `snowCourses`
 - `snowPillows`
 
-### Global hydrography layers
+### Global hydrography inspection layers
 
 - `gradesHydroDl`
-- `meritBasins`
 - `swordReaches`
+- `meritBasins`
 - `camaFlood`
 - `grit`
 - `hydroRivers`
 - `gsha`
 - `geodar`
 
-Notes:
+## Popup ownership patterns
 
-- `gsha` is a point-tile inspection layer with hover info and a station label layer that appears from zoom 10 upward.
-- `geodar` is a symbol-based point-tile inspection layer that renders a `Δ` glyph with a dedicated font stack.
+The app currently uses two popup ownership patterns for layers.
 
-## Layer ordering
+### Layer-owned popup pattern
 
-Two different orderings matter:
+The layer module renders its own popup directly in `renderPopups`.
+
+This is common for:
+
+- simpler hover popups
+- some station-style feature popups
+
+### Shared popup mounted from `MapCanvas.jsx`
+
+The layer only populates `selectedStation`, and `MapCanvas.jsx` renders the popup component once.
+
+Current examples:
+
+- `gradesHydroDl` and `swordReaches`
+  - shared `GlobalReachPopup`
+- `cnrfcStreamflow`
+  - dedicated `CnrfcStreamflowPopup`
+
+This pattern is useful when:
+
+- the popup is complex
+- the layer already has a separate hover popup
+- or multiple related layers share one popup family
+
+## Hover, highlight, and labels
+
+These concerns usually live entirely in the layer module.
+
+### Hover
+
+The layer builds a normalized hover object in `getPointerState`.
+
+That object can then drive:
+
+- hover popup content
+- highlight filters
+- derived readouts
+
+### Highlight
+
+The normal pattern is:
+
+1. base style layer
+2. highlight layer filtered to the hovered feature id
+
+Line layers often use the same width expression for the highlight layer.
+
+### Labels
+
+Labels are usually separate symbol layers inside the same module.
+
+Current example:
+
+- `gsha`
+
+## Line casing
+
+Several line layers now use a white casing underneath the main linework so they remain legible on:
+
+- `Terrain`
+- `Satellite`
+
+Current examples:
+
+- `cnrfcRivers`
+- `ucrbRivers`
+- `gradesHydroDl`
+
+This is an important styling pattern in the current app and is usually implemented as:
+
+1. white casing line
+2. colored main line
+3. red hover highlight line
+
+## Ordering rules
+
+Two different orders matter.
 
 ### Toggle order
 
-Controlled by each project's `availableLayerIds`.
+Controlled by project `availableLayerIds`.
 
 ### Render order
 
-Controlled by the order of modules in [src/layers/index.js](../src/layers/index.js).
+Controlled by module order in:
 
-The toggle order and render order are separate on purpose.
+- [src/layers/index.js](../src/layers/index.js)
+
+These are intentionally separate.
 
 ## Interaction state
 
-`MapCanvas.jsx` maintains shared transient hover state in `interactionState`.
+`MapCanvas.jsx` owns transient shared hover state in `interactionState`.
 
-Each layer module can contribute parts of that state through:
+Layer modules contribute to it through:
 
 - `getPointerState`
 - `getPointerLeaveState`
 
-This is what enables patterns like:
+This lets each visible layer remain self-contained while still participating in one shared map interaction model.
 
-- hover point -> highlight basin
-- hover river -> show river popup
+## Temporary map-tool overlays are not project layers
 
-## Temporary map-tool overlays
+Not every visible thing on the map belongs to the layer registry.
 
-Not every visible thing on the map is a project layer.
+The context-menu tools also render temporary overlays such as:
 
-The app now also supports temporary map-tool overlays that are rendered outside the layer registry:
-
-- watershed polygons returned by the context-menu tool
-- upstream river lines returned by the context-menu tool
-- downstream flowpaths returned by the context-menu tool
+- watershed polygons
+- upstream river lines
+- downstream flowpaths
 - measurement preview/final lines
 
-These are rendered by:
+Those are rendered by:
 
 - [src/components/map/MapToolOverlays.jsx](../src/components/map/MapToolOverlays.jsx)
 
-The state and API calls for these overlays are managed by:
+and managed by:
 
 - [src/components/map/useMapTools.js](../src/components/map/useMapTools.js)
 
-This keeps the reusable project layer system separate from ad hoc map-tool outputs.
+They are intentionally separate from the reusable project-layer system.
 
-## Advice when adding a layer
+## Practical rules when adding or changing a layer
 
-- Keep the map styling and interaction logic in the layer module.
-- Keep project membership and order in `mapConfig.js`.
-- If a layer needs a complex popup, create a feature module under `src/features/`.
+- Keep source, styling, hover, highlight, and click behavior in the layer module.
+- Keep project membership and toggle order in `mapConfig.js`.
+- Keep family selector definitions in the layer family, not in the layer module.
+- If popup behavior becomes complex, move it into a feature module under `src/features/`.
+- If multiple layers need the same selector state, prefer linking them through a layer family instead of inventing parallel state.
+
+## Related docs
+
+- [How To Add a Layer](./how-to/add-a-layer.md)
+- [How To Add a Popup](./how-to/add-a-popup.md)
+- [How To Add a Layer Family](./how-to/add-a-layer-family.md)
+- [How To Add a Project](./how-to/add-a-project.md)

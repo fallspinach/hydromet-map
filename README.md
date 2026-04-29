@@ -34,4 +34,3 @@
 - Raster families: [docs/raster.md](./docs/raster.md)
 - Popup modules: [docs/popups.md](./docs/popups.md)
 - State and bookmarks: [docs/state-and-bookmarks.md](./docs/state-and-bookmarks.md)
-- Adding a layer: [docs/adding-a-layer.md](./docs/adding-a-layer.md)
