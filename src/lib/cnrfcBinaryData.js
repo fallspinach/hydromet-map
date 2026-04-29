@@ -6,7 +6,7 @@ import {
   generateDateArray,
 } from './gradesBinaryData'
 
-const CNRFC_BINARY_BASE_URL = 'https://cw3e.ucsd.edu/wrf_hydro/cnrfc/bin'
+const CNRFC_BINARY_BASE_URL = 'https://cw3e.ucsd.edu/hydro/cnrfc/bin'
 const CNRFC_CLIMATOLOGY_FILE_URL = `${CNRFC_BINARY_BASE_URL}/streamflow_ydrunpctl.bin`
 
 const descriptorPromiseByProduct = new Map()

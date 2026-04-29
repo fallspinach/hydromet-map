@@ -155,6 +155,30 @@ export const ALL_MAP_LAYERS = [
     symbolColor: '#000000',
   },
   {
+    id: 'ocwdBoundary',
+    label: 'OCWD Boundary',
+    type: 'vector',
+    description: 'OCWD ownership boundary polygons from GeoJSON sources.',
+    symbol: '\u2610',
+    symbolColor: '#000000',
+  },
+  {
+    id: 'ocwdWells',
+    label: 'OCWD Wells',
+    type: 'vector-tile',
+    description: 'OCWD monitoring well points from tiled vector sources.',
+    symbol: '\u25CF',
+    symbolColor: '#ff8c00',
+  },
+  {
+    id: 'ocwdWetlands',
+    label: 'OCWD Wetlands',
+    type: 'vector',
+    description: 'OCWD wetland pond polygons from GeoJSON sources.',
+    symbol: '\u2610',
+    symbolColor: '#90ee90',
+  },
+  {
     id: 'cnrfcBasins',
     label: 'CNRFC Basins',
     type: 'vector-tile',
@@ -556,7 +580,7 @@ export const LAYER_FAMILIES = {
             return null
           }
 
-          return `https://cw3e.ucsd.edu/wrf_hydro/cnrfc/pmtiles/${getRasterProductPath(product)}/data_cnrfc_idx_${yyyymmdd}.pmtiles`
+          return `https://cw3e.ucsd.edu/hydro/cnrfc/pmtiles/${getRasterProductPath(product)}/data_cnrfc_idx_${yyyymmdd}.pmtiles`
         },
       },
     },
@@ -654,6 +678,40 @@ export const PROJECTS = {
       'cnrfcRivers',
       'cnrfcBasins',
       'cnrfcPoints',
+    ],
+  },
+  ocwd: {
+    id: 'ocwd',
+    label: 'OCWD',
+    defaultView: {
+      center: '-117.7,33.84',
+      zoom: '10.5',
+      bearing: '0',
+      pitch: '0',
+    },
+    defaultBasemapId: 'flat',
+    layerFamilyId: 'cnrfc',
+    defaultFamily: {
+      variable: 'precipitationDaily',
+    },
+    availableLayerIds: [
+      'cnrfcRaster',
+      'cnrfcRegion',
+      'cnrfcRivers',
+      'cnrfcStreamflow',
+      'cnrfcBasins',
+      'cnrfcPoints',
+      'ocwdBoundary',
+      'ocwdWells',
+      'ocwdWetlands',
+    ],
+    defaultVisibleLayerIds: [
+      'cnrfcRaster',
+      'ocwdBoundary',
+      'ocwdWells',
+      'ocwdWetlands',
+      'cnrfcRegion',
+      'cnrfcRivers',
     ],
   },
   b120: {
@@ -782,15 +840,15 @@ export const DEFAULT_DATETIME = defaultLayerFamily?.selectors?.defaultDateTime ?
 export const TERRAIN_SOURCE_ID = 'terrain_source'
 export const TERRAIN_SPEC = { source: TERRAIN_SOURCE_ID, exaggeration: 1 }
 export const RIVER_NETWORK_PMTILES_URL =
-  'https://cw3e.ucsd.edu/wrf_hydro/cnrfc/pmtiles/nwm_reaches_cnrfc_idx.pmtiles'
+  'https://cw3e.ucsd.edu/hydro/cnrfc/pmtiles/nwm_reaches_cnrfc_idx.pmtiles'
 export const CNRFC_STREAMFLOW_DATA_PMTILES_URL =
-  'https://cw3e.ucsd.edu/wrf_hydro/cnrfc/pmtiles/nrt/data_cnrfc_idx_20260426.pmtiles'
+  'https://cw3e.ucsd.edu/hydro/cnrfc/pmtiles/nrt/data_cnrfc_idx_20260426.pmtiles'
 export const UCRB_RIVER_NETWORK_PMTILES_URL =
-  'https://cw3e.ucsd.edu/wrf_hydro/ucrb/pmtiles/nwm_reaches_ucrb.pmtiles'
+  'https://cw3e.ucsd.edu/hydro/ucrb/pmtiles/nwm_reaches_ucrb.pmtiles'
 export const RIVER_NETWORK_SOURCE_LAYER = 'NWM_v2.1_channels'
 export const CNRFC_STREAMFLOW_DATA_SOURCE_LAYER = 'CNRFC_Streamflow'
 export const MERIT_BASINS_PMTILES_URL =
-  'https://cw3e.ucsd.edu/hydro/merit_rivers/riv_MERIT_Hydro_v07_Basins_v01_dense.pmtiles'
+  'https://cw3e.ucsd.edu//merit_rivers/riv_MERIT_Hydro_v07_Basins_v01_dense.pmtiles'
 export const MERIT_BASINS_SOURCE_LAYER = 'MERIT-Basins_Rivers'
 export const CAMA_FLOOD_PMTILES_URL =
   'https://cw3e.ucsd.edu/hydro/camaflood_rivers/strnet_06min.pmtiles'
@@ -807,13 +865,16 @@ export const GSHA_SOURCE_LAYER = 'GSHA_MERIT'
 export const GEODAR_PMTILES_URL =
   'https://cw3e.ucsd.edu/hydro/geodar/GeoDAR_MERIT.pmtiles'
 export const GEODAR_SOURCE_LAYER = 'GeoDAR_MERIT'
+export const OCWD_WELLS_PMTILES_URL =
+  'https://cw3e.ucsd.edu/hydro/ocwd/pmtiles/OCWD_MonitoringWells.pmtiles'
+export const OCWD_WELLS_SOURCE_LAYER = 'OCWD_MonitoringWells'
 export const GRADES_HYDRODL_PMTILES_URL =
   'https://cw3e.ucsd.edu/hydro/grades_hydrodl/pmtiles/riv_20251231.pmtiles'
 export const SWORD_REACHES_PMTILES_URL =
   'https://cw3e.ucsd.edu/hydro/grades_hydrodl/pmtiles/sword_reaches_v17b_indexed.pmtiles'
 export const SWORD_REACHES_SOURCE_LAYER = 'SWORD_Reaches_v17b'
 export const FORECAST_BASINS_PMTILES_URL =
-  'https://cw3e.ucsd.edu/wrf_hydro/cnrfc/pmtiles/CNRFC_Basins.pmtiles'
+  'https://cw3e.ucsd.edu/hydro/cnrfc/pmtiles/CNRFC_Basins.pmtiles'
 export const FORECAST_BASINS_SOURCE_LAYER = 'CNRFC_Basins'
 export const DEFAULT_STATE = createDefaultAppState()
 

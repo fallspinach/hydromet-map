@@ -13,6 +13,9 @@ import gradesHydroDlLayer from './gradesHydroDlLayer'
 import gritLayer from './gritLayer'
 import hydroRiversLayer from './hydroRiversLayer'
 import meritBasinsLayer from './meritBasinsLayer'
+import ocwdBoundaryLayer from './ocwdBoundaryLayer'
+import ocwdWellsLayer from './ocwdWellsLayer'
+import ocwdWetlandsLayer from './ocwdWetlandsLayer'
 import snowCoursesLayer from './snowCoursesLayer'
 import snowPillowsLayer from './snowPillowsLayer'
 import swordReachesLayer from './swordReachesLayer'
@@ -36,6 +39,9 @@ export const MAP_LAYER_MODULES = [
   gritLayer,
   hydroRiversLayer,
   meritBasinsLayer,
+  ocwdBoundaryLayer,
+  ocwdWellsLayer,
+  ocwdWetlandsLayer,
   swordReachesLayer,
   cnrfcRasterLayer,
   ucrbRasterLayer,
