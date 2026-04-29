@@ -27,6 +27,7 @@
 - `papaparse` or a similar library for parsing CSV data
 
 ## Documentation
+- How-to guides: [docs/how-to/README.md](./docs/how-to/README.md)
 - Architecture overview: [docs/architecture.md](./docs/architecture.md)
 - Project system: [docs/projects.md](./docs/projects.md)
 - Layer modules: [docs/layers.md](./docs/layers.md)

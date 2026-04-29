@@ -257,13 +257,6 @@ function App() {
   }, [basemapMenuOpen, layerMenuOpen])
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const hasExplicitRasterDate = params.has('date') || params.has('datetime')
-
-    if (hasExplicitRasterDate) {
-      return undefined
-    }
-
     const abortController = new AbortController()
 
     async function loadStatusDefaults() {
