@@ -10,6 +10,7 @@ import cnrfcPointsLayer from './cnrfcPointsLayer'
 import geodarLayer from './geodarLayer'
 import gshaLayer from './gshaLayer'
 import gradesHydroDlLayer from './gradesHydroDlLayer'
+import gradesHydroDlStaticLayer from './gradesHydroDlStaticLayer'
 import gritLayer from './gritLayer'
 import hydroRiversLayer from './hydroRiversLayer'
 import meritBasinsLayer from './meritBasinsLayer'
@@ -36,6 +37,7 @@ export const MAP_LAYER_MODULES = [
   geodarLayer,
   gshaLayer,
   gradesHydroDlLayer,
+  gradesHydroDlStaticLayer,
   gritLayer,
   hydroRiversLayer,
   meritBasinsLayer,

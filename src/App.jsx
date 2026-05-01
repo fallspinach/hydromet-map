@@ -21,6 +21,7 @@ import {
   readStateFromUrl,
   writeStateToUrl,
 } from './lib/appState'
+import { fetchGradesBinaryDescriptor } from './lib/gradesBinaryData'
 import { fetchJsonNoCache } from './lib/network'
 
 const NRT_PRODUCT = 'NRT'
@@ -127,6 +128,10 @@ function applyTemporalModeToFamilyState(familyState, layerFamily) {
 
 function constrainFamilyStateToStatusBoundary(familyState, statusBoundary, layerFamily) {
   if (!familyState) {
+    return familyState
+  }
+
+  if (!layerFamily?.selectors?.statusUrl) {
     return familyState
   }
 
@@ -272,7 +277,31 @@ function App() {
         const statusUrl = layerFamily?.selectors?.statusUrl
         const statusKey = layerFamily?.selectors?.statusKey
 
-        if (!layerFamily || !statusUrl || !statusKey) {
+        if (!layerFamily) {
+          return
+        }
+
+        if (layerFamily.id === 'globalHydro') {
+          try {
+            const descriptor = await fetchGradesBinaryDescriptor()
+            const gradesEndDate = descriptor?.MERIT?.end
+
+            if (!gradesEndDate) {
+              return
+            }
+
+            loadedStatusByProjectId[projectId] = {
+              date: gradesEndDate,
+              datetime: `${gradesEndDate}T12:00`,
+            }
+          } catch {
+            // Keep the built-in defaults if the GRADES descriptor is unavailable.
+          }
+
+          return
+        }
+
+        if (!statusUrl || !statusKey) {
           return
         }
 
@@ -293,9 +322,9 @@ function App() {
           }
 
           loadedStatusByProjectId[projectId] = {
-            boundary: buildStatusBoundary(statusTimestamp),
             date: formatStatusDate(statusTimestamp),
             datetime: formatStatusDateTime(statusTimestamp),
+            boundary: buildStatusBoundary(statusTimestamp),
           }
         } catch (error) {
           if (error?.name !== 'AbortError') {
@@ -312,7 +341,9 @@ function App() {
         const next = { ...current }
 
         Object.entries(loadedStatusByProjectId).forEach(([projectId, statusState]) => {
-          next[projectId] = statusState.boundary
+          if (statusState.boundary) {
+            next[projectId] = statusState.boundary
+          }
         })
 
         return next
@@ -377,7 +408,7 @@ function App() {
             statusBoundaryByProjectId[projectId]
             ?? buildStatusBoundary(getInitialStatusTimestamp())
 
-          if (!layerFamily || !projectState.family) {
+          if (!layerFamily || !projectState.family || !layerFamily.selectors?.statusUrl) {
             return [projectId, projectState]
           }
 

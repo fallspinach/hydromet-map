@@ -1,7 +1,9 @@
+import { useEffect, useRef } from 'react'
 import { Layer, Popup, Source } from 'react-map-gl/maplibre'
 import { createSelectedGlobalReachPopupState } from '../features/globalReachPopup/globalReachPopupData'
 import {
   GRADES_HYDRODL_PMTILES_URL,
+  GRADES_HYDRODL_STREAMFLOW_SOURCE_LAYER,
   MERIT_BASINS_SOURCE_LAYER,
 } from '../config/mapConfig'
 
@@ -69,9 +71,9 @@ const GRADES_HYDRODL_CASING_LINE_WIDTH = [
   ['+', ['get', 'order'], 3],
 ]
 
-const GRADES_HYDRODL_LINE_COLOR = [
+const GRADES_HYDRODL_DYNAMIC_LINE_COLOR = [
   'match',
-  ['get', 'pctl_range'],
+  ['coalesce', ['feature-state', 'pctl_range'], '__unknown__'],
   0,
   'sienna',
   1,
@@ -101,6 +103,10 @@ function formatSlopePermil(value) {
   return Number.isFinite(numericValue) ? (numericValue * 1000).toFixed(3) : 'Unknown'
 }
 
+function getFeatureId(feature) {
+  return feature?.id ?? feature?.properties?.COMID ?? null
+}
+
 function buildHoveredGradesHydroDl(event, feature) {
   const properties = feature?.properties ?? {}
 
@@ -123,25 +129,181 @@ function buildHoveredGradesHydroDl(event, feature) {
   }
 }
 
+function GradesHydroDlDynamicLayers({ appState, interactionState, layerFamily, mapInstance }) {
+  const appliedFeatureIdsRef = useRef(new Set())
+  const dataPmtilesUrl =
+    layerFamily?.linkedLayers?.gradesHydroDl?.buildDataPmtilesUrl?.(appState.family) ?? null
+
+  useEffect(() => {
+    if (!mapInstance || !dataPmtilesUrl) {
+      return undefined
+    }
+
+    function syncGradesFeatureState() {
+      const geometrySource = mapInstance.getSource('grades-hydrodl-dynamic-geometry-source')
+      const dataSource = mapInstance.getSource('grades-hydrodl-dynamic-data-source')
+
+      if (!geometrySource || !dataSource) {
+        return
+      }
+
+      const dataFeatures = mapInstance.querySourceFeatures('grades-hydrodl-dynamic-data-source', {
+        sourceLayer: GRADES_HYDRODL_STREAMFLOW_SOURCE_LAYER,
+      })
+
+      const nextPctlRangeById = new Map()
+
+      dataFeatures.forEach((feature) => {
+        const featureId = getFeatureId(feature)
+        const pctlRange = Number.parseInt(feature?.properties?.pctl_range, 10)
+
+        if (featureId == null || !Number.isFinite(pctlRange) || nextPctlRangeById.has(featureId)) {
+          return
+        }
+
+        nextPctlRangeById.set(featureId, {
+          pctl_range: pctlRange,
+        })
+      })
+
+      appliedFeatureIdsRef.current.forEach((featureId) => {
+        if (!nextPctlRangeById.has(featureId)) {
+          mapInstance.removeFeatureState({
+            source: 'grades-hydrodl-dynamic-geometry-source',
+            sourceLayer: MERIT_BASINS_SOURCE_LAYER,
+            id: featureId,
+          })
+        }
+      })
+
+      nextPctlRangeById.forEach((featureState, featureId) => {
+        mapInstance.setFeatureState(
+          {
+            source: 'grades-hydrodl-dynamic-geometry-source',
+            sourceLayer: MERIT_BASINS_SOURCE_LAYER,
+            id: featureId,
+          },
+          featureState,
+        )
+      })
+
+      appliedFeatureIdsRef.current = new Set(nextPctlRangeById.keys())
+    }
+
+    function handleMapIdle() {
+      syncGradesFeatureState()
+    }
+
+    syncGradesFeatureState()
+    mapInstance.on('idle', handleMapIdle)
+
+    return () => {
+      mapInstance.off('idle', handleMapIdle)
+      appliedFeatureIdsRef.current.forEach((featureId) => {
+        mapInstance.removeFeatureState({
+          source: 'grades-hydrodl-geometry-source',
+          sourceLayer: MERIT_BASINS_SOURCE_LAYER,
+          id: featureId,
+        })
+      })
+      appliedFeatureIdsRef.current = new Set()
+    }
+  }, [dataPmtilesUrl, mapInstance])
+
+  return (
+    <>
+      {dataPmtilesUrl ? (
+        <Source
+          id="grades-hydrodl-dynamic-data-source"
+          type="vector"
+          url={`pmtiles://${dataPmtilesUrl}`}
+          promoteId={{ [GRADES_HYDRODL_STREAMFLOW_SOURCE_LAYER]: 'COMID' }}
+        >
+          <Layer
+            id="grades-hydrodl-dynamic-data-hidden"
+            type="circle"
+            source-layer={GRADES_HYDRODL_STREAMFLOW_SOURCE_LAYER}
+            paint={{
+              'circle-radius': 0.1,
+              'circle-opacity': 0,
+              'circle-stroke-opacity': 0,
+            }}
+          />
+        </Source>
+      ) : null}
+      <Source
+        id="grades-hydrodl-dynamic-geometry-source"
+        type="vector"
+        url={`pmtiles://${GRADES_HYDRODL_PMTILES_URL}`}
+        promoteId={{ [MERIT_BASINS_SOURCE_LAYER]: 'COMID' }}
+      >
+        <Layer
+          id="grades-hydrodl-dynamic-line-casing"
+          type="line"
+          source-layer={MERIT_BASINS_SOURCE_LAYER}
+          layout={{
+            'line-cap': 'round',
+            'line-join': 'round',
+          }}
+          paint={{
+            'line-color': '#ffffff',
+            'line-opacity': 1,
+            'line-width': GRADES_HYDRODL_CASING_LINE_WIDTH,
+          }}
+        />
+        <Layer
+          id="grades-hydrodl-dynamic-line"
+          type="line"
+          source-layer={MERIT_BASINS_SOURCE_LAYER}
+          layout={{
+            'line-cap': 'round',
+            'line-join': 'round',
+          }}
+          paint={{
+            'line-color': GRADES_HYDRODL_DYNAMIC_LINE_COLOR,
+            'line-opacity': 0.9,
+            'line-width': GRADES_HYDRODL_LINE_WIDTH,
+          }}
+        />
+        <Layer
+          id="grades-hydrodl-dynamic-line-highlight"
+          type="line"
+          source-layer={MERIT_BASINS_SOURCE_LAYER}
+          filter={['==', ['get', 'COMID'], interactionState.hoveredGradesHydroDlDynamic?.comid ?? '__none__']}
+          layout={{
+            'line-cap': 'round',
+            'line-join': 'round',
+          }}
+          paint={{
+            'line-color': '#c62828',
+            'line-opacity': 0.95,
+            'line-width': GRADES_HYDRODL_LINE_WIDTH,
+          }}
+        />
+      </Source>
+    </>
+  )
+}
+
 const gradesHydroDlLayer = {
   id: 'gradesHydroDl',
-  stateKey: 'hoveredGradesHydroDl',
+  stateKey: 'hoveredGradesHydroDlDynamic',
   isVisible: ({ appState }) => appState.layers.gradesHydroDl,
   getInteractiveLayerIds() {
-    return ['grades-hydrodl-line']
+    return ['grades-hydrodl-dynamic-line']
   },
   getPointerState({ event }) {
-    const hoveredFeature = event.features?.find((feature) => feature.layer.id === 'grades-hydrodl-line')
+    const hoveredFeature = event.features?.find((feature) => feature.layer.id === 'grades-hydrodl-dynamic-line')
 
     return {
-      hoveredGradesHydroDl: hoveredFeature ? buildHoveredGradesHydroDl(event, hoveredFeature) : null,
+      hoveredGradesHydroDlDynamic: hoveredFeature ? buildHoveredGradesHydroDl(event, hoveredFeature) : null,
     }
   },
   getPointerLeaveState() {
-    return { hoveredGradesHydroDl: null }
+    return { hoveredGradesHydroDlDynamic: null }
   },
   handleClick({ event, setSelectedStation }) {
-    const clickedFeature = event.features?.find((feature) => feature.layer.id === 'grades-hydrodl-line')
+    const clickedFeature = event.features?.find((feature) => feature.layer.id === 'grades-hydrodl-dynamic-line')
 
     if (!clickedFeature || clickedFeature.geometry.type !== 'LineString') {
       return false
@@ -159,96 +321,50 @@ const gradesHydroDlLayer = {
 
     return true
   },
-  renderLayers({ interactionState }) {
-    return (
-      <Source id="grades-hydrodl-source" type="vector" url={`pmtiles://${GRADES_HYDRODL_PMTILES_URL}`}>
-        <Layer
-          id="grades-hydrodl-line-casing"
-          type="line"
-          source-layer={MERIT_BASINS_SOURCE_LAYER}
-          layout={{
-            'line-cap': 'round',
-            'line-join': 'round',
-          }}
-          paint={{
-            'line-color': '#ffffff',
-            'line-opacity': 1,
-            'line-width': GRADES_HYDRODL_CASING_LINE_WIDTH,
-          }}
-        />
-        <Layer
-          id="grades-hydrodl-line"
-          type="line"
-          source-layer={MERIT_BASINS_SOURCE_LAYER}
-          layout={{
-            'line-cap': 'round',
-            'line-join': 'round',
-          }}
-          paint={{
-            'line-color': GRADES_HYDRODL_LINE_COLOR,
-            'line-opacity': 0.9,
-            'line-width': GRADES_HYDRODL_LINE_WIDTH,
-          }}
-        />
-        <Layer
-          id="grades-hydrodl-line-highlight"
-          type="line"
-          source-layer={MERIT_BASINS_SOURCE_LAYER}
-          filter={['==', ['get', 'COMID'], interactionState.hoveredGradesHydroDl?.comid ?? '__none__']}
-          layout={{
-            'line-cap': 'round',
-            'line-join': 'round',
-          }}
-          paint={{
-            'line-color': '#c62828',
-            'line-opacity': 0.95,
-            'line-width': GRADES_HYDRODL_LINE_WIDTH,
-          }}
-        />
-      </Source>
-    )
+  renderLayers(props) {
+    return <GradesHydroDlDynamicLayers {...props} />
   },
-  renderPopups({ interactionState, selectedStation, setSelectedStation }) {
-    const hoveredGradesHydroDl = interactionState.hoveredGradesHydroDl
+  renderPopups({ interactionState }) {
+    const hoveredGradesHydroDl = interactionState.hoveredGradesHydroDlDynamic
+
+    if (!hoveredGradesHydroDl) {
+      return null
+    }
 
     return (
-      <>
-        {hoveredGradesHydroDl ? (
-          <Popup
-            anchor="bottom"
-            closeButton={false}
-            closeOnClick={false}
-            latitude={hoveredGradesHydroDl.latitude}
-            longitude={hoveredGradesHydroDl.longitude}
-            offset={10}
-          >
-            <div className="river-popup">
-              <strong>COMID: {hoveredGradesHydroDl.comid}</strong>
-              <p>Length: {hoveredGradesHydroDl.lengthKm} km</p>
-              <p>Start-to-end Distance: {hoveredGradesHydroDl.lengthDirKm} km</p>
-              <p>Sinuosity: {hoveredGradesHydroDl.sinuosity}</p>
-              <p>Slope: {hoveredGradesHydroDl.slopePermil}&permil;</p>
-              <p>
-                Upstream Area: {hoveredGradesHydroDl.upstreamArea} km<sup>2</sup>
-              </p>
-              <p>Stream Order: {Number.isFinite(hoveredGradesHydroDl.order) ? hoveredGradesHydroDl.order : 'Unknown'}</p>
-              <p>Downstream COMID: {hoveredGradesHydroDl.nextDownId}</p>
-              {Number.isFinite(hoveredGradesHydroDl.order) && hoveredGradesHydroDl.order > 1 ? (
-                <>
-                  <p>Upstream COMID 1: {hoveredGradesHydroDl.up1}</p>
-                  <p>Upstream COMID 2: {hoveredGradesHydroDl.up2}</p>
-                </>
-              ) : null}
-              {Number.isFinite(hoveredGradesHydroDl.maxup) && hoveredGradesHydroDl.maxup > 2 ? (
-                <p>Upstream COMID 3: {hoveredGradesHydroDl.up3}</p>
-              ) : null}
-              {Number.isFinite(hoveredGradesHydroDl.maxup) && hoveredGradesHydroDl.maxup > 3 ? (
-                <p>Upstream COMID 4: {hoveredGradesHydroDl.up4}</p>
-              ) : null}
-            </div>
-          </Popup>
-        ) : null}
-      </>
+      <Popup
+        anchor="bottom"
+        closeButton={false}
+        closeOnClick={false}
+        latitude={hoveredGradesHydroDl.latitude}
+        longitude={hoveredGradesHydroDl.longitude}
+        offset={10}
+      >
+        <div className="river-popup">
+          <strong>COMID: {hoveredGradesHydroDl.comid}</strong>
+          <p>Length: {hoveredGradesHydroDl.lengthKm} km</p>
+          <p>Start-to-end Distance: {hoveredGradesHydroDl.lengthDirKm} km</p>
+          <p>Sinuosity: {hoveredGradesHydroDl.sinuosity}</p>
+          <p>Slope: {hoveredGradesHydroDl.slopePermil}&permil;</p>
+          <p>
+            Upstream Area: {hoveredGradesHydroDl.upstreamArea} km<sup>2</sup>
+          </p>
+          <p>Stream Order: {Number.isFinite(hoveredGradesHydroDl.order) ? hoveredGradesHydroDl.order : 'Unknown'}</p>
+          <p>Downstream COMID: {hoveredGradesHydroDl.nextDownId}</p>
+          {Number.isFinite(hoveredGradesHydroDl.order) && hoveredGradesHydroDl.order > 1 ? (
+            <>
+              <p>Upstream COMID 1: {hoveredGradesHydroDl.up1}</p>
+              <p>Upstream COMID 2: {hoveredGradesHydroDl.up2}</p>
+            </>
+          ) : null}
+          {Number.isFinite(hoveredGradesHydroDl.maxup) && hoveredGradesHydroDl.maxup > 2 ? (
+            <p>Upstream COMID 3: {hoveredGradesHydroDl.up3}</p>
+          ) : null}
+          {Number.isFinite(hoveredGradesHydroDl.maxup) && hoveredGradesHydroDl.maxup > 3 ? (
+            <p>Upstream COMID 4: {hoveredGradesHydroDl.up4}</p>
+          ) : null}
+        </div>
+      </Popup>
     )
   },
 }

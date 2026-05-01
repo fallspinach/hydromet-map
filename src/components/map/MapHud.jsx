@@ -37,11 +37,16 @@ export default function MapHud({
     familyVariables[appState.family?.variable] ?? familyVariables[familyVariableIds[0]] ?? null
   const familyProducts = layerFamily?.selectors?.products ?? []
   const ensembleTraces = layerFamily?.selectors?.ensembleTraces ?? []
+  const hasFamilyDateSelector = Boolean(layerFamily?.selectors?.dateSelector || selectedRasterVariable)
+  const hasVariableSelector = familyVariableIds.length > 0
+  const hasProductSelector = familyProducts.length > 0
+  const hasEnsembleSelector = ensembleTraces.length > 1
+  const showFamilyToolbar = hasVariableSelector || hasProductSelector || hasEnsembleSelector
   const isDateTimeMode =
     selectedRasterVariable
       ? getTemporalModeForTimestep(selectedRasterVariable.timestep) === 'datetime'
-      : false
-  const shortStep = parseTimestep(selectedRasterVariable?.timestep ?? '1day')
+      : appState.family?.temporalMode === 'datetime'
+  const shortStep = parseTimestep(selectedRasterVariable?.timestep ?? layerFamily?.selectors?.timeStep ?? '1day')
   const shortStepLabel = `${shortStep.amount} ${shortStep.unit}${shortStep.amount === 1 ? '' : 's'}`
   const forecastProducts = familyProducts.filter((product) => product !== 'NRT')
   const allowsForecastProducts = selectedRasterVariable
@@ -152,7 +157,7 @@ export default function MapHud({
           </div>
         </div>
 
-        {layerFamily && appState.family && selectedRasterVariable ? (
+        {layerFamily && appState.family && hasFamilyDateSelector ? (
           <div className="date-row date-row--map">
             {isDateTimeMode ? (
               <>
@@ -299,34 +304,38 @@ export default function MapHud({
       </div>
 
       <div className="raster-toolbar">
-        {layerFamily && appState.family ? (
+        {layerFamily && appState.family && showFamilyToolbar ? (
           <>
-            <select
-              value={appState.family.variable}
-              title="Raster variable"
-              onChange={(event) => updateFamily('variable', event.target.value)}
-            >
-              {Object.entries(familyVariables).map(([value, item]) => (
-                <option key={value} value={value}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
+            {hasVariableSelector ? (
+              <select
+                value={appState.family.variable}
+                title="Raster variable"
+                onChange={(event) => updateFamily('variable', event.target.value)}
+              >
+                {Object.entries(familyVariables).map(([value, item]) => (
+                  <option key={value} value={value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            ) : null}
 
-            <select
-              className={isForecastProduct ? 'raster-toolbar__select raster-toolbar__select--forecast' : 'raster-toolbar__select'}
-              value={appState.family.product}
-              title="Raster product"
-              onChange={(event) => updateFamily('product', event.target.value)}
-            >
-              {familyProducts.map((product) => (
-                <option key={product} value={product} disabled={!allowedProductSet.has(product)}>
-                  {product}
-                </option>
-              ))}
-            </select>
+            {hasProductSelector ? (
+              <select
+                className={isForecastProduct ? 'raster-toolbar__select raster-toolbar__select--forecast' : 'raster-toolbar__select'}
+                value={appState.family.product}
+                title="Raster product"
+                onChange={(event) => updateFamily('product', event.target.value)}
+              >
+                {familyProducts.map((product) => (
+                  <option key={product} value={product} disabled={!allowedProductSet.has(product)}>
+                    {product}
+                  </option>
+                ))}
+              </select>
+            ) : null}
 
-            {ensembleTraces.length > 1 ? (
+            {hasEnsembleSelector ? (
               <select
                 value={appState.family.ensemble}
                 title="Ensemble trace"

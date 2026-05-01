@@ -106,6 +106,10 @@ function trimRowsToRecentWindow({ rows }) {
   return rows.slice(-RECENT_DAYS)
 }
 
+function isGradesHydroDlLayer(station) {
+  return station.layerId === 'gradesHydroDlStatic' || station.layerId === 'gradesHydroDl'
+}
+
 function buildGlobalReachRecentSources({ station }) {
   const baseSources = [
     {
@@ -121,7 +125,7 @@ function buildGlobalReachRecentSources({ station }) {
     },
   ]
 
-  if (station.layerId === 'gradesHydroDl') {
+  if (isGradesHydroDlLayer(station)) {
     baseSources.push({
       id: 'climatology',
       loader: 'gradesPercentiles',
@@ -150,7 +154,7 @@ function buildGlobalReachRecentSeries({ station }) {
     },
   }
 
-  if (station.layerId === 'gradesHydroDl') {
+  if (isGradesHydroDlLayer(station)) {
     return {
       ...CLIMATOLOGY_SERIES_DEFINITIONS,
       ...series,

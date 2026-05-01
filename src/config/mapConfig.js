@@ -91,10 +91,18 @@ export const ALL_MAP_LAYERS = [
     symbolColor: '#008b8b',
   },
   {
+    id: 'gradesHydroDlStatic',
+    label: 'GRADES-hydroDL (v2.0 static)',
+    type: 'vector-tile',
+    description: 'Global GRADES-hydroDL flowlines from tiled vector sources.',
+    symbol: '\uFF5E',
+    symbolColor: '#8b5cf6',
+  },
+  {
     id: 'gradesHydroDl',
     label: 'GRADES-hydroDL (v2.0)',
     type: 'vector-tile',
-    description: 'Global GRADES-hydroDL flowlines from tiled vector sources.',
+    description: 'Global GRADES-hydroDL flowlines colored from date-specific tiled streamflow attributes.',
     symbol: '\uFF5E',
     symbolColor: '#8b5cf6',
   },
@@ -602,6 +610,35 @@ export const LAYER_FAMILIES = {
     },
     linkedLayers: {},
   },
+  globalHydro: {
+    id: 'globalHydro',
+    label: 'Global Hydro',
+    selectors: {
+      products: [],
+      ensembleTraces: [],
+      defaultDate: '2025-12-20',
+      defaultDateTime: '2025-12-20T12:00',
+      timeStep: '1day',
+      dateSelector: true,
+    },
+    linkedLayers: {
+      gradesHydroDl: {
+        buildDataPmtilesUrl: ({ date }) => {
+          if (!date) {
+            return null
+          }
+
+          const yyyymmdd = date.replaceAll('-', '')
+
+          if (yyyymmdd.length !== 8) {
+            return null
+          }
+
+          return `https://cw3e.ucsd.edu/hydro/grades_hydrodl/pmtiles/nrt/grades-hydrodl_${yyyymmdd}.pmtiles`
+        },
+      },
+    },
+  },
 }
 
 function buildDefaultFamilyState(layerFamily) {
@@ -773,6 +810,7 @@ export const PROJECTS = {
     defaultBasemapId: 'terrain',
     defaultTerrainEnabled: true,
     defaultProjection: 'globe',
+    layerFamilyId: 'globalHydro',
     availableLayerIds: [
       'gradesHydroDl',
       'camaFlood',
@@ -868,8 +906,9 @@ export const GEODAR_SOURCE_LAYER = 'GeoDAR_MERIT'
 export const OCWD_WELLS_PMTILES_URL =
   'https://cw3e.ucsd.edu/hydro/ocwd/pmtiles/OCWD_MonitoringWells.pmtiles'
 export const OCWD_WELLS_SOURCE_LAYER = 'OCWD_MonitoringWells'
+export const GRADES_HYDRODL_STREAMFLOW_SOURCE_LAYER = 'GRADES-hydroDL_Streamflow'
 export const GRADES_HYDRODL_PMTILES_URL =
-  'https://cw3e.ucsd.edu/hydro/grades_hydrodl/pmtiles/riv_20251231.pmtiles'
+  'https://cw3e.ucsd.edu/hydro/grades_hydrodl/pmtiles/riv_nrt.pmtiles'
 export const SWORD_REACHES_PMTILES_URL =
   'https://cw3e.ucsd.edu/hydro/grades_hydrodl/pmtiles/sword_reaches_v17b_indexed.pmtiles'
 export const SWORD_REACHES_SOURCE_LAYER = 'SWORD_Reaches_v17b'

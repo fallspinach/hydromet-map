@@ -24,6 +24,7 @@ const INITIAL_INTERACTION_STATE = {
   hoveredGeodar: null,
   hoveredGsha: null,
   hoveredGradesHydroDl: null,
+  hoveredGradesHydroDlDynamic: null,
   hoveredGrit: null,
   hoveredHydroRivers: null,
   hoveredMeritBasin: null,
