@@ -10,6 +10,7 @@ import {
   getProjectDefinition,
   getProjectLayerFamily,
   PROJECTS,
+  LAYER_FAMILIES,
 } from './config/mapConfig'
 import MapCanvas from './components/map/MapCanvas'
 import {
@@ -23,6 +24,9 @@ import {
 } from './lib/appState'
 import { fetchGradesBinaryDescriptor } from './lib/gradesBinaryData'
 import { fetchJsonNoCache } from './lib/network'
+import { getFamilyState, getFamilyLayerIds, setFamilyState, toggleProjectLayer } from './lib/projectFamilies'
+import { normalizeManifestSelection } from './lib/manifestRaster'
+import useManifestRasterFamily from './features/manifestRaster/useManifestRasterFamily'
 
 const NRT_PRODUCT = 'NRT'
 const FORECAST_PRODUCTS = ['WWRF-ECMWF', 'WWRF-GFS', 'GFS']
@@ -98,6 +102,8 @@ function buildInitialStatusBoundaryByProjectId() {
     Object.keys(PROJECTS).map((projectId) => {
       const layerFamily = getProjectLayerFamily(projectId)
       const familySelectors = layerFamily?.selectors ?? {}
+
+      if (layerFamily?.kind === 'manifest-raster') return [projectId, {}]
 
       if (layerFamily?.raster?.layerId === 'globalRaster') {
         return [projectId, buildFamilyDateBounds({
@@ -256,11 +262,26 @@ function App() {
   const activeProject = getProjectDefinition(activeProjectId)
   const activeProjectState =
     appState.projectStateById?.[activeProjectId] ?? createProjectState(activeProjectId)
-  const activeLayerFamily = getProjectLayerFamily(activeProjectId)
+  const familyDefinition = getProjectLayerFamily(activeProjectId, activeProjectState.activeFamilyId)
+  const { family: activeLayerFamily, status: manifestStatus, retry: retryManifest } = useManifestRasterFamily(familyDefinition)
+  const storedFamilyState = getFamilyState(activeProjectState, activeProject, activeLayerFamily?.id)
+  const visibleFamilyState = manifestStatus === 'ready'
+    ? normalizeManifestSelection(storedFamilyState, activeLayerFamily) : storedFamilyState
+  const visibleProjectState = { ...activeProjectState, family: visibleFamilyState }
+
+  useEffect(() => {
+    if (manifestStatus !== 'ready') return
+    setAppState((current) => updateActiveProjectState(current, (state, projectId) => {
+      if (projectId !== activeProjectId || state.activeFamilyId !== activeLayerFamily.id) return state
+      const previous = getFamilyState(state, activeProject, activeLayerFamily.id)
+      const next = normalizeManifestSelection(previous, activeLayerFamily)
+      return next === previous ? state : setFamilyState(state, activeProject, activeLayerFamily.id, next)
+    }))
+  }, [activeProjectId, activeProject, activeLayerFamily, manifestStatus])
   const familyVariables = activeLayerFamily?.raster?.variables ?? {}
   const familyVariableIds = Object.keys(familyVariables)
   const selectedVariable =
-    familyVariables[activeProjectState.family?.variable]
+    familyVariables[visibleFamilyState?.variable]
     ?? familyVariables[familyVariableIds[0]]
     ?? null
   const selectedBasemap =
@@ -319,8 +340,9 @@ function App() {
     const abortController = new AbortController()
     const params = new URLSearchParams(window.location.search)
     const bookmarkedProjectId = getProjectDefinition(getFirstUrlParam(params, 'prj', 'project'))?.id ?? DEFAULT_PROJECT_ID
-    const hasExplicitBookmarkedDate = params.has('d') || params.has('date')
-    const hasExplicitBookmarkedDateTime = params.has('dt') || params.has('datetime')
+    const bookmarkedPrimaryFamily = !params.has('fam') || params.get('fam') === getProjectDefinition(bookmarkedProjectId).layerFamilyId
+    const hasExplicitBookmarkedDate = bookmarkedPrimaryFamily && (params.has('d') || params.has('date'))
+    const hasExplicitBookmarkedDateTime = bookmarkedPrimaryFamily && (params.has('dt') || params.has('datetime'))
 
     async function loadStatusDefaults() {
       const projectIds = Object.keys(PROJECTS)
@@ -469,7 +491,7 @@ function App() {
             statusBoundaryByProjectId[projectId]
             ?? buildStatusBoundary(getInitialStatusTimestamp())
 
-          if (!layerFamily || !projectState.family) {
+          if (!layerFamily || !projectState.family || layerFamily.kind === 'manifest-raster') {
             return [projectId, projectState]
           }
 
@@ -509,66 +531,30 @@ function App() {
 
   function updateFamily(key, value) {
     setAppState((current) =>
-      updateActiveProjectState(current, (activeProjectStateValue, projectId) => {
-        const layerFamily = getProjectLayerFamily(projectId)
-        const familyVariablesForProject = layerFamily?.raster?.variables ?? {}
-
-        if (!layerFamily || !activeProjectStateValue.family) {
-          return activeProjectStateValue
+      updateActiveProjectState(current, (state, projectId) => {
+        const project = getProjectDefinition(projectId)
+        const family = getProjectLayerFamily(projectId, state.activeFamilyId)
+        const previous = getFamilyState(state, project, family?.id)
+        if (!family || !previous) return state
+        let next = { ...previous, ...(typeof key === 'object' ? key : { [key]: value }) }
+        if (family.kind === 'manifest-raster') {
+          if (manifestStatus !== 'ready' || activeLayerFamily.id !== family.id) return state
+          next = normalizeManifestSelection(next, activeLayerFamily)
+        } else {
+          if (key === 'date') next.datetime = mergeDateIntoDateTime(value, previous.datetime)
+          if (key === 'datetime') next.date = getDatePartFromDateTime(value, previous.date)
+          if (key === 'variable') next = applyTemporalModeToFamilyState(next, family)
+          next = constrainFamilyStateToStatusBoundary(next, statusBoundary, family)
         }
-
-        const nextFamily = {
-          ...activeProjectStateValue.family,
-          ...(typeof key === 'object' ? key : { [key]: value }),
-        }
-
-        if (typeof key !== 'object' && key === 'date') {
-          nextFamily.datetime = mergeDateIntoDateTime(value, activeProjectStateValue.family.datetime)
-        }
-
-        if (typeof key !== 'object' && key === 'datetime') {
-          nextFamily.date = getDatePartFromDateTime(value, activeProjectStateValue.family.date)
-        }
-
-        if (typeof key !== 'object' && key === 'variable') {
-          const nextVariable =
-            familyVariablesForProject[value]
-            ?? familyVariablesForProject[Object.keys(familyVariablesForProject)[0]]
-          const nextTemporalMode = getTemporalModeForTimestep(nextVariable?.timestep)
-          nextFamily.temporalMode = nextTemporalMode
-
-          if (nextTemporalMode === 'datetime') {
-            nextFamily.datetime = mergeDateIntoDateTime(
-              activeProjectStateValue.family.date,
-              activeProjectStateValue.family.datetime,
-            )
-          }
-
-          if (nextTemporalMode === 'date') {
-            nextFamily.date = getDatePartFromDateTime(
-              activeProjectStateValue.family.datetime,
-              activeProjectStateValue.family.date,
-            )
-          }
-        }
-
-        return {
-          ...activeProjectStateValue,
-          family: constrainFamilyStateToStatusBoundary(nextFamily, statusBoundary, layerFamily),
-        }
+        return setFamilyState(state, project, family.id, next)
       }),
     )
   }
 
   function toggleLayer(layerId) {
     setAppState((current) =>
-      updateActiveProjectState(current, (activeProjectStateValue) => ({
-        ...activeProjectStateValue,
-        layers: {
-          ...activeProjectStateValue.layers,
-          [layerId]: !activeProjectStateValue.layers[layerId],
-        },
-      })),
+      updateActiveProjectState(current, (state, projectId) =>
+        toggleProjectLayer(state, getProjectDefinition(projectId), LAYER_FAMILIES, layerId)),
     )
   }
 
@@ -604,6 +590,14 @@ function App() {
       }
     })
   }, [activeProjectId])
+
+  useEffect(() => {
+    const ownerId = selectedStation?.popupOwnerId ?? selectedStation?.layerId
+    const familyLayerIds = Object.values(LAYER_FAMILIES).flatMap(getFamilyLayerIds)
+    if (ownerId && familyLayerIds.includes(ownerId) && !activeProjectState.layers[ownerId]) {
+      setSelectedStation(null)
+    }
+  }, [activeProjectState.layers, selectedStation, setSelectedStation])
 
   function changeProject(nextProjectId) {
     if (nextProjectId === activeProjectId) {
@@ -642,7 +636,7 @@ function App() {
         <MapCanvas
           activeProject={activeProject}
           activeProjectId={activeProjectId}
-          appState={activeProjectState}
+          appState={visibleProjectState}
           basemapMenuRef={basemapMenuRef}
           basemapMenuOpen={basemapMenuOpen}
           bookmarkOpen={bookmarkOpen}
@@ -663,6 +657,8 @@ function App() {
           }}
           bookmarkUrl={bookmarkUrl}
           layerFamily={activeLayerFamily}
+          manifestStatus={manifestStatus}
+          retryManifest={retryManifest}
           selectedBasemap={selectedBasemap}
           selectedStation={selectedStation}
           selectedVariable={selectedVariable}

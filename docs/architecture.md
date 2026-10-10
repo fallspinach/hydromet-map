@@ -76,12 +76,9 @@ A layer family groups:
 - optional raster configuration
 - optional linked vector/vector-tile layer configuration
 
-The current app currently has two layer families:
-
-- `cnrfc`
-- `ucrb`
-
-Each project may reference at most one layer family.
+The current families are `cnrfc`, `ucrb`, `globalHydro`, `arRecon`, and
+`ocwdLandsat8`. Projects can offer multiple families with exclusive switching
+and one active control area; see [raster families](./raster.md).
 
 ## Important files
 
@@ -189,7 +186,7 @@ These map tools intentionally live outside the layer module system because they 
 
 ## Design rules in the current app
 
-- Projects may include zero or one layer family.
+- Projects may offer multiple families with project-level exclusive groups and one active control area.
 - Layers are globally reusable, but each project controls availability and order.
 - Family selector options shown in the HUD always come from the active project's layer family.
 - A layer family may drive more than one layer at once.

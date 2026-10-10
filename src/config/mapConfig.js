@@ -1,3 +1,4 @@
+import { normalizeProjectFamilies } from '../lib/projectFamilies'
 import { GRADES_BINARY_DESCRIPTOR_URL } from '../lib/gradesBinaryData'
 
 export const BASEMAPS = [
@@ -22,6 +23,14 @@ export const BASEMAPS = [
 ]
 
 export const ALL_MAP_LAYERS = [
+  {
+    id: 'ocwdLandsat8Raster',
+    label: 'OCWD Landsat 8',
+    type: 'png-overlay',
+    description: 'Landsat 8 NDMI and NDVI observations over the OCWD area.',
+    symbol: '\u25A0',
+    symbolColor: '#35978f',
+  },
   {
     id: 'gfsIvtParticles',
     label: 'GFS IVT North Pacific',
@@ -795,6 +804,22 @@ export const GFS_IVT_NORTH_PACIFIC = {
 }
 
 export const LAYER_FAMILIES = {
+  ocwdLandsat8: {
+    id: 'ocwdLandsat8',
+    label: 'OCWD Landsat 8',
+    kind: 'manifest-raster',
+    manifestUrl: 'https://cw3e.ucsd.edu/hydro/ocwd/imgs/landsat8_web_maps/manifest.json',
+    raster: {
+      layerId: 'ocwdLandsat8Raster',
+      opacity: 0.7,
+      variables: {
+        ndmi: { label: 'NDMI', units: '', timestep: '1day' },
+        ndvi: { label: 'NDVI', units: '', timestep: '1day' },
+      },
+    },
+    selectors: { products: [], ensembleTraces: [] },
+    defaultState: { variable: 'ndmi', date: '', temporalMode: 'date' },
+  },
   arRecon: {
     id: 'arRecon',
     label: 'AR Recon Flights',
@@ -973,7 +998,7 @@ function buildDefaultProjectState(projectDefinition) {
       }
     : null
 
-  return {
+  return normalizeProjectFamilies({
     view: {
       center: projectDefinition.defaultView?.center ?? '-119,38.1',
       zoom: projectDefinition.defaultView?.zoom ?? '5.3',
@@ -985,7 +1010,16 @@ function buildDefaultProjectState(projectDefinition) {
     projection: projectDefinition.defaultProjection ?? 'mercator',
     layers: buildLayerState(projectDefinition.defaultVisibleLayerIds ?? []),
     family: defaultFamilyState,
-  }
+    activeFamilyId: projectDefinition.defaultActiveFamilyId ?? projectDefinition.layerFamilyId,
+    familyStateById: Object.fromEntries(
+      (projectDefinition.layerFamilyIds ?? [])
+        .filter((id) => id !== projectDefinition.layerFamilyId)
+        .map((id) => [id, {
+          ...buildDefaultFamilyState(LAYER_FAMILIES[id]),
+          ...projectDefinition.defaultFamilyById?.[id],
+        }]),
+    ),
+  }, projectDefinition, LAYER_FAMILIES)
 }
 
 export const PROJECTS = {
@@ -1074,10 +1108,14 @@ export const PROJECTS = {
     logoAlt: 'Center for Western Weather and Water Extremes (CW3E)',
     logoHref: 'https://cw3e.ucsd.edu',
     layerFamilyId: 'cnrfc',
+    layerFamilyIds: ['cnrfc', 'ocwdLandsat8'],
+    defaultActiveFamilyId: 'ocwdLandsat8',
+    exclusiveLayerFamilyGroups: [['cnrfc', 'ocwdLandsat8']],
     defaultFamily: {
       variable: 'precipitationDaily',
     },
     availableLayerIds: [
+      'ocwdLandsat8Raster',
       'cnrfcRaster',
       'cnrfcRegion',
       'cnrfcRivers',
@@ -1090,7 +1128,7 @@ export const PROJECTS = {
       'ocwdWells',
     ],
     defaultVisibleLayerIds: [
-      'cnrfcRaster',
+      'ocwdLandsat8Raster',
       'cnrfcBasins',
       'cnrfcPoints',
       'cnrfcRegion',
@@ -1204,9 +1242,10 @@ export function getLayerFamilyDefinition(layerFamilyId) {
   return layerFamilyId ? LAYER_FAMILIES[layerFamilyId] ?? null : null
 }
 
-export function getProjectLayerFamily(projectId = DEFAULT_PROJECT_ID) {
+export function getProjectLayerFamily(projectId = DEFAULT_PROJECT_ID, familyId) {
   const projectDefinition = getProjectDefinition(projectId)
-  return getLayerFamilyDefinition(projectDefinition?.layerFamilyId)
+  const allowedIds = projectDefinition.layerFamilyIds ?? [projectDefinition.layerFamilyId]
+  return getLayerFamilyDefinition(allowedIds.includes(familyId) ? familyId : projectDefinition.layerFamilyId)
 }
 
 export const RASTER_FAMILIES = LAYER_FAMILIES

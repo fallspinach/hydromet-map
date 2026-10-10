@@ -1,3 +1,5 @@
+import ManifestRasterControls from '../../features/manifestRaster/ManifestRasterControls'
+import { getFamilyLayerIds } from '../../lib/projectFamilies'
 import DatePicker from 'react-datepicker'
 import ArReconControls, { ArReconDisplayControls } from '../../features/arRecon3d/ArReconControls'
 import GfsIvtControls from '../../features/gfsIvtParticles/GfsIvtControls'
@@ -24,6 +26,8 @@ export default function MapHud({
   layerMenuOpen,
   layerMenuRef,
   layerFamily,
+  manifestStatus,
+  retryManifest,
   selectedBasemap,
   setFamilyStatusOpen,
   setBasemapMenuOpen,
@@ -45,8 +49,10 @@ export default function MapHud({
   const familyProductLabels = layerFamily?.selectors?.productLabels ?? {}
   const ensembleTraces = layerFamily?.selectors?.ensembleTraces ?? []
   const hasStatusPanel = Boolean(activeProject?.statusButtonEnabled && layerFamily?.statusPanel?.url)
-  const rasterControlsEnabled = layerFamily?.kind !== 'ar-recon'
-    || Boolean(appState.layers[layerFamily?.raster?.layerId])
+  const familyVisible = getFamilyLayerIds(layerFamily).some((id) => appState.layers[id])
+  const rasterControlsEnabled = layerFamily?.kind !== 'manifest-raster'
+    && (!activeProject?.layerFamilyIds || familyVisible)
+    && (layerFamily?.kind !== 'ar-recon' || Boolean(appState.layers[layerFamily?.raster?.layerId]))
   const arReconControlsEnabled = layerFamily?.kind === 'ar-recon'
     && Boolean(appState.layers.arRecon3d)
   const hasFamilyDateSelector = rasterControlsEnabled
@@ -96,7 +102,7 @@ export default function MapHud({
   const maxTime = isSelectedOnMaxDate ? maxPickerDateTime : undefined
 
   return (
-    <div className="map-canvas__overlay">
+    <div className={activeProject?.layerFamilyIds ? 'map-canvas__overlay map-canvas__overlay--multi-family' : 'map-canvas__overlay'}>
       <div className="scene-tools">
         <div
           ref={basemapMenuRef}
@@ -152,7 +158,7 @@ export default function MapHud({
             {projectLayers.map((layer) => {
               const symbolColor =
                 layer.id === activeRasterLayerId && selectedRasterVariable
-                  ? selectedRasterVariable.palette.colors.at(-1) ?? '#1d6996'
+                  ? selectedRasterVariable.palette?.colors?.at(-1) ?? '#1d6996'
                   : layer.symbolColor ?? '#4a7189'
 
               return (
@@ -177,6 +183,11 @@ export default function MapHud({
             })}
           </div>
         </div>
+
+        {layerFamily?.kind === 'manifest-raster' && familyVisible ? (
+          <ManifestRasterControls family={layerFamily} state={appState.family}
+            updateFamily={updateFamily} status={manifestStatus} retry={retryManifest} />
+        ) : null}
 
         {arReconControlsEnabled && appState.family ? (
           <div className="ar-recon-combined-controls">

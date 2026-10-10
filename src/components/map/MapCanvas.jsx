@@ -139,6 +139,8 @@ export default function MapCanvas({
   onCopyBookmark,
   onToggleBookmark,
   layerFamily,
+  manifestStatus,
+  retryManifest,
   selectedBasemap,
   selectedStation,
   selectedVariable,
@@ -555,6 +557,8 @@ export default function MapCanvas({
         layerMenuOpen={layerMenuOpen}
         layerMenuRef={layerMenuRef}
         layerFamily={layerFamily}
+        manifestStatus={manifestStatus}
+        retryManifest={retryManifest}
         selectedBasemap={selectedBasemap}
         setFamilyStatusOpen={setFamilyStatusOpen}
         setBasemapMenuOpen={setBasemapMenuOpen}
@@ -568,7 +572,7 @@ export default function MapCanvas({
         ivtConfig={ivtConfig}
       />
 
-      {layerFamily && selectedVariable && appState.layers[layerFamily.raster?.layerId] ? (
+      {layerFamily && selectedVariable?.palette && appState.layers[layerFamily.raster?.layerId] ? (
         <MapLegend
           palette={selectedVariable.palette}
           units={selectedVariable.units}

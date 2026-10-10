@@ -4,21 +4,16 @@
 
 A layer family defines the shared selector behavior for a project and may drive one or more dependent layers.
 
-Each project may include:
-
-- zero layer families
-- or exactly one layer family
-
-This keeps the selector UI unambiguous and lets multiple layers share the same date/product/ensemble state.
+Projects can offer several layer families with one active control/legend area.
+Related layers share their family's date/product/variable state. Project-level
+exclusive groups prevent incompatible families from being displayed together.
+Existing single-family projects retain their configuration and behavior.
 
 ## Current location
 
 Layer family definitions live in [src/config/mapConfig.js](../src/config/mapConfig.js) under `LAYER_FAMILIES`.
 
-Current families:
-
-- `cnrfc`
-- `ucrb`
+Current families: `cnrfc`, `ucrb`, `globalHydro`, `arRecon`, and `ocwdLandsat8`.
 
 ## What a layer family defines
 
@@ -150,4 +145,68 @@ If the new raster source has:
 - a different product list
 - or different date semantics
 
-prefer creating a new layer family and a new project rather than overloading the existing `cnrfc` family.
+create a reusable layer family rather than overloading `cnrfc`. A project can offer it alongside another family using the exclusive switching policy below.
+
+## Manifest-driven PNG observations
+
+`ocwdLandsat8` (OCWD Landsat 8) uses a reusable `manifest-raster` family:
+
+- `manifestUrl` identifies a JSON catalog of images.
+- `raster.variables` supplies stable variable IDs and display labels.
+- The manifest supplies `maplibre_coordinates_lon_lat`, `crs: "EPSG:3857"`,
+  `resampling`, `color_scale` (`vmin`, `vmax`, `cmap`, and a legend image), and
+  `images` entries with `index`, `date`, `file`, and `valid_pixels`.
+- Relative image/legend paths resolve against the manifest URL.
+- Only valid dates with positive valid-pixel counts are offered. Partial images
+  remain available; dates are filtered separately for each variable.
+- An unset date selects the latest nonempty observation. An unavailable date
+  selects the preceding available observation, or the first if none precedes it.
+- Previous/next buttons step through observations. The calendar disables missing
+  dates and offers month/year navigation. No forecast or ensemble controls appear.
+- PNGs render at the family's configured opacity (70% for OCWD Landsat 8) with
+  their published resampling mode. BrBG uses the
+  standard vertical legend: ten interval-midpoint colors sampled from Matplotlib,
+  with boundaries from the manifest's minimum to maximum (−1 to +1 for Landsat).
+  The palette is stored in `src/config/colorMaps.js`; unknown colormaps fall back
+  to the manifest's colorbar image.
+- Loading errors show a retry action without displaying a fabricated raster.
+
+Implementation: `src/lib/manifestRaster.js`, `src/features/manifestRaster/`, and
+`createManifestRasterLayer()` in `src/layers/manifestRasterLayer.jsx`. Register
+an adapter for each new manifest raster layer in `src/layers/index.js`.
+
+## Project-level family switching
+
+OCWD demonstrates this configuration:
+
+```js
+layerFamilyId: 'cnrfc', // primary family; retains legacy bookmark meaning
+layerFamilyIds: ['cnrfc', 'ocwdLandsat8'],
+defaultActiveFamilyId: 'ocwdLandsat8',
+exclusiveLayerFamilyGroups: [['cnrfc', 'ocwdLandsat8']],
+```
+
+`getFamilyLayerIds()` derives intrinsic membership from a family's `layerId`,
+`raster.layerId`, `linkedLayers`, and optional `dependentLayerIds`. Static context
+layers should not be listed as dependent layers merely because they cover the
+same domain.
+
+Enabling a family-owned layer selects its family, hides all layers in competing
+families, and restores that family's previously visible sibling layers. Turning
+off one layer leaves its siblings alone. Thus CNRFC streamflow can be displayed
+without the CNRFC raster, but enabling Landsat hides both. Static rivers, basins,
+wells, and boundaries retain their visibility. Family settings are remembered
+within the project. Popups belonging to hidden family layers close.
+
+The normalization and toggle functions in `src/lib/projectFamilies.js` apply the
+same exclusivity policy to defaults, toggles, and bookmark loading. There is no
+global CNRFC-versus-Landsat restriction. Simultaneous independent family controls
+and legends are not implemented; projects using multiple independently controlled
+families should currently place them in one exclusive group. AR Recon's existing
+combined controls and intentional flight/IVT date coordination remain unchanged.
+
+Run the focused regression checks with:
+
+```sh
+node --test tests/layer-families.test.mjs
+```

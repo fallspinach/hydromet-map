@@ -1,5 +1,7 @@
+import { getFamilyLayerIds, getFamilyState, getProjectFamilyIds, normalizeProjectFamilies } from './projectFamilies'
 import {
   BASEMAPS,
+  LAYER_FAMILIES,
   createDefaultAppState,
   DEFAULT_PROJECT_ID,
   getProjectDefinition,
@@ -88,7 +90,21 @@ export function readStateFromUrl() {
 
   const activeProjectId = nextState.activeProjectId
   const activeProjectState = nextState.projectStateById[activeProjectId]
-  const layerFamily = getProjectLayerFamily(activeProjectId)
+  const project = getProjectDefinition(activeProjectId)
+  const ids = getProjectFamilyIds(project)
+  const requestedFamily = params.get('fam')
+  const listedLayers = getFirstParam(params, 'lyr', 'layers')
+  const layerIds = listedLayers?.split(',') ?? []
+  const inferredFamily = ids.find((id) => getFamilyLayerIds(LAYER_FAMILIES[id]).some((key) => layerIds.includes(key)))
+  // Legacy bookmarks without a family key keep their original primary-family meaning.
+  const hasLegacyFamilySelection = ['var', 'variable', 'd', 'date', 'dt', 'datetime', 'prod', 'product'].some((key) => params.has(key))
+  activeProjectState.activeFamilyId = ids.includes(requestedFamily)
+    ? requestedFamily : inferredFamily ?? (hasLegacyFamilySelection ? project.layerFamilyId : activeProjectState.activeFamilyId)
+  const layerFamily = getProjectLayerFamily(activeProjectId, activeProjectState.activeFamilyId)
+  const familyState = getFamilyState(activeProjectState, project, layerFamily?.id)
+  if (listedLayers === null && ids.length > 1 && layerFamily?.raster?.layerId) {
+    activeProjectState.layers[layerFamily.raster.layerId] = true
+  }
   const familyVariables = layerFamily?.raster?.variables ?? {}
   const familyProducts = layerFamily?.selectors?.products ?? []
   const familyEnsembleTraces = layerFamily?.selectors?.ensembleTraces ?? []
@@ -135,29 +151,29 @@ export function readStateFromUrl() {
     activeProjectState.view.pitch = pitch
   }
 
-  if (activeProjectState.family && layerFamily) {
+  if (familyState && layerFamily) {
     if (Object.hasOwn(familyVariables, variable)) {
-      activeProjectState.family.variable = variable
+      familyState.variable = variable
     }
 
     if (familyProducts.includes(product)) {
-      activeProjectState.family.product = product
+      familyState.product = product
     }
 
     if (familyEnsembleTraces.includes(ensemble)) {
-      activeProjectState.family.ensemble = ensemble
+      familyState.ensemble = ensemble
     }
 
     if (temporalMode === 'date' || temporalMode === 'datetime') {
-      activeProjectState.family.temporalMode = temporalMode
+      familyState.temporalMode = temporalMode
     }
 
     if (date) {
-      activeProjectState.family.date = date
+      familyState.date = date
     }
 
     if (datetime) {
-      activeProjectState.family.datetime = datetime
+      familyState.datetime = datetime
     }
 
     Object.entries(layerFamily.bookmarkFields ?? {}).forEach(([field, paramKey]) => {
@@ -167,9 +183,9 @@ export function readStateFromUrl() {
         return
       }
 
-      const defaultValue = activeProjectState.family[field]
+      const defaultValue = familyState[field]
       if (Array.isArray(defaultValue)) {
-        activeProjectState.family[field] = bookmarkedValue
+        familyState[field] = bookmarkedValue
           .split(',')
           .map((value) => value.trim())
           .filter(Boolean)
@@ -178,22 +194,25 @@ export function readStateFromUrl() {
 
       if (typeof defaultValue === 'boolean') {
         if (bookmarkedValue === 'true' || bookmarkedValue === 'false') {
-          activeProjectState.family[field] = bookmarkedValue === 'true'
+          familyState[field] = bookmarkedValue === 'true'
         }
         return
       }
 
-      activeProjectState.family[field] = bookmarkedValue
+      familyState[field] = bookmarkedValue
     })
   }
 
-  if (layers) {
+  if (layers !== null) {
     const enabledIds = new Set(layers.split(','))
     getProjectMapLayers(activeProjectId).forEach((layer) => {
       activeProjectState.layers[layer.id] = enabledIds.has(layer.id)
     })
   }
 
+  nextState.projectStateById[activeProjectId] = normalizeProjectFamilies(
+    activeProjectState, project, LAYER_FAMILIES,
+  )
   return nextState
 }
 
@@ -201,6 +220,12 @@ export function writeStateToUrl(state, { selectedStation = null } = {}) {
   const params = new URLSearchParams()
   const activeProjectId = state.activeProjectId ?? DEFAULT_PROJECT_ID
   const activeProjectState = state.projectStateById?.[activeProjectId] ?? getDefaultProjectState(activeProjectId)
+  const project = getProjectDefinition(activeProjectId)
+  const layerFamily = getProjectLayerFamily(activeProjectId, activeProjectState.activeFamilyId)
+  const familyState = getFamilyState(activeProjectState, project, layerFamily?.id)
+  const multiFamily = getProjectFamilyIds(project).length > 1
+  const familyVisible = getFamilyLayerIds(layerFamily).some((id) => activeProjectState.layers[id])
+  if (multiFamily && familyVisible) params.set('fam', layerFamily.id)
 
   params.set('prj', activeProjectId)
   params.set('bm', activeProjectState.basemapId)
@@ -211,29 +236,28 @@ export function writeStateToUrl(state, { selectedStation = null } = {}) {
   params.set('brg', activeProjectState.view.bearing)
   params.set('pit', activeProjectState.view.pitch)
 
-  if (activeProjectState.family) {
-    if (Object.hasOwn(activeProjectState.family, 'variable')) {
-      params.set('var', activeProjectState.family.variable || getDefaultFamilyState(activeProjectId)?.variable || '')
+  if (familyState && (!multiFamily || familyVisible)) {
+    if (Object.hasOwn(familyState, 'variable')) {
+      params.set('var', familyState.variable || getDefaultFamilyState(activeProjectId)?.variable || '')
     }
-    if (Object.hasOwn(activeProjectState.family, 'product')) {
-      params.set('prod', activeProjectState.family.product)
+    if (Object.hasOwn(familyState, 'product')) {
+      params.set('prod', familyState.product)
     }
-    if (Object.hasOwn(activeProjectState.family, 'ensemble')) {
-      params.set('ens', activeProjectState.family.ensemble)
+    if (Object.hasOwn(familyState, 'ensemble')) {
+      params.set('ens', familyState.ensemble)
     }
-    if (Object.hasOwn(activeProjectState.family, 'temporalMode')) {
-      params.set('tm', activeProjectState.family.temporalMode)
+    if (Object.hasOwn(familyState, 'temporalMode')) {
+      params.set('tm', familyState.temporalMode)
     }
-    if (Object.hasOwn(activeProjectState.family, 'date')) {
-      params.set('d', activeProjectState.family.date)
+    if (Object.hasOwn(familyState, 'date')) {
+      params.set('d', familyState.date)
     }
-    if (Object.hasOwn(activeProjectState.family, 'datetime')) {
-      params.set('dt', activeProjectState.family.datetime)
+    if (Object.hasOwn(familyState, 'datetime')) {
+      params.set('dt', familyState.datetime)
     }
 
-    const layerFamily = getProjectLayerFamily(activeProjectId)
     Object.entries(layerFamily?.bookmarkFields ?? {}).forEach(([field, paramKey]) => {
-      const value = activeProjectState.family[field]
+      const value = familyState[field]
       const serializedValue = Array.isArray(value) ? value.join(',') : value
       if (serializedValue !== undefined && serializedValue !== null && serializedValue !== '') {
         params.set(paramKey, String(serializedValue))

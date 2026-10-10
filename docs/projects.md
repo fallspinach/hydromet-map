@@ -4,7 +4,7 @@
 
 A project is a named map experience that selects:
 
-- a layer family or no layer family
+- available layer families, an active default, and optional mutual-exclusion rules
 - available layer ids
 - layer order in the toggle menu
 - default visible layers
@@ -261,3 +261,11 @@ Use about pages for project credits, source product links, map tool API provider
 - Treat a layer family change as a new project.
 - Reuse layers across projects whenever possible.
 - Keep project-specific differences in project config rather than duplicating layer modules.
+
+## OCWD Landsat 8
+
+The OCWD project offers `cnrfc` and `ocwdLandsat8` as mutually exclusive families.
+The default is the OCWD Landsat 8 raster, NDMI, at the latest nonempty date.
+CNRFC raster and streamflow remain selectable, while static context layers and
+monitoring wells are independent. Existing CNRFC-based OCWD bookmarks still load.
+See [family switching](./raster.md#project-level-family-switching) for reuse rules.

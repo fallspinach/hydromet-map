@@ -1,3 +1,4 @@
+import { createManifestRasterLayer } from './manifestRasterLayer'
 import arRecon3dLayer from './arRecon3dLayer'
 import b120BasinsLayer from './b120BasinsLayer'
 import b120PointsLayer from './b120PointsLayer'
@@ -34,6 +35,7 @@ import yampaRegionLayer from './yampaRegionLayer'
 import yampaPointsLayer from './yampaPointsLayer'
 
 export const MAP_LAYER_MODULES = [
+  createManifestRasterLayer('ocwdLandsat8Raster'),
   gfsIvtParticlesLayer,
   arRecon3dLayer,
   cnrfcBasinsLayer,
