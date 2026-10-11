@@ -1,13 +1,16 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import maplibregl from 'maplibre-gl'
+import { addProtocol, setWorkerUrl } from 'maplibre-gl'
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import { Protocol } from 'pmtiles'
 import './index.css'
 import App from './App.jsx'
 
+setWorkerUrl(maplibreWorkerUrl)
+
 if (!window.__hydrometPmtilesProtocolInstalled) {
   const protocol = new Protocol()
-  maplibregl.addProtocol('pmtiles', protocol.tile)
+  addProtocol('pmtiles', protocol.tile)
   window.__hydrometPmtilesProtocolInstalled = true
 }
 
