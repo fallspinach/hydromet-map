@@ -1,9 +1,10 @@
 # MapLibre / Plotly migration progress
 
 Started 2026-10-11 on `upgrade/maplibre-plotly`. The sibling `main` worktree
-and its server are unchanged. These are initial migration commits, not a
-recommendation to merge; the handoff's full interactive acceptance checks
-remain required.
+and its server are unchanged. Final validation and diff review of application
+commit `39de92d` found no blocking issues. With the user's interactive browser
+checks and confirmation of the IVT fix, the migration is ready for merge.
+No merge, push, or deployment has been performed in this review.
 
 ## Dependency changes
 
@@ -31,8 +32,8 @@ records exact versions. No overrides or forced audit fixes were used.
   MapLibre 6 support in 8.1.2; 8.1.3 also includes a terrain guard.
   See [wrapper release notes](https://github.com/visgl/react-map-gl/releases).
 - AR Recon and IVT use `defaultProjectionData.mainMatrix`; their render
-  callbacks were retained. IVT already uses GLSL ES 3.00. Their full animation,
-  camera, time-change, and style-restoration checks remain acceptance work.
+  callbacks were retained. IVT already uses GLSL ES 3.00. The user subsequently
+  exercised animation, camera movement, time changes, and basemap switching.
 - Inspected Plotly usage: scatter, bar, table, and geographic choropleth traces.
   Kept the full Plotly distribution and existing React factory integration.
   The app does not use the removed Mapbox trace types. The retained wrapper's
@@ -44,7 +45,7 @@ records exact versions. No overrides or forced audit fixes were used.
   See [GHSA-jrc7-96c5-q579](https://github.com/advisories/GHSA-jrc7-96c5-q579).
   This records dependency remediation, not an application exploitability finding.
 
-## Validation so far
+## Validation evidence
 
 - After each dependency stage: `npm run build` and
   `node --test tests/layer-families.test.mjs` passed (10/10 tests).
@@ -52,7 +53,7 @@ records exact versions. No overrides or forced audit fixes were used.
   MapLibre copies and no invalid peer dependencies in the inspected tree.
 - Final `npm run lint` output exactly matches the pre-migration run:
   22 errors and 6 warnings. Existing lint issues were not changed.
-- Production build: main JS 7,223.93 kB / 2,110.08 kB gzip; separate MapLibre
+- Final production build: main JS 7,224.07 kB / 2,110.13 kB gzip; separate MapLibre
   worker 508.31 kB. The existing chunk-size warning remains.
 - Development browser: OCWD loaded with WebGL2, 68 style layers, and no
   page or console errors.
@@ -70,21 +71,20 @@ records exact versions. No overrides or forced audit fixes were used.
   usability on all mobile sizes.
 - Additional production checks with flat basemap and terrain disabled: CNRFC,
   B120, Yampa, and CW3E observations reached `map.loaded() === true` and switched to globe with
-  no recorded page/console errors. The sequential browser run stalled during
-  the global project check and was stopped. Global remains unverified; no
-  baseline comparison has established whether this is an upgrade regression,
-  a remote-resource issue, or a software-rendering limitation.
+  no recorded page/console errors. The sequential browser run appeared to stall
+  during Global and was stopped. Its final log recorded a projection change
+  without page/console errors. This was not a confirmed application freeze;
+  subsequent user testing found no problems with the suggested sequence.
 - A separate run passed CW3E observations but did not complete AR Recon's
-  custom-layer checks and was stopped. AR Recon/IVT remain unverified.
-  Both stalled runs need isolated reproduction and a pre-upgrade comparison;
-  absence of an exception in the partial logs does not establish a pass.
+  custom-layer checks and was stopped. Those automation results are inconclusive;
+  subsequent interactive browser testing supplies the AR Recon evidence below.
 
 Browser checks use Playwright Chromium with `--no-sandbox --use-gl=angle
 --use-angle=swiftshader --enable-unsafe-swiftshader`. Local scripts, screenshots,
 and reports are under ignored `tools/snapshots/output/migration/`.
 Temporary browser processes and the upgrade preview server were stopped.
 
-## Remaining acceptance work
+## Browser acceptance
 
 ### Browser feedback and IVT basemap fix
 
@@ -111,14 +111,33 @@ which excludes custom layers. Restoration no longer waits for tile loading.
 The browser order checks pass for all six directed transitions among Flat,
 Terrain, and Satellite. Build and all 10 existing family/bookmark tests pass;
 lint remains at 22 errors and 6 warnings. A software-rendered screenshot attempt
-timed out, so native-browser visual confirmation of this fix remains pending.
+timed out. The user subsequently confirmed that the transition issue is fixed
+in their interactive browser.
 
-### Other acceptance checks
+## Final review — 2026-10-11
 
-Complete the project matrix and interaction checks in
-[`maplibre-plotly-upgrade-handoff.md`](./maplibre-plotly-upgrade-handoff.md),
-especially native-GPU custom rendering, flight/IVT animation and style reloads,
-hover/click, terrain, in-app project switching, popup zoom/export/close/reopen,
-and full desktop/mobile family and bookmark restoration. Keep known globe
-dragging issues distinct from new regressions. No merge or deployment has
-been performed.
+- Reviewed the complete diff against freshly fetched `origin/main`, including
+  lockfile changes, ESM/worker initialization, both custom-layer ordering
+  handlers, and the migration guidance. No blocking code findings.
+- Runtime changes are limited to three application files plus dependency
+  manifests. No project configurations, published data URLs, bookmark keys,
+  CSV/export code, or plot definitions changed.
+- The lockfile's root dependency declarations match `package.json`. Changes
+  are in the MapLibre/Plotly dependency trees and the React map wrapper.
+  `npm ls --all` exits successfully, with no invalid or missing dependencies.
+- Re-ran build, all 10 family/bookmark tests, lint comparison, and audit on
+  `39de92d`: build/tests pass, lint output matches the original baseline exactly,
+  and audit reports zero vulnerabilities. Both direct and Plotly-nested
+  MapLibre versions were checked.
+- Confirmed that the generated worker asset exists and is referenced by the
+  production JavaScript bundle. `git diff --check` passes.
+- Freshly fetched `origin/main` is an ancestor of this branch; there are no
+  new main commits to reconcile. The working main worktree remains unchanged.
+
+Limitations: lint and the large-bundle warning predate this work and remain.
+Headless software-rendered checks are not an exhaustive visual test suite;
+the user's interactive checks are recorded separately above. Individual popup
+exports, every close/reopen combination, and the complete mobile matrix were
+not separately recorded as final acceptance tests. No known migration defect
+remains after the user-confirmed IVT fix. The original handoff remains available
+as a broader regression checklist.
