@@ -511,13 +511,13 @@ export default function ArRecon3dLayer({
         setLoadedFlightsData(flightsData)
 
         const addLayer = () => {
-          const styleLayers = mapInstance.getStyle()?.layers
-          if (disposed || !styleLayers?.length) {
+          const layerIds = mapInstance.getLayersOrder()
+          if (disposed || !layerIds.length) {
             return
           }
 
           if (mapInstance.getLayer(AR_RECON_CUSTOM_LAYER_ID)) {
-            if (styleLayers.at(-1)?.id !== AR_RECON_CUSTOM_LAYER_ID) {
+            if (layerIds.at(-1) !== AR_RECON_CUSTOM_LAYER_ID) {
               try {
                 mapInstance.moveLayer(AR_RECON_CUSTOM_LAYER_ID)
               } catch {

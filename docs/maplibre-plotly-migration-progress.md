@@ -86,6 +86,35 @@ Temporary browser processes and the upgrade preview server were stopped.
 
 ## Remaining acceptance work
 
+### Browser feedback and IVT basemap fix
+
+The user subsequently tested Global and AR Recon in an interactive browser,
+including animation, time changes, camera movement, basemap switches, popups,
+hover, projection, and terrain, and initially found no obvious problems.
+Repeating the suggested Global/AR Recon sequences also caused no crash.
+The earlier automated stalls are inconclusive automation results, not confirmed
+application freezes; their final logs include errors caused by terminating the
+test browsers.
+
+A later user report identified a separate reproducible issue: IVT particles
+disappear on Flat/Terrain → Satellite. Instrumented browser testing confirmed
+that the custom layer survives a style diff but falls beneath the newly inserted
+Satellite imagery (IVT index 0, Satellite index 1). The previous handler returned
+when IVT already existed and never repaired its order; its `isStyleLoaded()` guard
+also blocked restoration while imagery was loading.
+
+The handler now restores IVT above the basemap and below the AR Recon flight
+layer, using `getLayersOrder()` to include custom layers. Flight-layer ordering
+uses that API as well, avoiding repeated moves based on `getStyle().layers`,
+which excludes custom layers. Restoration no longer waits for tile loading.
+
+The browser order checks pass for all six directed transitions among Flat,
+Terrain, and Satellite. Build and all 10 existing family/bookmark tests pass;
+lint remains at 22 errors and 6 warnings. A software-rendered screenshot attempt
+timed out, so native-browser visual confirmation of this fix remains pending.
+
+### Other acceptance checks
+
 Complete the project matrix and interaction checks in
 [`maplibre-plotly-upgrade-handoff.md`](./maplibre-plotly-upgrade-handoff.md),
 especially native-GPU custom rendering, flight/IVT animation and style reloads,

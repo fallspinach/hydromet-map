@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 const CUSTOM_LAYER_ID = 'gfs-ivt-particle-custom-layer'
+const FLIGHT_LAYER_ID = 'ar-recon-three-layer'
 const PARTICLE_COUNT = 6400
 const MAX_AGE = 280
 const HISTORY_LENGTH = 64
@@ -423,14 +424,24 @@ export default function GfsIvtParticlesLayer({
         }
         const field = decodeField(texture, manifest)
         const addLayer = () => {
-          if (cancelled || !mapInstance.isStyleLoaded()) return
+          // A style can accept layers while its imagery is still loading.
+          if (cancelled || !mapInstance.getStyle()) return
+          const beforeId = mapInstance.getLayer(FLIGHT_LAYER_ID) ? FLIGHT_LAYER_ID : undefined
           if (mapInstance.getLayer(CUSTOM_LAYER_ID)) {
+            // Style diffs retain custom layers but can insert the new basemap
+            // above them. getStyle().layers omits custom layers; use the actual
+            // render order and keep the flight overlay above the particles.
+            const layerIds = mapInstance.getLayersOrder()
+            const targetIndex = beforeId ? layerIds.indexOf(beforeId) - 1 : layerIds.length - 1
+            if (layerIds.indexOf(CUSTOM_LAYER_ID) !== targetIndex) {
+              mapInstance.moveLayer(CUSTOM_LAYER_ID, beforeId)
+            }
             mapInstance.triggerRepaint()
             return
           }
           const layer = createParticleLayer(mapInstance, field, ivtConfig.palette)
           try {
-            mapInstance.addLayer(layer)
+            mapInstance.addLayer(layer, beforeId)
             layerRef.current = layer
           } catch {
             layer.onRemove(mapInstance, mapInstance.getCanvas().getContext('webgl2'))
