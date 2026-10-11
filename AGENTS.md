@@ -6,6 +6,9 @@ This file provides guidance for coding agents working in this repository. Projec
 
 ## Working Style
 
+- For MapLibre/Plotly migration work on `upgrade/maplibre-plotly`, read
+  `docs/maplibre-plotly-upgrade-handoff.md` first for scope, baseline checks,
+  and the separation from the working map's `main` worktree.
 - Prefer small, focused changes that follow existing project patterns.
 - Read nearby implementation before adding new abstractions.
 - Do not revert unrelated user changes.
