@@ -1,3 +1,4 @@
+import { getProductMaxDate, normalizeRasterProduct } from './lib/rasterProducts'
 import { startTransition, useCallback, useEffect, useRef, useState } from 'react'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import 'react-datepicker/dist/react-datepicker.css'
@@ -29,7 +30,6 @@ import { normalizeManifestSelection } from './lib/manifestRaster'
 import useManifestRasterFamily from './features/manifestRaster/useManifestRasterFamily'
 
 const NRT_PRODUCT = 'NRT'
-const FORECAST_PRODUCTS = ['WWRF-ECMWF', 'WWRF-GFS', 'GFS']
 
 function formatStatusDate(date) {
   const year = date.getFullYear()
@@ -114,6 +114,7 @@ function buildInitialStatusBoundaryByProjectId() {
 
       return [projectId, {
         ...buildStatusBoundary(getInitialStatusTimestamp()),
+        pending: Boolean(familySelectors.statusUrl),
         ...buildFamilyDateBounds({
           minDate: familySelectors.minDate,
           minDateTime: familySelectors.minDateTime,
@@ -174,12 +175,14 @@ function constrainFamilyStateToStatusBoundary(familyState, statusBoundary, layer
     return familyState
   }
 
-  const nextFamily = { ...familyState }
+  const nextFamily = normalizeRasterProduct(familyState, layerFamily)
+  // Preserve bookmarked forecast dates until the live NRT boundary is available.
+  if (statusBoundary?.pending) return nextFamily
   const familyProducts = layerFamily?.selectors?.products ?? []
   const forecastProducts = familyProducts.filter((product) => product !== NRT_PRODUCT)
   const minDate = statusBoundary?.minDate ?? layerFamily?.selectors?.minDate ?? null
   const minDateTime = statusBoundary?.minDateTime ?? layerFamily?.selectors?.minDateTime ?? null
-  const maxDate = statusBoundary?.maxDate ?? layerFamily?.selectors?.maxDate ?? null
+  const maxDate = getProductMaxDate(layerFamily, nextFamily.product, statusBoundary) ?? layerFamily?.selectors?.maxDate ?? null
   const maxDateTime = statusBoundary?.maxDateTime ?? layerFamily?.selectors?.maxDateTime ?? null
 
   if (minDate && nextFamily.date < minDate) {
@@ -221,7 +224,7 @@ function constrainFamilyStateToStatusBoundary(familyState, statusBoundary, layer
     nextFamily.product = allowedProducts[0]
   }
 
-  return nextFamily
+  return normalizeRasterProduct(nextFamily, layerFamily)
 }
 
 function updateActiveProjectState(current, updater) {
@@ -416,12 +419,12 @@ function App() {
         }
       }))
 
-      if (abortController.signal.aborted || Object.keys(loadedStatusByProjectId).length === 0) {
+      if (abortController.signal.aborted) {
         return
       }
 
       setStatusBoundaryByProjectId((current) => {
-        const next = { ...current }
+        const next = Object.fromEntries(Object.entries(current).map(([id, boundary]) => [id, { ...boundary, pending: false }]))
 
         Object.entries(loadedStatusByProjectId).forEach(([projectId, statusState]) => {
           if (statusState.boundary) {

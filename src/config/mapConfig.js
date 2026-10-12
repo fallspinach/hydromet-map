@@ -325,8 +325,15 @@ export const GLOBAL_RASTER_COORDINATES = [
   [-180, -85],
 ]
 
-export function getRasterProductPath(product) {
+export const WWRF_ENSEMBLE_MEMBERS = [
+  ...Array.from({ length: 120 }, (_, index) => `ecm${String(index).padStart(3, '0')}`),
+  ...Array.from({ length: 80 }, (_, index) => `gefs${String(index).padStart(3, '0')}`),
+]
+
+export function getRasterProductPath(product, ensemble) {
   switch (product) {
+    case 'WWRF-Ens':
+      return WWRF_ENSEMBLE_MEMBERS.includes(ensemble) ? `fcst/wwrf_ens/${ensemble}` : null
     case 'WWRF-ECMWF':
       return 'fcst/wwrf_ecmwf'
     case 'WWRF-GFS':
@@ -385,7 +392,7 @@ export const CNRFC_RASTER_VARIABLES = {
       ],
     },
     buildRasterUrl: ({ date, product }) => {
-      if (!date) {
+      if (!date || product === 'WWRF-Ens') {
         return null
       }
 
@@ -421,7 +428,7 @@ export const CNRFC_RASTER_VARIABLES = {
       ],
     },
     buildRasterUrl: ({ date, product }) => {
-      if (!date) {
+      if (!date || product === 'WWRF-Ens') {
         return null
       }
 
@@ -465,8 +472,8 @@ export const CNRFC_RASTER_VARIABLES = {
         '#663300',
       ],
     },
-    buildRasterUrl: ({ date, product }) => {
-      if (!date) {
+    buildRasterUrl: ({ date, product, ensemble }) => {
+      if (!date || !getRasterProductPath(product, ensemble)) {
         return null
       }
 
@@ -477,7 +484,7 @@ export const CNRFC_RASTER_VARIABLES = {
       }
 
       const yyyy = yyyymmdd.slice(0, 4)
-      return `https://cw3e.ucsd.edu/hydro/cnrfc/imgs/${getRasterProductPath(product)}/forcing/${yyyy}/precip_${yyyymmdd}.png`
+      return `https://cw3e.ucsd.edu/hydro/cnrfc/imgs/${getRasterProductPath(product, ensemble)}/forcing/${yyyy}/precip_${yyyymmdd}.png`
     },
   },
   temperatureDaily: {
@@ -508,8 +515,8 @@ export const CNRFC_RASTER_VARIABLES = {
         '#ff0000',
       ],
     },
-    buildRasterUrl: ({ date, product }) => {
-      if (!date) {
+    buildRasterUrl: ({ date, product, ensemble }) => {
+      if (!date || !getRasterProductPath(product, ensemble)) {
         return null
       }
 
@@ -520,7 +527,7 @@ export const CNRFC_RASTER_VARIABLES = {
       }
 
       const yyyy = yyyymmdd.slice(0, 4)
-      return `https://cw3e.ucsd.edu/hydro/cnrfc/imgs/${getRasterProductPath(product)}/forcing/${yyyy}/tair2m_${yyyymmdd}.png`
+      return `https://cw3e.ucsd.edu/hydro/cnrfc/imgs/${getRasterProductPath(product, ensemble)}/forcing/${yyyy}/tair2m_${yyyymmdd}.png`
     },
   },
   precipitationMonthly: {
@@ -545,7 +552,7 @@ export const CNRFC_RASTER_VARIABLES = {
       ],
     },
     buildRasterUrl: ({ date, product }) => {
-      if (!date) {
+      if (!date || product === 'WWRF-Ens') {
         return null
       }
 
@@ -582,7 +589,7 @@ export const CNRFC_RASTER_VARIABLES = {
       ],
     },
     buildRasterUrl: ({ date, product }) => {
-      if (!date) {
+      if (!date || product === 'WWRF-Ens') {
         return null
       }
 
@@ -607,7 +614,7 @@ export const CNRFC_RASTER_VARIABLES = {
       colors: ['#f0fdf4', '#86efac', '#22c55e', '#15803d', '#14532d'],
     },
     buildRasterUrl: ({ datetime, product }) => {
-      if (!datetime) {
+      if (!datetime || product === 'WWRF-Ens') {
         return null
       }
 
@@ -865,8 +872,15 @@ export const LAYER_FAMILIES = {
       variables: CNRFC_RASTER_VARIABLES,
     },
     selectors: {
-      products: ['NRT', 'WWRF-ECMWF', 'WWRF-GFS', 'GFS'],
-      ensembleTraces: ['Control', 'Mean', 'P10', 'P50', 'P90'],
+      products: ['NRT', 'WWRF-ECMWF', 'WWRF-GFS', 'GFS', 'WWRF-Ens'],
+      productOptions: {
+        'WWRF-Ens': {
+          ensembleTraces: WWRF_ENSEMBLE_MEMBERS,
+          variables: ['precipitationDaily', 'temperatureDaily'],
+          maxLeadDays: 7,
+        },
+      },
+      ensembleTraces: [],
       statusUrl: 'https://cw3e.ucsd.edu/hydro/cnrfc/csv/status.json',
       statusKey: 'WRF-Hydro NRT',
       defaultDate: '2026-04-13',
@@ -881,7 +895,7 @@ export const LAYER_FAMILIES = {
     linkedLayers: {
       cnrfcStreamflow: {
         buildDataPmtilesUrl: ({ date, product }) => {
-          if (!date) {
+          if (!date || product === 'WWRF-Ens') {
             return null
           }
 

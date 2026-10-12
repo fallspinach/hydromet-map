@@ -1,3 +1,4 @@
+import { getProductMembers, getProductVariables, getProductMaxDate } from '../../lib/rasterProducts'
 import ManifestRasterControls from '../../features/manifestRaster/ManifestRasterControls'
 import { getFamilyLayerIds } from '../../lib/projectFamilies'
 import DatePicker from 'react-datepicker'
@@ -41,13 +42,13 @@ export default function MapHud({
   ivtConfig,
 }) {
   const projectLayers = getProjectMapLayers(activeProject?.id)
-  const familyVariables = layerFamily?.raster?.variables ?? {}
+  const familyVariables = getProductVariables(layerFamily, appState.family?.product)
   const familyVariableIds = Object.keys(familyVariables)
   const selectedRasterVariable =
     familyVariables[appState.family?.variable] ?? familyVariables[familyVariableIds[0]] ?? null
   const familyProducts = layerFamily?.selectors?.products ?? []
   const familyProductLabels = layerFamily?.selectors?.productLabels ?? {}
-  const ensembleTraces = layerFamily?.selectors?.ensembleTraces ?? []
+  const ensembleTraces = getProductMembers(layerFamily, appState.family?.product)
   const hasStatusPanel = Boolean(activeProject?.statusButtonEnabled && layerFamily?.statusPanel?.url)
   const familyVisible = getFamilyLayerIds(layerFamily).some((id) => appState.layers[id])
   const rasterControlsEnabled = layerFamily?.kind !== 'manifest-raster'
@@ -86,7 +87,7 @@ export default function MapHud({
   const isForecastProduct = appState.family?.product !== 'NRT'
   const activeRasterLayerId = layerFamily?.raster?.layerId
   const minPickerDate = parseIsoDate(statusBoundary.minDate)
-  const maxPickerDate = parseIsoDate(statusBoundary.maxDate)
+  const maxPickerDate = parseIsoDate(getProductMaxDate(layerFamily, appState.family?.product, statusBoundary))
   const minPickerDateTime = parseIsoDateTime(statusBoundary.minDateTime)
   const maxPickerDateTime = parseIsoDateTime(statusBoundary.maxDateTime)
   const selectedDateTime = parseIsoDateTime(appState.family?.datetime ?? '')
@@ -206,7 +207,7 @@ export default function MapHud({
         ) : null}
 
         {layerFamily && appState.family && hasFamilyDateSelector ? (
-          <div className="date-row date-row--map">
+          <div className={`date-row date-row--map${layerFamily?.selectors?.productOptions ? ' date-row--product-options' : ''}`}>
             {isDateTimeMode ? (
               <>
                 <button
@@ -388,7 +389,7 @@ export default function MapHud({
         ) : null}
       </div>
 
-      <div className="raster-toolbar">
+      <div className={`raster-toolbar${layerFamily?.selectors?.productOptions ? ' raster-toolbar--product-options' : ''}`}>
         {ivtConfig && appState.layers.gfsIvtParticles && appState.family ? (
           <GfsIvtControls
             familyState={appState.family}
@@ -432,7 +433,8 @@ export default function MapHud({
             {hasEnsembleSelector ? (
               <select
                 value={appState.family.ensemble}
-                title="Ensemble trace"
+                title="Ensemble member"
+                aria-label="Ensemble member"
                 onChange={(event) => updateFamily('ensemble', event.target.value)}
               >
                 {ensembleTraces.map((trace) => (

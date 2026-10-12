@@ -1,3 +1,4 @@
+import { WWRF_ENSEMBLE_MEMBERS } from '../../config/mapConfig'
 import { buildCsvDownloadFileName } from '../../lib/csvExport'
 
 const buildStationCsvUrl = (product, timestep) => ({ stationId, popupState }) => {
@@ -15,6 +16,7 @@ export const CNRFC_POINT_POPUP_FORECAST_PRODUCTS = [
   { id: 'wwrf-ecmwf', label: 'WWRF-ECMWF', path: 'wwrf_ecmwf' },
   { id: 'wwrf-gfs', label: 'WWRF-GFS', path: 'wwrf_gfs' },
   { id: 'gfs', label: 'GFS', path: 'gfs' },
+  { id: 'wwrf-ens', label: 'WWRF-Ens', path: 'wwrf_ens' },
 ]
 export const DEFAULT_CNRFC_POINT_POPUP_FORECAST_PRODUCT = CNRFC_POINT_POPUP_FORECAST_PRODUCTS[0].id
 
@@ -159,6 +161,7 @@ export const CNRFC_POINT_POPUP_TABS = [
           {
             id: 'nrt',
             buildUrl: buildStationCsvUrl('nrt', 'hourly'),
+            recentWaterYears: 2,
           },
           {
             id: 'fcst',
@@ -226,6 +229,7 @@ export const CNRFC_POINT_POPUP_TABS = [
           precNrt: {
             sourceId: 'nrt',
             column: 'PREC',
+            minValue: 0,
             label: 'P (mm)',
             type: 'bar',
             marker: { color: '#B7CEEC' },
@@ -258,6 +262,7 @@ export const CNRFC_POINT_POPUP_TABS = [
           precFcst: {
             sourceId: 'fcst',
             column: 'PREC',
+            minValue: 0,
             label: 'Fcst P (mm)',
             type: 'bar',
             marker: { color: '#B7CEEC', pattern: { shape: '/', bgcolor: 'white', fgcolor: 'darkgray', fillmode: 'replace' } },
@@ -360,6 +365,7 @@ export const CNRFC_POINT_POPUP_TABS = [
           precNrt: {
             sourceId: 'nrt',
             column: 'PREC',
+            minValue: 0,
             label: 'P (mm)',
             type: 'bar',
             marker: { color: '#B7CEEC' },
@@ -398,6 +404,7 @@ export const CNRFC_POINT_POPUP_TABS = [
           precFcst: {
             sourceId: 'fcst',
             column: 'PREC',
+            minValue: 0,
             label: 'FcstP (mm)',
             type: 'bar',
             marker: { color: '#B7CEEC', pattern: { shape: '/', bgcolor: 'white', fgcolor: 'darkgray', fillmode: 'replace' } },
@@ -512,6 +519,7 @@ export const CNRFC_POINT_POPUP_TABS = [
           PREC: {
             sourceId: 'nrt',
             column: 'PREC',
+            minValue: 0,
             label: 'P (mm)',
             type: 'bar',
             marker: { color: '#B7CEEC' },
@@ -546,8 +554,43 @@ export const CNRFC_POINT_POPUP_TABS = [
   },
 ]
 
-export function getCnrfcPointPopupTabDefinition(tabId) {
-  return CNRFC_POINT_POPUP_TABS.find((tab) => tab.id === tabId) ?? null
+const dailyPointPlot = CNRFC_POINT_POPUP_TABS.find((tab) => tab.id === 'daily').plots[0]
+
+const CNRFC_ENSEMBLE_RUNOFF_TAB = {
+  id: 'daily',
+  label: 'Daily',
+  plots: [{
+    id: 'main',
+    type: 'timeseries',
+    sources: dailyPointPlot.sources,
+    titleTemplate: 'NRT + WWRF-Ens ({stationId})',
+    hovermode: 'closest',
+    layout: DEFAULT_TIMESERIES_LAYOUT,
+    plotlyConfig: DEFAULT_TIMESERIES_PLOTLY_CONFIG,
+    csvDownload: { enabled: true, fileName: buildCnrfcCsvDownloadFileName },
+    xAxis: dailyPointPlot.xAxis,
+    axes: dailyPointPlot.axes,
+    series: {
+      ...Object.fromEntries(Object.entries(dailyPointPlot.series).filter(([, series]) => series.sourceId === 'nrt')),
+      ...Object.fromEntries(WWRF_ENSEMBLE_MEMBERS.map((member) => [member, {
+        sourceId: 'fcst',
+        column: `RUNOFF_${member}`,
+        label: member,
+        yAxis: 'y3',
+        showlegend: false,
+        line: { color: 'rgba(37,99,235,0.4)', width: 1, dash: 'dash' },
+        hovertemplate: `${member}<br>%{x|%Y-%m-%d}<br>RUNOFF: %{y:.4f} m³/s<extra></extra>`,
+      }])),
+    },
+  }],
+}
+
+export function getCnrfcPointPopupProductTabs(productId) {
+  return productId === 'wwrf-ens' ? [CNRFC_ENSEMBLE_RUNOFF_TAB] : CNRFC_POINT_POPUP_TABS
+}
+
+export function getCnrfcPointPopupTabDefinition(tabId, productId) {
+  return getCnrfcPointPopupProductTabs(productId).find((tab) => tab.id === tabId) ?? null
 }
 
 export function getDefaultCnrfcPointPopupTabId() {

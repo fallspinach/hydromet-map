@@ -2,7 +2,7 @@ import { fetchAndParseCsv } from '../../lib/csvData'
 import { buildRawSourceDownloadFiles } from '../../lib/csvExport'
 import {
   DEFAULT_CNRFC_POINT_POPUP_FORECAST_PRODUCT,
-  CNRFC_POINT_POPUP_TABS,
+  getCnrfcPointPopupProductTabs,
   getDefaultCnrfcPointPopupTabId,
   getCnrfcPointPopupForecastProductLabel,
   getCnrfcPointPopupTabDefinition,
@@ -22,7 +22,13 @@ function transformSeriesValue(rawValue, seriesConfig) {
   const offset = seriesConfig.offset ?? 0
   const transformedValue = rawValue * scaleFactor + offset
 
-  return Number.isFinite(transformedValue) ? transformedValue : null
+  if (!Number.isFinite(transformedValue)) {
+    return null
+  }
+
+  return seriesConfig.minValue !== undefined
+    ? Math.max(seriesConfig.minValue, transformedValue)
+    : transformedValue
 }
 
 function normalizeAxisTitle(title) {
@@ -148,9 +154,9 @@ function createEmptyTabState(tabDefinition) {
   }
 }
 
-function createEmptyTabDataById() {
+function createEmptyTabDataById(productId) {
   return Object.fromEntries(
-    CNRFC_POINT_POPUP_TABS.map((tabDefinition) => [tabDefinition.id, createEmptyTabState(tabDefinition)]),
+    getCnrfcPointPopupProductTabs(productId).map((tabDefinition) => [tabDefinition.id, createEmptyTabState(tabDefinition)]),
   )
 }
 
@@ -183,6 +189,8 @@ function buildTrace(seriesKey, seriesConfig, sourceRecord) {
     name: seriesConfig.label ?? seriesKey,
     x: xValues,
     y: yValues,
+    ...(seriesConfig.showlegend !== undefined ? { showlegend: seriesConfig.showlegend } : {}),
+    ...(seriesConfig.hovertemplate ? { hovertemplate: seriesConfig.hovertemplate } : {}),
   }
 
   if (axisId !== 'y') {
@@ -211,6 +219,23 @@ function buildTrace(seriesKey, seriesConfig, sourceRecord) {
   return trace
 }
 
+function retainRecentWaterYears(rows, xField, count) {
+  if (!count || !xField) return rows
+
+  // Compare published calendar dates directly so local time zones cannot shift October 1.
+  const datePart = (row) => typeof row[xField] === 'string' ? row[xField].slice(0, 10) : ''
+  const latestDate = rows.reduce((latest, row) => {
+    const date = datePart(row)
+    return /^\d{4}-\d{2}-\d{2}$/.test(date) && date > latest ? date : latest
+  }, '')
+  if (!latestDate) return rows
+
+  const year = Number(latestDate.slice(0, 4))
+  const currentWaterYearStart = Number(latestDate.slice(5, 7)) >= 10 ? year : year - 1
+  const cutoff = `${currentWaterYearStart - count + 1}-10-01`
+  return rows.filter((row) => datePart(row) >= cutoff)
+}
+
 async function fetchPlotSources(plotDefinition, station) {
   const sourceEntries = await Promise.all(
     (plotDefinition.sources ?? []).map(async (sourceDefinition) => {
@@ -220,15 +245,16 @@ async function fetchPlotSources(plotDefinition, station) {
         popupState: station.popup,
       })
       const { rows, fields } = await fetchAndParseCsv(url, { dynamicTyping: true })
+      const xField = findTimeAxisField(fields)
 
       return [
         sourceDefinition.id,
         {
           id: sourceDefinition.id,
           url,
-          rows,
+          rows: retainRecentWaterYears(rows, xField, sourceDefinition.recentWaterYears),
           fields,
-          xField: findTimeAxisField(fields),
+          xField,
         },
       ]
     }),
@@ -366,7 +392,8 @@ export function setCnrfcPointPopupForecastProduct(setSelectedStation, productId)
           popup: {
             ...current.popup,
             forecastProduct: productId,
-            tabDataById: createEmptyTabDataById(),
+            activeTabId: productId === 'wwrf-ens' ? 'daily' : current.popup.activeTabId,
+            tabDataById: createEmptyTabDataById(productId),
           },
         }
       : current,
@@ -374,14 +401,16 @@ export function setCnrfcPointPopupForecastProduct(setSelectedStation, productId)
 }
 
 export function loadCnrfcPointPopupTabData(setSelectedStation, station, tabId) {
-  const tabDefinition = getCnrfcPointPopupTabDefinition(tabId)
+  const forecastProduct = station.popup?.forecastProduct
+  if (forecastProduct === 'wwrf-ens') tabId = 'daily'
+  const tabDefinition = getCnrfcPointPopupTabDefinition(tabId, forecastProduct)
 
   if (!tabDefinition) {
     return
   }
 
   setSelectedStation((current) => {
-    if (!current || current.id !== station.id) {
+    if (!current || current.id !== station.id || current.popup?.forecastProduct !== forecastProduct) {
       return current
     }
 
@@ -401,6 +430,7 @@ export function loadCnrfcPointPopupTabData(setSelectedStation, station, tabId) {
       ...current,
       popup: {
         ...current.popup,
+        ...(forecastProduct === 'wwrf-ens' ? { activeTabId: 'daily' } : {}),
         tabDataById: {
           ...current.popup.tabDataById,
           [tabId]: buildLoadingTabState(tabDefinition, currentTabState),
@@ -409,7 +439,7 @@ export function loadCnrfcPointPopupTabData(setSelectedStation, station, tabId) {
     }
   })
 
-  Promise.all(
+  return Promise.all(
     tabDefinition.plots.map(async (plotDefinition) => [
       plotDefinition.id,
       await buildPlotState(plotDefinition, station),
@@ -417,7 +447,7 @@ export function loadCnrfcPointPopupTabData(setSelectedStation, station, tabId) {
   )
     .then((plotEntries) => {
       setSelectedStation((current) =>
-        current?.id === station.id
+        current?.id === station.id && current.popup?.forecastProduct === forecastProduct
           ? {
               ...current,
               popup: {
@@ -435,7 +465,7 @@ export function loadCnrfcPointPopupTabData(setSelectedStation, station, tabId) {
     })
     .catch((error) => {
       setSelectedStation((current) =>
-        current?.id === station.id
+        current?.id === station.id && current.popup?.forecastProduct === forecastProduct
           ? {
               ...current,
               popup: {
@@ -464,8 +494,8 @@ export function loadCnrfcPointPopupTabData(setSelectedStation, station, tabId) {
     })
 }
 
-export function getCnrfcPointPopupTabs() {
-  return CNRFC_POINT_POPUP_TABS
+export function getCnrfcPointPopupTabs(productId) {
+  return getCnrfcPointPopupProductTabs(productId)
 }
 function buildXAxisLayout(plotDefinition, station) {
   if (typeof plotDefinition.xAxis === 'function') {

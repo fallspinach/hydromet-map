@@ -2107,6 +2107,22 @@ button:disabled {
     display: none;
   }
 
+  .date-row--product-options {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .date-row--product-options .date-field {
+    width: 116px;
+  }
+
+  .raster-toolbar--product-options {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: calc(100vw - 1.7rem);
+  }
+
   .raster-toolbar:has(.ar-recon-toolbar) {
     display: flex;
   }

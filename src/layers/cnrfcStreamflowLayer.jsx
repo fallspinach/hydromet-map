@@ -278,7 +278,7 @@ function CnrfcStreamflowLayers({ appState, interactionState, layerFamily, mapIns
 const cnrfcStreamflowLayer = {
   id: 'cnrfcStreamflow',
   stateKey: 'hoveredCnrfcStreamflow',
-  isVisible: ({ appState }) => appState.layers.cnrfcStreamflow,
+  isVisible: ({ appState }) => appState.layers.cnrfcStreamflow && appState.family?.product !== 'WWRF-Ens',
   getInteractiveLayerIds() {
     return ['cnrfc-streamflow-line']
   },

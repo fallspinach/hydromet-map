@@ -1,3 +1,4 @@
+import { getProductMembers, normalizeRasterProduct } from './rasterProducts'
 import { getFamilyLayerIds, getFamilyState, getProjectFamilyIds, normalizeProjectFamilies } from './projectFamilies'
 import {
   BASEMAPS,
@@ -107,7 +108,6 @@ export function readStateFromUrl() {
   }
   const familyVariables = layerFamily?.raster?.variables ?? {}
   const familyProducts = layerFamily?.selectors?.products ?? []
-  const familyEnsembleTraces = layerFamily?.selectors?.ensembleTraces ?? []
   const basemapId = getFirstParam(params, 'bm', 'basemap')
   const projection = getFirstParam(params, 'proj', 'projection')
   const terrain = getFirstParam(params, 'ter', 'terrain')
@@ -160,7 +160,7 @@ export function readStateFromUrl() {
       familyState.product = product
     }
 
-    if (familyEnsembleTraces.includes(ensemble)) {
+    if (getProductMembers(layerFamily, familyState.product).includes(ensemble)) {
       familyState.ensemble = ensemble
     }
 
@@ -175,6 +175,8 @@ export function readStateFromUrl() {
     if (datetime) {
       familyState.datetime = datetime
     }
+
+    Object.assign(familyState, normalizeRasterProduct(familyState, layerFamily))
 
     Object.entries(layerFamily.bookmarkFields ?? {}).forEach(([field, paramKey]) => {
       const bookmarkedValue = params.get(paramKey)
@@ -243,7 +245,7 @@ export function writeStateToUrl(state, { selectedStation = null } = {}) {
     if (Object.hasOwn(familyState, 'product')) {
       params.set('prod', familyState.product)
     }
-    if (Object.hasOwn(familyState, 'ensemble')) {
+    if (getProductMembers(layerFamily, familyState.product).includes(familyState.ensemble)) {
       params.set('ens', familyState.ensemble)
     }
     if (Object.hasOwn(familyState, 'temporalMode')) {

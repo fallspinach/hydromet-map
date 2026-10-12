@@ -133,3 +133,45 @@ test('family state edits do not leak across projects', () => {
   app.projectStateById.ocwd = setFamilyState(app.projectStateById.ocwd, project, 'cnrfc', { variable: 'sweDaily' })
   assert.equal(app.projectStateById.cnrfc.family.variable, 'soilMoistureDaily')
 })
+
+test('WWRF-Ens publishes exactly 200 members and builds both daily forcing URLs', () => {
+  const members = config.WWRF_ENSEMBLE_MEMBERS
+  assert.equal(members.length, 200)
+  assert.equal(new Set(members).size, 200)
+  assert.deepEqual([members[0], members[119], members[120], members[199]], ['ecm000', 'ecm119', 'gefs000', 'gefs079'])
+  for (const ensemble of ['ecm000', 'ecm119', 'gefs000', 'gefs079']) {
+    for (const [variable, name] of [['precipitationDaily', 'precip'], ['temperatureDaily', 'tair2m']]) {
+      assert.equal(config.CNRFC_RASTER_VARIABLES[variable].buildRasterUrl({ date: '2026-10-11', product: 'WWRF-Ens', ensemble }),
+        `https://cw3e.ucsd.edu/hydro/cnrfc/imgs/fcst/wwrf_ens/${ensemble}/forcing/2026/${name}_20261011.png`)
+    }
+  }
+  assert.equal(config.CNRFC_RASTER_VARIABLES.precipitationDaily.buildRasterUrl({ date: '2026-10-11', product: 'WWRF-Ens', ensemble: 'gefs080' }), null)
+  assert.equal(config.CNRFC_RASTER_VARIABLES.sweDaily.buildRasterUrl({ date: '2026-10-11', product: 'WWRF-Ens' }), null)
+  assert.equal(LAYER_FAMILIES.cnrfc.linkedLayers.cnrfcStreamflow.buildDataPmtilesUrl({ date: '2026-10-11', product: 'WWRF-Ens' }), null)
+  assert.equal(config.CNRFC_RASTER_VARIABLES.precipitationDaily.buildRasterUrl({ date: '2026-10-11', product: 'NRT' }),
+    'https://cw3e.ucsd.edu/hydro/cnrfc/imgs/nrt/forcing/2026/precip_20261011.png')
+})
+
+test('ensemble bookmarks round-trip, normalize unavailable variables/members, and omit deterministic ensembles', () => {
+  const app = read('?prj=cnrfc&prod=WWRF-Ens&ens=gefs079&var=temperatureDaily&d=2026-10-11')
+  const restored = read(new URL(bookmarks.writeStateToUrl(app)).search).projectStateById.cnrfc.family
+  assert.equal(restored.product, 'WWRF-Ens')
+  assert.equal(restored.ensemble, 'gefs079')
+  assert.equal(restored.variable, 'temperatureDaily')
+  assert.equal(restored.date, '2026-10-11')
+  const invalid = read('?prj=cnrfc&prod=WWRF-Ens&ens=Mean&var=sweDaily').projectStateById.cnrfc.family
+  assert.equal(invalid.ensemble, 'ecm000')
+  assert.equal(invalid.variable, 'precipitationDaily')
+  const deterministic = read('?prj=cnrfc&prod=NRT&ens=Mean')
+  assert.equal(new URL(bookmarks.writeStateToUrl(deterministic)).searchParams.has('ens'), false)
+})
+
+test('ensemble controls restrict variables, hide deterministic members and cap dates across years', async () => {
+  const { getProductMembers, getProductVariables, getProductMaxDate, normalizeRasterProduct } = await server.ssrLoadModule('/src/lib/rasterProducts.js')
+  const family = LAYER_FAMILIES.cnrfc
+  assert.deepEqual(Object.keys(getProductVariables(family, 'WWRF-Ens')), ['precipitationDaily', 'temperatureDaily'])
+  for (const product of ['NRT', 'WWRF-ECMWF', 'WWRF-GFS', 'GFS']) assert.deepEqual(getProductMembers(family, product), [])
+  assert.equal(getProductMaxDate(family, 'WWRF-Ens', { boundaryDate: '2026-12-28' }), '2027-01-04')
+  assert.equal(normalizeRasterProduct({ product: 'WWRF-Ens', variable: 'windHourly', temporalMode: 'datetime' }, family).temporalMode, 'date')
+  assert.equal(LAYER_FAMILIES.ucrb.selectors.products.includes('WWRF-Ens'), false)
+})

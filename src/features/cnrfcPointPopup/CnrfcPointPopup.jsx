@@ -49,10 +49,10 @@ export default function CnrfcPointPopup({
     return null
   }
 
-  const tabs = getCnrfcPointPopupTabs()
-  const activeTabId = selectedStation.popup?.activeTabId ?? tabs[0]?.id ?? 'daily'
   const forecastProduct = selectedStation.popup?.forecastProduct ?? CNRFC_POINT_POPUP_FORECAST_PRODUCTS[0].id
-  const activeTabDefinition = getCnrfcPointPopupTabDefinition(activeTabId)
+  const tabs = getCnrfcPointPopupTabs(forecastProduct)
+  const activeTabId = forecastProduct === 'wwrf-ens' ? 'daily' : selectedStation.popup?.activeTabId ?? tabs[0]?.id ?? 'daily'
+  const activeTabDefinition = getCnrfcPointPopupTabDefinition(activeTabId, forecastProduct)
   const activeTabState = selectedStation.popup?.tabDataById?.[activeTabId]
   const exportablePlots = (activeTabDefinition?.plots ?? []).filter(
     (plotDefinition) => plotDefinition.csvDownload?.enabled,
@@ -148,7 +148,7 @@ export default function CnrfcPointPopup({
         </div>
 
         {tabs.map((tab) => {
-          const tabDefinition = getCnrfcPointPopupTabDefinition(tab.id)
+          const tabDefinition = getCnrfcPointPopupTabDefinition(tab.id, forecastProduct)
           const tabState = selectedStation.popup?.tabDataById?.[tab.id]
 
           return (

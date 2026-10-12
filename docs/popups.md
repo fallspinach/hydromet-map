@@ -51,6 +51,24 @@ Characteristics:
 - shared `TimeSeriesPlot`
 - CSV download button exports raw source CSVs used by the active tab
 
+WWRF-Ens provides a Daily plot combining the five NRT variables (temperature,
+precipitation, local runoff, SWE, and soil moisture) with all 200 forecast RUNOFF
+members (`ecm000`–`ecm119` and `gefs000`–`gefs079`). NRT series reuse the standard
+daily colors, axes, units, scaling, and time window. Ensemble RUNOFF shares the
+NRT runoff axis and uses thin dashed lines with nearest-member hover labels. Only NRT
+variables appear in the legend. CSV download includes both full source files.
+Selecting WWRF-Ens from Hourly or Monthly switches to Daily; the existing
+`fprod=wwrf-ens` bookmark field restores the product.
+
+The Hourly tab retains only the current and previous water years of NRT data
+for plotting, anchored to the latest date in the NRT file (water years start
+on October 1). The full gzip file is still downloaded and parsed before older
+rows are discarded; forecast rows and source CSV downloads remain complete.
+
+Negative precipitation values are plotted as zero in all CNRFC point popup tabs
+for both NRT and forecast series. Other variables retain their original values;
+source CSV downloads remain unchanged.
+
 ## CNRFC streamflow popup
 
 Files:
