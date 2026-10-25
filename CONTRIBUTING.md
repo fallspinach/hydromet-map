@@ -14,6 +14,13 @@ scientifically correct and useful.
 Incomplete ideas are welcome. A URL, sample file, screenshot, sketch, or link to
 another visualization is enough to begin a conversation.
 
+## I publish source data
+
+See [Publishing Data for Hydromet Map](docs/data-publishing/README.md) for the
+proposed producer requirements, common data types, specialized examples, and
+transition checklist. This guidance supports coordination with your production
+team; it does not require changes to your pipeline before an initial review.
+
 ## I want to work with an AI coding agent
 
 Ask the agent in ordinary scientific language. For example:

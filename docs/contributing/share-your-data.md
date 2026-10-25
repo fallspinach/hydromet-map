@@ -25,6 +25,12 @@ Useful material can include:
 - fields people should see when they hover or click
 - source attribution, update frequency, limitations, and scientific caveats
 
+## Preparing a repeatable publication
+
+For ongoing datasets, see the [data publishing guidance](../data-publishing/README.md).
+It distinguishes required scientific metadata from recommendations and provides
+a transition path for existing files as well as unfamiliar formats.
+
 ## What happens next
 
 1. An agent or maintainer summarizes the request and flags any assumptions.

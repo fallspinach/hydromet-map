@@ -1,12 +1,14 @@
 # Documentation
 
-This repository currently has three documentation audiences:
+This repository has four documentation audiences:
 
 1. Developer reference
    People working on the framework itself: architecture, shared state, shared UI, and system behavior.
 2. Developer guides
    People adding or customizing projects, layers, layer families, popups, plots, tools, and status panels.
-3. App-user guides
+3. Data-producer publishing guidance
+   People publishing scientific data for integration into the map.
+4. App-user guides
    Future end-user documentation for people who use the map but do not edit code.
 
 ## Developer Reference
@@ -38,6 +40,10 @@ contribute without writing code or using Git:
 - [Share Your Data](./contributing/share-your-data.md)
 - [Review a Map Preview](./contributing/review-a-map-preview.md)
 
+## Data Publishing
+
+- [Publishing Data for Hydromet Map](./data-publishing/README.md) — proposed requirements, recommendations, source inventory, examples and transition checklist.
+
 ## App-User Guides
 
 This section is not built out yet, but the intended home is:
@@ -66,4 +72,4 @@ If you are adding new content within the existing framework:
 5. [Particle Tracer Layers](./particle-tracers.md)
 6. [Popups](./popups.md)
 
-The current docs are intentionally developer-facing. End-user documentation can be added as a separate track without mixing it into the code-oriented material.
+Developer, contributor and producer guidance are separate tracks. End-user documentation remains a future track.

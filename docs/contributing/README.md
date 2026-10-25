@@ -14,6 +14,7 @@ You do not need to:
 Choose the path that fits what you want to do:
 
 - [Share your data or visualization idea](./share-your-data.md)
+- [Publish data for the map](../data-publishing/README.md)
 - [Review a map preview](./review-a-map-preview.md)
 - [Contribute code directly](./direct-code-contribution.md)
 

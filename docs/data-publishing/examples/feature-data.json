@@ -1,0 +1,86 @@
+{
+  "convention": "hydromet-publication-proposal",
+  "conventionVersion": "0.1-draft",
+  "exampleOnly": true,
+  "producer": {
+    "name": "Example Research Group",
+    "contact": "data@example.org"
+  },
+  "reuseTerms": "Fictional example; no actual data assets supplied",
+  "datasetVersion": "1",
+  "revision": "2026-10-25.1",
+  "publishedAt": "2026-10-25T12:00:00Z",
+  "calendar": "gregorian",
+  "availabilitySemantics": "Only listed assets are published; URLs identify immutable revisions",
+  "id": "example-station-data",
+  "title": "Example station daily observations",
+  "type": "feature-associated",
+  "geometry": {
+    "href": "https://example.org/stations/v1/stations.geojson",
+    "mediaType": "application/geo+json",
+    "datasetVersion": "1",
+    "coordinateOrder": "longitude,latitude",
+    "featureIdField": "station_id",
+    "featureIdType": "string"
+  },
+  "variables": {
+    "temperature": {
+      "quantity": "airTemperature",
+      "sourceUnit": "degC",
+      "description": "Daily mean air temperature at 2 m above ground",
+      "column": "T2D",
+      "packing": "none"
+    },
+    "precipitation": {
+      "quantity": "precipitationDepth",
+      "sourceUnit": "mm",
+      "description": "Daily accumulated precipitation",
+      "column": "PREC",
+      "packing": "none"
+    }
+  },
+  "assets": [
+    {
+      "href": "https://example.org/stations/v1/00123/daily.csv.gz",
+      "mediaType": "text/csv",
+      "fileCompression": "gzip",
+      "httpContentEncoding": "identity",
+      "featureId": "00123",
+      "geometryVersion": "1",
+      "join": "One file per station_id; one record per daily interval",
+      "textEncoding": "UTF-8",
+      "delimiter": ",",
+      "header": true,
+      "columns": [
+        "Date",
+        "T2D",
+        "PREC"
+      ],
+      "time": {
+        "column": "Date",
+        "format": "YYYY-MM-DD",
+        "zone": "UTC",
+        "label": "interval-end",
+        "interval": "24 hours preceding 00:00 UTC on the labeled date",
+        "closure": "[start,end)"
+      },
+      "rowOrder": "ascending-time",
+      "duplicateTimes": "not permitted",
+      "missingValues": {
+        "numericColumns": [
+          "T2D",
+          "PREC"
+        ],
+        "tokens": [
+          ""
+        ],
+        "meaning": "No valid measurement; retain as missing"
+      },
+      "coverage": {
+        "firstDate": "2026-10-01",
+        "lastDate": "2026-10-24"
+      },
+      "quantitiesApplyTo": "station observations, not basin averages"
+    }
+  ]
+}

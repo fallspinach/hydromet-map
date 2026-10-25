@@ -1,0 +1,121 @@
+{
+  "convention": "hydromet-publication-proposal",
+  "conventionVersion": "0.1-draft",
+  "exampleOnly": true,
+  "producer": {
+    "name": "Example Research Group",
+    "contact": "data@example.org"
+  },
+  "reuseTerms": "Fictional example; no actual data assets supplied",
+  "datasetVersion": "1",
+  "revision": "2026-10-25.1",
+  "publishedAt": "2026-10-25T12:00:00Z",
+  "calendar": "gregorian",
+  "availabilitySemantics": "Only listed assets are published; URLs identify immutable revisions",
+  "id": "example-precipitation",
+  "title": "Example ensemble daily precipitation",
+  "type": "raster-family",
+  "dimensions": {
+    "model": [
+      "example-model"
+    ],
+    "member": [
+      "member001"
+    ],
+    "variable": [
+      "precipitation"
+    ]
+  },
+  "variables": {
+    "precipitation": {
+      "quantity": "precipitationDepth",
+      "sourceUnit": "mm",
+      "description": "Accumulated precipitation over the stated valid interval",
+      "packing": "none",
+      "colorMapping": {
+        "type": "discrete",
+        "bins": [
+          {
+            "lower": 0,
+            "upper": 10,
+            "includeLower": true,
+            "includeUpper": false,
+            "color": "#ffffccff"
+          },
+          {
+            "lower": 10,
+            "upper": 25,
+            "includeLower": true,
+            "includeUpper": false,
+            "color": "#41b6c4ff"
+          }
+        ],
+        "under": {
+          "below": 0,
+          "color": "#000000ff"
+        },
+        "over": {
+          "atOrAbove": 25,
+          "color": "#253494ff"
+        },
+        "missing": {
+          "color": "#00000000",
+          "meaning": "No valid estimate"
+        },
+        "thresholdUnit": "mm",
+        "resampling": "nearest"
+      }
+    }
+  },
+  "assets": [
+    {
+      "href": "https://example.org/precipitation/v1/run-20261025/member001/20261026.png",
+      "mediaType": "image/png",
+      "compression": "none",
+      "model": "example-model",
+      "member": "member001",
+      "variable": "precipitation",
+      "initializationTime": "2026-10-25T00:00:00Z",
+      "validInterval": {
+        "start": "2026-10-25T00:00:00Z",
+        "end": "2026-10-26T00:00:00Z",
+        "closure": "[start,end)",
+        "label": "end"
+      },
+      "encoding": "precolored-rgba",
+      "width": 256,
+      "height": 256,
+      "pixelProjection": "EPSG:3857",
+      "placement": {
+        "crs": "OGC:CRS84",
+        "cornerOrder": [
+          "top-left",
+          "top-right",
+          "bottom-right",
+          "bottom-left"
+        ],
+        "corners": [
+          [
+            -118,
+            35
+          ],
+          [
+            -117,
+            35
+          ],
+          [
+            -117,
+            34
+          ],
+          [
+            -118,
+            34
+          ]
+        ],
+        "pixelReference": "outer-edges",
+        "rowOrder": "north-to-south"
+      },
+      "missing": "alpha-zero pixels"
+    }
+  ]
+}
