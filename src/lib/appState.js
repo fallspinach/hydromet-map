@@ -152,7 +152,7 @@ export function readStateFromUrl() {
   }
 
   if (familyState && layerFamily) {
-    if (Object.hasOwn(familyVariables, variable)) {
+    if (Object.hasOwn(familyVariables, variable) || (layerFamily?.publicationProfile && variable)) {
       familyState.variable = variable
     }
 

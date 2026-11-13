@@ -8,6 +8,10 @@ requirement to store everything in one file. A publication may combine types.
 
 Examples: CNRFC/UCRB/global model images and OCWD Landsat observations.
 
+See the [raster publishing guide](./raster-families.md) for a producer workflow,
+shared metadata layout, compact labels, Retro/NRT timelines, quality counts and
+validation lessons from the pilots.
+
 **Required:** declare the selected dimensions and actual availability; variable
 quantities/units; image/grid dimensions; projection and georeferencing; pixel
 orientation and footprint; missing pixels; and whether the asset is a precolored
@@ -35,6 +39,10 @@ A palette name, min/max pair, or rendered legend image alone is not enough when
 it leaves the actual mapping ambiguous. Publish the sampled color table or a
 precise, versioned definition. A legend image is a useful optional visual check,
 but numerical thresholds are necessary for app-generated unit-aware labels.
+
+Zero visible pixels must not be used as proof of missing data: valid values may
+all fall in intentionally transparent bins. Declare background, missing and
+hidden-value semantics even when they share the same transparent color.
 
 Keep geographic imagery separate from embedded titles/legends where possible.
 When display units change, the app can convert threshold labels while retaining

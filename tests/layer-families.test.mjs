@@ -175,3 +175,13 @@ test('ensemble controls restrict variables, hide deterministic members and cap d
   assert.equal(normalizeRasterProduct({ product: 'WWRF-Ens', variable: 'windHourly', temporalMode: 'datetime' }, family).temporalMode, 'date')
   assert.equal(LAYER_FAMILIES.ucrb.selectors.products.includes('WWRF-Ens'), false)
 })
+
+test('publication project bookmarks retain metadata-defined variables before loading', () => {
+  const state = read('?prj=ucrbPublicationTest&var=temperature_percentile&d=2026-10-01')
+  assert.equal(state.activeProjectId, 'ucrbPublicationTest')
+  assert.equal(state.projectStateById.ucrbPublicationTest.family.variable, 'temperature_percentile')
+  assert.equal(state.projectStateById.ucrbPublicationTest.family.date, '2026-10-01')
+  assert.equal(state.projectStateById.ucrbPublicationTest.layers.ucrbPublicationTestRaster, true)
+  assert.equal(state.projectStateById.ucrbPublicationTest.layers.ucrbRaster, false)
+  assert.equal(createProjectState('cnrfc').layers.cnrfcRaster, true)
+})

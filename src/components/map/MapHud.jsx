@@ -186,7 +186,7 @@ export default function MapHud({
         </div>
 
         {layerFamily?.kind === 'manifest-raster' && familyVisible ? (
-          <ManifestRasterControls family={layerFamily} state={appState.family}
+          <ManifestRasterControls section={layerFamily.publicationProfile ? 'date' : undefined} family={layerFamily} state={appState.family}
             updateFamily={updateFamily} status={manifestStatus} retry={retryManifest} />
         ) : null}
 
@@ -389,7 +389,11 @@ export default function MapHud({
         ) : null}
       </div>
 
-      <div className={`raster-toolbar${layerFamily?.selectors?.productOptions ? ' raster-toolbar--product-options' : ''}`}>
+      <div className={`raster-toolbar${layerFamily?.selectors?.productOptions ? ' raster-toolbar--product-options' : ''}${layerFamily?.publicationProfile ? ' raster-toolbar--publication' : ''}`}>
+        {layerFamily?.publicationProfile && familyVisible ? (
+          <ManifestRasterControls section="variable" family={layerFamily} state={appState.family}
+            updateFamily={updateFamily} status={manifestStatus} retry={retryManifest} />
+        ) : null}
         {ivtConfig && appState.layers.gfsIvtParticles && appState.family ? (
           <GfsIvtControls
             familyState={appState.family}

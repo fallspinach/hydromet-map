@@ -64,7 +64,9 @@
         },
         "thresholdUnit": "mm",
         "resampling": "nearest"
-      }
+      },
+      "label": "Daily precipitation depth",
+      "shortLabel": "Daily P"
     }
   },
   "assets": [

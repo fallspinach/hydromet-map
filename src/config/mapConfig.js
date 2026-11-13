@@ -23,6 +23,13 @@ export const BASEMAPS = [
 ]
 
 export const ALL_MAP_LAYERS = [
+  ...['cnrfc', 'ucrb'].map(domain => ({
+    id: `${domain}PublicationTestRaster`,
+    label: `${domain.toUpperCase()} Rasters — Publication Test`,
+    type: 'png-overlay',
+    description: 'Evaluation of producer-published raster metadata and images.',
+    symbol: '\u25A0',
+  })),
   {
     id: 'ocwdLandsat8Raster',
     label: 'OCWD Landsat 8',
@@ -811,6 +818,17 @@ export const GFS_IVT_NORTH_PACIFIC = {
 }
 
 export const LAYER_FAMILIES = {
+  ...Object.fromEntries(['cnrfc', 'ucrb'].map(domain => {
+    const id = `${domain}PublicationTest`
+    return [id, {
+      id, label: `${domain.toUpperCase()} Rasters — Publication Test`,
+      kind: 'manifest-raster', publicationProfile: 'hydro-ops-raster-pilot',
+      manifestUrl: `https://cw3e.ucsd.edu/hydro/nrt_hydro/nwm/${domain}/family.json`,
+      raster: { layerId: `${id}Raster`, opacity: 0.7, variables: {} },
+      selectors: { products: [], ensembleTraces: [] },
+      defaultState: { variable: '', date: '', temporalMode: 'date' },
+    }]
+  })),
   ocwdLandsat8: {
     id: 'ocwdLandsat8',
     label: 'OCWD Landsat 8',
@@ -1037,6 +1055,19 @@ function buildDefaultProjectState(projectDefinition) {
 }
 
 export const PROJECTS = {
+  ...Object.fromEntries(['cnrfc', 'ucrb'].map(domain => {
+    const id = `${domain}PublicationTest`
+    const layers = [`${id}Raster`, `${domain}Region`, `${domain}Rivers`]
+    return [id, {
+      id, label: `${domain.toUpperCase()} Publication Test`,
+      documentTitle: `${domain.toUpperCase()} Raster Publication Test`,
+      statusButtonEnabled: false,
+      about: { title: 'Raster Publication Test', markdownUrl: 'about/publication-test.md' },
+      defaultView: { center: domain === 'cnrfc' ? '-119,38' : '-109.5,39.5', zoom: '5', bearing: '0', pitch: '0' },
+      defaultBasemapId: 'terrain', defaultTerrainEnabled: true, defaultProjection: 'mercator',
+      layerFamilyId: id, availableLayerIds: layers, defaultVisibleLayerIds: layers,
+    }]
+  })),
   arRecon: {
     id: 'arRecon',
     label: 'AR Recon',
@@ -1207,6 +1238,26 @@ export const PROJECTS = {
     availableLayerIds: ['ucrbRaster', 'ucrbRegion', 'ucrbRivers', 'yampaRegion', 'yampaPoints'],
     defaultVisibleLayerIds: ['ucrbRaster', 'ucrbRegion', 'ucrbRivers', 'yampaRegion', 'yampaPoints'],
   },
+  conus: {
+    id: 'conus',
+    label: 'CONUS',
+    documentTitle: 'CONUS Hydrology Explorer',
+    statusButtonEnabled: false,
+    logoUrl: 'https://cw3e.ucsd.edu/images/CW3E_Logos/5-Vertical-Acronym_Only/Digital/PNG/CW3E-Logo-Vertical-Acronym-FullColor.png',
+    logoAlt: 'Center for Western Weather and Water Extremes (CW3E)',
+    logoHref: 'https://cw3e.ucsd.edu',
+    defaultView: {
+      center: '-98,39',
+      zoom: '3.5',
+      bearing: '0',
+      pitch: '0',
+    },
+    defaultBasemapId: 'terrain',
+    defaultTerrainEnabled: true,
+    defaultProjection: 'mercator',
+    availableLayerIds: ['conusRivers', 'hucBasins'],
+    defaultVisibleLayerIds: ['conusRivers', 'hucBasins'],
+  },
   global: {
     id: 'global',
     label: 'Global',
@@ -1239,7 +1290,6 @@ export const PROJECTS = {
       'swordReaches',
       'gsha',
       'geodar',
-      'hucBasins',
     ],
     defaultVisibleLayerIds: ['globalRaster', 'gradesHydroDl', 'gsha'],
   },

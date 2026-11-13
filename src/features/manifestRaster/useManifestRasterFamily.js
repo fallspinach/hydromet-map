@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { buildManifestRasterFamily } from '../../lib/manifestRaster'
+import { loadPublicationRaster } from '../../lib/publicationRaster'
 import { fetchJsonNoCache } from '../../lib/network'
 
 export default function useManifestRasterFamily(definition) {
@@ -11,9 +12,14 @@ export default function useManifestRasterFamily(definition) {
     const controller = new AbortController()
     async function load() {
       try {
-        const response = await fetchJsonNoCache(url, { signal: controller.signal })
-        if (!response.ok) throw new Error(`HTTP ${response.status}`)
-        const family = buildManifestRasterFamily(definition, await response.json())
+        const readJson = async (href) => {
+          const response = await fetchJsonNoCache(href, { signal: controller.signal })
+          if (!response.ok) throw new Error(`HTTP ${response.status}`)
+          return response.json()
+        }
+        const family = definition.publicationProfile
+          ? await loadPublicationRaster(definition, readJson)
+          : buildManifestRasterFamily(definition, await readJson(url))
         if (!controller.signal.aborted) setResults((current) => ({ ...current, [url]: { family } }))
       } catch (error) {
         if (!controller.signal.aborted) setResults((current) => ({ ...current, [url]: { error: error.message } }))

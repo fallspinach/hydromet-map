@@ -2303,3 +2303,19 @@ button:disabled {
   flex-wrap: wrap;
   max-width: calc(100vw - 4.5rem);
 }
+
+/* Publication variable labels can be longer than the earlier Landsat labels. */
+.manifest-raster-controls__inputs { flex-wrap: wrap; }
+.manifest-raster-controls select { max-width: 100%; }
+
+.manifest-raster-dates { display: flex; align-items: center; gap: 0.2rem; }
+.manifest-raster-controls__inputs > select { width: auto; flex: 0 1 auto; }
+
+.publication-date-controls { pointer-events: auto; }
+.date-row--publication { display: flex; flex-direction: row; flex-wrap: nowrap; }
+.date-row--publication button:disabled { opacity: 0.4; cursor: default; }
+.raster-toolbar--publication { display: flex; flex-wrap: wrap; }
+.scene-tools:has(.publication-date-controls) {
+  flex-wrap: wrap;
+  max-width: calc(100vw - 4.5rem);
+}

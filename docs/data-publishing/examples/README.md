@@ -15,3 +15,7 @@ for every dataset. Use the [common contract](../common-contract.md) and
 [type-specific requirements](../common-types.md) to complete a real publication.
 The [specialized examples](../specialized-data.md) link to existing implemented
 contracts for encoded fields and 3D observations.
+
+For the implemented Hydro Ops pilot profile and its limitations, see the
+[raster publishing guide](../raster-families.md#current-adapter-boundary).
+Do not copy these fictional examples as runtime manifests for that adapter.

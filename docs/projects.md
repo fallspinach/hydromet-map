@@ -71,10 +71,20 @@ Default family variable:
 
 This project uses the `ucrb` layer family but presents a Yampa-focused layer set and view.
 
+### `conus`
+
+Includes `conusRivers` (NWM Rivers (CONUS)) and `hucBasins` (HUC Basins),
+both visible by default. Opens over the contiguous United States with the
+Terrain basemap, terrain enabled, and Mercator projection. This project has
+no raster family. Its bookmark project ID is `conus` (`?prj=conus`).
+
+HUC Basins is no longer offered in Global; it remains available in CW3E Observations.
+
 ### `global`
 
 Includes:
 
+- `globalRaster`
 - `gradesHydroDl`
 - `meritBasins`
 - `swordReaches`
@@ -86,9 +96,9 @@ Includes:
 
 Layer family:
 
-- none
+- `globalHydro`
 
-This project is intended for large-domain hydrography exploration without a raster overlay.
+This project combines global raster overlays with large-domain hydrography exploration.
 
 Current popup coverage:
 
@@ -269,3 +279,30 @@ The default is the OCWD Landsat 8 raster, NDMI, at the latest nonempty date.
 CNRFC raster and streamflow remain selectable, while static context layers and
 monitoring wells are independent. Existing CNRFC-based OCWD bookmarks still load.
 See [family switching](./raster.md#project-level-family-switching) for reuse rules.
+
+## Raster publication test projects
+
+`cnrfcPublicationTest` and `ucrbPublicationTest` are separate evaluation projects.
+Each has its own manifest raster family and existing region/river context layers;
+legacy raster families and forecast-point popups are not part of these projects.
+Open `?prj=cnrfcPublicationTest` or `?prj=ucrbPublicationTest`.
+
+The shared Hydro Ops 0.4 adapter reads family metadata, the variable dictionary,
+legends, availability and the preferred timeline from
+`https://cw3e.ucsd.edu/hydro/nrt_hydro/nwm/`. It uses published variable labels,
+image coordinates, discrete RGBA colors, and actual available dates. The current
+profile supports one product/resolution/legend per variable and uses the
+producer-selected preferred stream. Ambiguous series fail explicitly instead
+of silently overwriting assets. Additional selector axes require an adapter
+extension when they are published.
+
+Date controls use the CNRFC layout and icons, with the variable selector on
+the second row. Daily variables support day and calendar-month navigation;
+monthly variables show a year/month label, disable day buttons, and select only
+published month-start intervals. Navigation clamps to the available range and
+skips unpublished dates in the direction of travel. All-transparent images remain available. Compact selector labels prefer producer-provided `shortLabel` values, with
+temporary abbreviations for the six pilot variables. Full names remain in
+tooltips; scientific/evaluation caveats are in the project About dialog.
+Bookmarks retain variable IDs until metadata arrives, then validate selections
+against the loaded timeline. The current stable web path must remain fixed for
+reproducible tests; use a revision-specific path for future releases.

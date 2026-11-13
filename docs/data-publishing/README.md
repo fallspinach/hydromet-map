@@ -1,6 +1,6 @@
 # Publishing Data for Hydromet Map
 
-**Status: proposed publication convention, draft 0.1 — 2026-10-25.**
+**Status: proposed publication convention, draft 0.2 — 2026-11-13.**
 This is guidance for coordination with data producers, not a claim that the app
 already reads a universal manifest. Existing source formats continue to work
 through their existing integrations. New manifest layouts need an agreed adapter
@@ -16,6 +16,8 @@ so the map can interpret their outputs reliably.
 1. Read the [common publication contract](./common-contract.md).
 2. Choose a [common data type](./common-types.md): raster family, static vector,
    vector family, or feature-associated data.
+   For PNG families, use the [practical raster publishing guide](./raster-families.md),
+   refined through the CNRFC/UCRB pilots.
 3. For a new encoding or visualization, use the
    [specialized-data integration process](./specialized-data.md).
 4. Use the [transition and acceptance checklist](./transition.md) to coordinate

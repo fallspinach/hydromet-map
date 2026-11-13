@@ -22,7 +22,11 @@ simultaneous rewrite of all producers.
 7. **Stabilize the specification.** Reconcile pilot feedback, freeze field names,
    publish a JSON Schema and validator, and version future breaking changes.
 
-Recommended first pilots: CNRFC PNG/ensemble CSV publications, OCWD Landsat's
+The CNRFC/UCRB PNG pilots now have a dedicated
+[raster handoff guide](./raster-families.md). Keep their test projects separate
+from existing projects until scientific and application acceptance are complete.
+
+Additional pilot coverage: CNRFC ensemble CSV publications, OCWD Landsat's
 existing manifest, and a geometry-plus-attribute streamflow dataset. Together
 these exercise unit conversion, color semantics, sparse dimensions and joins.
 Specialized datasets can proceed through their own extension review in parallel.

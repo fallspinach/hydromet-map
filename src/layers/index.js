@@ -36,6 +36,8 @@ import yampaPointsLayer from './yampaPointsLayer'
 
 export const MAP_LAYER_MODULES = [
   createManifestRasterLayer('ocwdLandsat8Raster'),
+  createManifestRasterLayer('cnrfcPublicationTestRaster'),
+  createManifestRasterLayer('ucrbPublicationTestRaster'),
   gfsIvtParticlesLayer,
   arRecon3dLayer,
   cnrfcBasinsLayer,
