@@ -7,6 +7,8 @@ missing-value choices to a real product without producer confirmation.
 
 - [Raster example](./raster-family.json): a sparse family listing one published
   model/member/variable/date combination with discrete PNG color meanings.
+- [Self-contained SWE collection](./feature-time-series/README.md): fictional
+  station geometry, CSV, metadata and expected masked/converted values.
 - [Feature-data example](./feature-data.json): station geometry and a daily CSV
   linked by feature ID, with source-unit and missing-value declarations.
 

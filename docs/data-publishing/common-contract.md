@@ -68,6 +68,13 @@ should derive from source/canonical values, not repeatedly convert displayed
 numbers. A data download should state whether it contains original or converted
 values; the existing raw-source download remains an original-file operation.
 
+Physical validity bounds must declare units, boundary inclusion and validation
+stage. Separate them from expected/climatological ranges and suggested plot
+limits: an unusual value need not be invalid, and changing axis limits must not
+mask data. Preserve invalid values' reasons and source flags; use the
+[time-series validation workflow](./feature-time-series.md#variables-units-and-validation)
+for explicit decoding and masking order.
+
 ## Time and statistical meaning
 
 **Required where applicable:** distinguish observation/analysis time, forecast

@@ -1,6 +1,6 @@
 # Publishing Data for Hydromet Map
 
-**Status: proposed publication convention, draft 0.2 — 2026-11-13.**
+**Status: proposed publication convention, draft 0.3 — 2026-11-14.**
 This is guidance for coordination with data producers, not a claim that the app
 already reads a universal manifest. Existing source formats continue to work
 through their existing integrations. New manifest layouts need an agreed adapter
@@ -18,6 +18,9 @@ so the map can interpret their outputs reliably.
    vector family, or feature-associated data.
    For PNG families, use the [practical raster publishing guide](./raster-families.md),
    refined through the CNRFC/UCRB pilots.
+   For station, reach or basin series, use the
+   [feature time-series guide](./feature-time-series.md), with a separate
+   [indexed-binary profile](./indexed-feature-time-series.md) for large collections.
 3. For a new encoding or visualization, use the
    [specialized-data integration process](./specialized-data.md).
 4. Use the [transition and acceptance checklist](./transition.md) to coordinate

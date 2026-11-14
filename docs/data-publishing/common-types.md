@@ -100,6 +100,12 @@ attribute publication, including percentile definitions where used.
 
 ## Data associated with vector features
 
+Use the [feature time-series guide](./feature-time-series.md) for a practical
+CSV-first publication contract covering observations, model estimates, forecasts,
+quality rules and unit-aware presentation. The
+[indexed-binary guide](./indexed-feature-time-series.md) treats large-network
+retrieval separately.
+
 Examples: station CSVs, basin forecasts, river hydrographs, well observations,
 ensemble forecasts, climatology curves, and summary tables/maps.
 

@@ -1,0 +1,166 @@
+{
+  "convention": "hydromet-feature-timeseries-proposal",
+  "conventionVersion": "0.1-draft",
+  "exampleOnly": true,
+  "id": "fictional-swe-stations",
+  "title": "Fictional station SWE observations",
+  "type": "feature-associated-time-series",
+  "description": "Illustrative daily snapshots; NOT CDEC data or a statement of CDEC conventions.",
+  "producer": {
+    "name": "Example Research Group",
+    "contact": "data@example.org"
+  },
+  "reuseTerms": "Fictional test fixture only",
+  "revision": "example-1",
+  "publishedAt": "2026-11-14T00:00:00Z",
+  "processingVersion": "example-1",
+  "source": {
+    "kind": "observation",
+    "network": "fictional",
+    "method": "Synthetic values for decoder validation"
+  },
+  "geometry": {
+    "href": "features.geojson",
+    "mediaType": "application/geo+json",
+    "datasetVersion": "example-1",
+    "crs": "OGC:CRS84",
+    "coordinateOrder": "longitude,latitude",
+    "featureIdField": "station_id",
+    "featureIdType": "string",
+    "attributes": {
+      "station_id": {
+        "type": "string",
+        "description": "Stable station identifier"
+      },
+      "name": {
+        "type": "string",
+        "description": "Station name"
+      }
+    }
+  },
+  "variables": {
+    "swe": {
+      "label": "Snow water equivalent",
+      "shortLabel": "SWE",
+      "quantity": "snow_water_equivalent_depth",
+      "unit": "mm",
+      "column": "SWE",
+      "spatialSupport": "Point station observation, not basin mean",
+      "temporalStatistic": "instantaneous snapshot",
+      "packing": {
+        "scale": 1,
+        "offset": 0,
+        "formula": "physical = stored * scale + offset"
+      },
+      "validRange": {
+        "minimum": 0,
+        "includeMinimum": true,
+        "maximum": null,
+        "unit": "mm",
+        "stage": "decoded-physical-value",
+        "onViolation": "mask-and-retain-reason"
+      },
+      "missingTokens": [
+        "",
+        "-9999"
+      ],
+      "qualityColumn": "SWE_QC",
+      "suggestedDisplayUnits": [
+        "mm",
+        "in"
+      ]
+    }
+  },
+  "quality": {
+    "flags": {
+      "good": {
+        "exclude": false,
+        "meaning": "Accepted fictional observation"
+      },
+      "provisional": {
+        "exclude": false,
+        "meaning": "Retain but mark provisional"
+      },
+      "suspect": {
+        "exclude": true,
+        "meaning": "Excluded by this example publication policy"
+      },
+      "missing": {
+        "exclude": true,
+        "meaning": "No observation"
+      }
+    },
+    "unknownFlag": "mask-and-retain-reason",
+    "multipleFlagsPerValue": false
+  },
+  "interpretationOrder": [
+    "Recognize missing tokens before parsing values",
+    "Apply quality exclusions and retain flags",
+    "Apply packing to remaining values",
+    "Validate physical range; retain invalid source value and reason",
+    "Convert valid native values for display only"
+  ],
+  "assets": [
+    {
+      "id": "station-00123-example",
+      "href": "00123.csv",
+      "mediaType": "text/csv",
+      "fileCompression": "none",
+      "httpContentEncoding": "identity",
+      "featureId": "00123",
+      "geometryVersion": "example-1",
+      "variables": [
+        "swe"
+      ],
+      "layout": "wide",
+      "featureIdLocation": "asset-metadata",
+      "textEncoding": "UTF-8",
+      "delimiter": ",",
+      "quoteCharacter": "\"",
+      "header": true,
+      "decimalSeparator": ".",
+      "columns": {
+        "time": {
+          "type": "string",
+          "role": "time"
+        },
+        "SWE": {
+          "type": "number-or-declared-missing-token",
+          "variable": "swe"
+        },
+        "SWE_QC": {
+          "type": "string",
+          "role": "quality-flag"
+        }
+      },
+      "time": {
+        "column": "time",
+        "format": "ISO-8601 with explicit UTC offset",
+        "calendar": "gregorian",
+        "zone": "UTC",
+        "meaning": "Observation instant at 12:00 UTC, not a daily mean or accumulation",
+        "expectedCadence": "P1D"
+      },
+      "recordKey": [
+        "featureId",
+        "time"
+      ],
+      "rowOrder": "ascending-time",
+      "duplicateRecords": "reject",
+      "missingRecords": "Scheduled sample absent; do not fill or interpolate",
+      "connectAcrossMissing": false,
+      "coverage": {
+        "start": "2026-10-01T12:00:00Z",
+        "end": "2026-10-06T12:00:00Z",
+        "closure": "[start,end]",
+        "rows": 6
+      }
+    }
+  ],
+  "publication": {
+    "immutable": true,
+    "updatePolicy": "No updates; fictional fixed fixture",
+    "availability": "Only listed assets exist; no implied other stations or dates"
+  },
+  "downloadPolicy": "Raw CSV remains in mm with original values and flags; converted exports must declare units and validation policy"
+}

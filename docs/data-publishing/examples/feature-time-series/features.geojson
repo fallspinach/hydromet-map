@@ -1,0 +1,20 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "00123",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -120,
+          39
+        ]
+      },
+      "properties": {
+        "station_id": "00123",
+        "name": "Fictional SWE Station"
+      }
+    }
+  ]
+}

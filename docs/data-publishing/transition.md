@@ -31,6 +31,12 @@ existing manifest, and a geometry-plus-attribute streamflow dataset. Together
 these exercise unit conversion, color semantics, sparse dimensions and joins.
 Specialized datasets can proceed through their own extension review in parallel.
 
+For feature-associated series, start with the
+[CSV-first guide](./feature-time-series.md) and a small observation or model
+collection. A snow-pillow SWE pilot can validate feature joins, missing/invalid
+rules and compatible units before adding model comparisons and climatology.
+Keep the existing snow popup available until the replacement is accepted.
+
 ## Producer handoff checklist
 
 - [ ] Dataset description, responsible contact, attribution and reuse terms.
