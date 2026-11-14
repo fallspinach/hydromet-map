@@ -823,7 +823,7 @@ export const LAYER_FAMILIES = {
     return [id, {
       id, label: `${domain.toUpperCase()} Rasters — Publication Test`,
       kind: 'manifest-raster', publicationProfile: 'hydro-ops-raster-pilot',
-      manifestUrl: `https://cw3e.ucsd.edu/hydro/nrt_hydro/nwm/${domain}/family.json`,
+      manifestUrl: `https://cw3e.ucsd.edu/hydro/hydro_ops/nwm/${domain}/family.json`,
       raster: { layerId: `${id}Raster`, opacity: 0.7, variables: {} },
       selectors: { products: [], ensembleTraces: [] },
       defaultState: { variable: '', date: '', temporalMode: 'date' },

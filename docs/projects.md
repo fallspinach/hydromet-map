@@ -289,7 +289,7 @@ Open `?prj=cnrfcPublicationTest` or `?prj=ucrbPublicationTest`.
 
 The shared Hydro Ops 0.4 adapter reads family metadata, the variable dictionary,
 legends, availability and the preferred timeline from
-`https://cw3e.ucsd.edu/hydro/nrt_hydro/nwm/`. It uses published variable labels,
+`https://cw3e.ucsd.edu/hydro/hydro_ops/nwm/`. It uses published variable labels,
 image coordinates, discrete RGBA colors, and actual available dates. The current
 profile supports one product/resolution/legend per variable and uses the
 producer-selected preferred stream. Ambiguous series fail explicitly instead

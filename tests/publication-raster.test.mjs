@@ -53,3 +53,10 @@ test('calendar navigation clamps month ends and range boundaries and skips gaps'
   assert.equal(stepPublicationDate('2026-01-31', dates, -1, 'month'), '2026-01-31')
   assert.equal(stepPublicationDate('2026-03-31', dates, 1, 'month'), '2026-03-31')
 })
+
+test('fresh selections use latest available date while explicit bookmark dates survive', async () => {
+  const family = await load(fixture())
+  assert.equal(normalizeManifestSelection({ variable: '', date: '' }, family).date, '2026-10-03')
+  assert.equal(normalizeManifestSelection({ variable: 'rank', date: '' }, family).date, '2026-10-01')
+  assert.equal(normalizeManifestSelection({ variable: 'rain', date: '2026-10-01' }, family).date, '2026-10-01')
+})
