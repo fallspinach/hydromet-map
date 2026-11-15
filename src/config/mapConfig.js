@@ -1,3 +1,4 @@
+import { CDEC_SWE_LAYERS } from './publicationTimeSeries'
 import { normalizeProjectFamilies } from '../lib/projectFamilies'
 import { GRADES_BINARY_DESCRIPTOR_URL } from '../lib/gradesBinaryData'
 
@@ -23,6 +24,11 @@ export const BASEMAPS = [
 ]
 
 export const ALL_MAP_LAYERS = [
+  ...CDEC_SWE_LAYERS.map(layer => ({
+    id: layer.id, label: layer.label, type: 'geojson',
+    description: 'Published snow water equivalent observations.',
+    symbol: layer.method === 'snow_course' ? '○' : '●', symbolColor: layer.color,
+  })),
   ...['cnrfc', 'ucrb'].map(domain => ({
     id: `${domain}PublicationTestRaster`,
     label: `${domain.toUpperCase()} Rasters — Publication Test`,
@@ -1057,14 +1063,16 @@ function buildDefaultProjectState(projectDefinition) {
 export const PROJECTS = {
   ...Object.fromEntries(['cnrfc', 'ucrb'].map(domain => {
     const id = `${domain}PublicationTest`
-    const layers = [`${id}Raster`, `${domain}Region`, `${domain}Rivers`]
+    const layers = [`${id}Raster`, `${domain}Region`, `${domain}Rivers`,
+      ...(domain === 'cnrfc' ? CDEC_SWE_LAYERS.map(layer => layer.id) : [])]
     return [id, {
       id, label: `${domain.toUpperCase()} Publication Test`,
-      documentTitle: `${domain.toUpperCase()} Raster Publication Test`,
+      hideFromProjectSwitcher: true,
+      documentTitle: `${domain.toUpperCase()} Publication Test`,
       statusButtonEnabled: false,
-      about: { title: 'Raster Publication Test', markdownUrl: 'about/publication-test.md' },
+      about: { title: 'Data Publication Test', markdownUrl: 'about/publication-test.md' },
       defaultView: { center: domain === 'cnrfc' ? '-119,38' : '-109.5,39.5', zoom: '5', bearing: '0', pitch: '0' },
-      defaultBasemapId: 'terrain', defaultTerrainEnabled: true, defaultProjection: 'mercator',
+      defaultBasemapId: 'flat', defaultTerrainEnabled: false, defaultProjection: 'mercator',
       layerFamilyId: id, availableLayerIds: layers, defaultVisibleLayerIds: layers,
     }]
   })),
@@ -1295,7 +1303,9 @@ export const PROJECTS = {
   },
 }
 
-export const PROJECT_OPTIONS = Object.values(PROJECTS).map(({ id, label }) => ({ id, label }))
+export const PROJECT_OPTIONS = Object.values(PROJECTS)
+  .filter((project) => !project.hideFromProjectSwitcher)
+  .map(({ id, label }) => ({ id, label }))
 export const DEFAULT_PROJECT_ID = 'global'
 
 export function getProjectDefinition(projectId = DEFAULT_PROJECT_ID) {

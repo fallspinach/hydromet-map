@@ -1,0 +1,96 @@
+CDEC SWE publication test integration
+====================================
+
+Project/bookmark ID: cnrfcPublicationTest (CNRFC Publication Test)
+Layer IDs:
+  cdecSwePublicationTest (snow pillows; preserves the existing layer ID)
+  cdecSnowCoursePublicationTest (snow courses)
+
+The test reader supports the CDEC SWE full-history two-layer publication under
+the draft feature-time-series convention. It is not a general implementation of
+every option proposed by the publishing guidance.
+
+Configured publication:
+https://cw3e.ucsd.edu/hydro/hydro_ops/observations/cdec/swe/catalog.json
+
+The URL is CDEC_SWE_CATALOG_URL in src/config/publicationTimeSeries.js. Set
+VITE_CDEC_SWE_CATALOG_URL before starting Vite/building to override it.
+Collection paths resolve relative to the catalog; geometry and CSV paths
+resolve relative to their collection. No producer files are bundled in the app.
+
+Open /?prj=cnrfcPublicationTest and click a station. Snow pillows use filled
+pink points; snow courses use dark magenta rings. Where visible instruments overlap,
+the popup's Observation selector switches between them. Daily pillow readings
+use lines; course surveys use markers joined across consecutive reporting months only.
+Absent months and missing values break the line; no values are filled in.
+Reporting dates remain calendar dates across browser timezones. Hover text
+also includes the published observation date and raw provider flag.
+
+CSV files are fetched on popup opening/observation selection, not hover.
+SWE uses the authoritative, already-masked mm column; inches are mm / 25.4.
+Missing and negative values remain gaps; zero remains valid. Canonical
+minimum/maximum range metadata and inclusive/exclusive endpoints are enforced.
+Unknown display statuses, duplicate keys, malformed values, and mismatched
+series records fail visibly. Raw provider flags are not interpreted as QC.
+
+Popup bookmarks use existing pop/tab parameters plus punit=customary only for the
+active test popup. Metric/US customary remains a popup choice, not a project-wide setting.
+The saved popup state stores unitSystem; SWE maps this to mm/in. Older punit=in
+bookmarks still restore US customary. Axis and hover labels show physical units.
+Old sensor bookmarks fall back to an available series within the layer.
+The former standalone CDEC project bookmark redirects to cnrfcPublicationTest.
+Operational snow layers, forecast-point popups, and raster tests are unchanged.
+
+The standard download button downloads the selected observation's original CSV
+histories (one gzipped asset per station), retaining source columns and quality
+flags. Downloads decompress to readable .csv files with station/sensor/history
+filenames. Uncompressed CSV partitions remain supported for older pilots. Display-unit changes do
+not modify downloaded data.
+
+CNRFC and UCRB Publication Test projects are hidden from the project switcher.
+Open them directly with ?prj=cnrfcPublicationTest or ?prj=ucrbPublicationTest.
+Both default to Flat with terrain disabled.
+
+Remote historical publication retention is not required. A stable hosted
+location may serve the current publication; publish assets before its manifest
+and reload the app to pick up a replacement. Local producer release practices
+are separate from web retention.
+
+Validation:
+  node --test tests/publicationTimeSeries.test.js tests/csvData.test.js
+  npm run build
+
+Local browser checks without copying producer files into the app:
+  1. Start Vite with VITE_CDEC_SWE_CATALOG_URL set to
+     https://example.test/cdec-swe/catalog.json
+  2. Run:
+     node tests/publicationTimeSeries.browser.mjs /absolute/path/to/publication http://127.0.0.1:5173 full
+
+The check intercepts /cdec-swe/ requests and serves local publication files.
+It checks both layers, overlap selection, unit conversion, course markers,
+dates/gaps, CSV downloads, bookmarks, and mobile width in Los Angeles and
+Honolulu timezones. Screenshots: /tmp/cdec-swe-1200.png and -390.png.
+
+Live browser verification (start Vite without the local URL override):
+  node tests/publicationTimeSeries.browser.mjs --live http://127.0.0.1:5173 full
+
+The hosted catalog responds with application/json and allows cross-origin
+access. Browser verification also exercises hosted collections, geometry and
+CSV requests through the application.
+
+Full-history integration:
+  Hosted release cdec-swe-20261115-r1: 131 snow pillows and 260 snow courses.
+  Both hydro-ops-observation-index-v1 and the earlier pilot index are accepted.
+  Assets declare text/csv with fileCompression gzip or none.
+  CAP has 20,772 daily records and 447 monthly survey records.
+  Hosted checks passed at 1200px and 390px, including unit-system selection,
+  observation switching, legacy bookmarks, and decompressed CSV downloads.
+
+Station interactions:
+  Pillow radius 3.5px; course ring radius 4.5px; invisible hit radius 14px.
+  Hover highlights the nearest SWE station and shows available metadata only.
+  The current publication supplies basin, elevation_raw, and operator, but no
+  hydro-area field. The adapter accepts hydro_area, hydroArea, or HydroArea
+  when provided. Hover does not fetch time series and clears on pointer leave.
+  Click selects the nearest SWE station within overlapping hit targets; the
+  Observation selector retains access to neighboring/co-located instruments.

@@ -1,3 +1,4 @@
+import publicationTimeSeriesLayers from './publicationTimeSeriesLayer'
 import { createManifestRasterLayer } from './manifestRasterLayer'
 import arRecon3dLayer from './arRecon3dLayer'
 import b120BasinsLayer from './b120BasinsLayer'
@@ -35,6 +36,7 @@ import yampaRegionLayer from './yampaRegionLayer'
 import yampaPointsLayer from './yampaPointsLayer'
 
 export const MAP_LAYER_MODULES = [
+  ...publicationTimeSeriesLayers,
   createManifestRasterLayer('ocwdLandsat8Raster'),
   createManifestRasterLayer('cnrfcPublicationTestRaster'),
   createManifestRasterLayer('ucrbPublicationTestRaster'),

@@ -2319,3 +2319,16 @@ button:disabled {
   flex-wrap: wrap;
   max-width: calc(100vw - 4.5rem);
 }
+
+.publication-series-status {
+  position: absolute;
+  bottom: 45px;
+  left: 12px;
+  max-width: calc(100% - 24px);
+  padding: 8px;
+  background: white;
+  color: #333;
+  z-index: 2;
+}
+.publication-series-map-popup { z-index: 7; }
+.publication-series-map-popup .maplibregl-popup-close-button { color: #10222f; }

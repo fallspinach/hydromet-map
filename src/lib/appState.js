@@ -1,3 +1,4 @@
+import { CDEC_SWE_LAYERS } from '../config/publicationTimeSeries'
 import { getProductMembers, normalizeRasterProduct } from './rasterProducts'
 import { getFamilyLayerIds, getFamilyState, getProjectFamilyIds, normalizeProjectFamilies } from './projectFamilies'
 import {
@@ -69,6 +70,8 @@ export function readPopupStateFromUrl() {
     longitude,
     latitude,
     tabId: tabId || null,
+    unitSystem: CDEC_SWE_LAYERS.some(layer => layer.id === ownerLayerId)
+      ? (['customary', 'in'].includes(params.get('punit')) ? 'customary' : 'metric') : null,
     forecastProduct: forecastProduct || null,
     forecastUpdateDate: forecastUpdateDate || null,
     forecastPostProcessing: forecastPostProcessing || null,
@@ -83,7 +86,8 @@ export function readStateFromUrl() {
   }
 
   const nextState = createDefaultAppState()
-  const projectParam = getFirstParam(params, 'prj', 'project')
+  const requestedProject = getFirstParam(params, 'prj', 'project')
+  const projectParam = requestedProject === 'cdecSwePublicationTest' ? 'cnrfcPublicationTest' : requestedProject
 
   if (getProjectDefinition(projectParam)?.id) {
     nextState.activeProjectId = getProjectDefinition(projectParam).id
@@ -298,6 +302,10 @@ export function writeStateToUrl(state, { selectedStation = null } = {}) {
 
     if (selectedStation?.popup?.activeTabId) {
       params.set('tab', selectedStation.popup.activeTabId)
+    }
+
+    if (CDEC_SWE_LAYERS.some(layer => layer.id === selectedStationLayerId) && selectedStation?.popup?.unitSystem === 'customary') {
+      params.set('punit', 'customary')
     }
 
     if (selectedStation?.popup?.forecastProduct) {

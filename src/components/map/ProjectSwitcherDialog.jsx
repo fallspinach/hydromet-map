@@ -13,6 +13,7 @@ export default function ProjectSwitcherDialog({
   const [passcode, setPasscode] = useState('')
   const [isUnlocked, setIsUnlocked] = useState(false)
   const [error, setError] = useState('')
+  const isActiveProjectListed = PROJECT_OPTIONS.some((project) => project.id === activeProjectId)
 
   useEffect(() => {
     if (!open) {
@@ -77,12 +78,13 @@ export default function ProjectSwitcherDialog({
           <span>Project</span>
           <select
             autoFocus
-            value={activeProjectId}
+            value={isActiveProjectListed ? activeProjectId : ''}
             onChange={(event) => {
               onChangeProject(event.target.value)
               onClose()
             }}
           >
+            {!isActiveProjectListed && <option value="" disabled>Select a project</option>}
             {PROJECT_OPTIONS.map((project) => (
               <option key={project.id} value={project.id}>
                 {project.label}
